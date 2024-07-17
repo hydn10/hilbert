@@ -1,4 +1,4 @@
-{ lib, stdenv, cmake }:
+{ lib, stdenv, cmake, fftw }:
 
 let
   vcpkgFile = builtins.fromJSON (builtins.readFile ./vcpkg.json);
@@ -14,6 +14,8 @@ in
     inherit version;
 
     src = lib.cleanSource ./.;
+
+    buildInputs = [ fftw ];
 
     nativeBuildInputs = [ cmake ];
   }

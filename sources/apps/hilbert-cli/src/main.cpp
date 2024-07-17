@@ -11,9 +11,9 @@ main()
   constexpr double DURATION = 1;
   constexpr uint32_t SAMPLING_RATE = 5000;
 
-  auto data = hilbertcli::generate_chirp(20., 60., DURATION, SAMPLING_RATE);
+  auto const data = hilbertcli::generate_chirp(20., 60., DURATION, SAMPLING_RATE);
 
-  auto num_samples = data.size();
+  auto const num_samples = data.size();
 
   std::vector<double> freq(num_samples);
   std::vector<double> amp(num_samples);

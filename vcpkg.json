@@ -2,7 +2,6 @@
   "name": "hilbert",
   "version": "0.1.0",
   "dependencies": [
-    "eigen3",
     "fftw3"
   ]
 }

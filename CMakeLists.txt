@@ -6,4 +6,6 @@ string (JSON VERSION_FROM_JSON GET ${VCPKG_JSON_STRING} version)
 
 project (${PROJ_NAME_FROM_JSON} LANGUAGES CXX VERSION ${VERSION_FROM_JSON})
 
+find_package(FFTW3 REQUIRED)
+
 add_subdirectory (sources)

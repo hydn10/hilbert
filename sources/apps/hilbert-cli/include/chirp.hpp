@@ -6,23 +6,24 @@
 #include <vector>
 #include <numbers>
 #include <cmath>
+#include <concepts>
 
 
 namespace hilbertcli
 {
 
-template<typename Float>
+template<std::floating_point Float>
 std::vector<Float>
 generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint32_t sampling_rate)
 {
-  size_t num_samples = static_cast<size_t>(duration * sampling_rate);
+  auto const num_samples = static_cast<size_t>(duration * sampling_rate);
 
-  auto r = std::views::iota((size_t)0, num_samples)
+  auto const r = std::views::iota((size_t)0, num_samples)
       | std::views::transform([&](size_t idx)
       {
-        Float t = static_cast<Float>(idx) / sampling_rate; // Time in seconds
-        Float frequency = frequency_start + (frequency_end - frequency_start) * t / duration;
-        Float chirp_signal = std::sin(2 * std::numbers::pi * frequency * t);
+        auto const t = static_cast<Float>(idx) / sampling_rate; // Time in seconds
+        auto const frequency = frequency_start + (frequency_end - frequency_start) * t / duration;
+        auto const chirp_signal = std::sin(2 * std::numbers::pi * frequency * t);
 
         return chirp_signal;
       });
