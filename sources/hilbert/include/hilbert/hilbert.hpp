@@ -13,7 +13,12 @@ std::vector<std::complex<double>>
 hilbert_transform(std::vector<double> const &input);
 
 void
-inst_freq_amp(std::vector<double> const &data, std::vector<double> &freq, std::vector<double> &amp, double dt);
+inst_amp_phase_freq(
+    std::vector<double> const &data,
+    std::vector<double> &amp,
+    std::vector<double> &phase,
+    std::vector<double> &freq,
+    double dt);
 
 } // namespace hilbert
 

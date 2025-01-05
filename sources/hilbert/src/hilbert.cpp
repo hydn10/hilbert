@@ -2,10 +2,10 @@
 
 #include <fftw3.h>
 
-#include <vector>
 #include <complex>
 #include <numbers>
 #include <ranges>
+#include <vector>
 
 
 namespace hilbert
@@ -42,11 +42,10 @@ hilbert_transform(std::vector<double> const &input)
   auto const backward_plan = fftw_plan_dft_1d(input_size, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute(backward_plan);
 
-  auto const output = std::views::iota(0, input_size)
-      | std::views::transform([&](int idx)
-      {
-        return std::complex<double>(in[idx][0] / input_size, in[idx][1] / input_size);
-      });
+  auto const output =
+      std::views::iota(0, input_size) |
+      std::views::transform([&](int idx)
+                            { return std::complex<double>(in[idx][0] / input_size, in[idx][1] / input_size); });
 
   auto res = std::vector(output.begin(), output.end());
 
@@ -60,29 +59,38 @@ hilbert_transform(std::vector<double> const &input)
 
 
 void
-inst_freq_amp(std::vector<double> const &data, std::vector<double> &freq, std::vector<double> &amp, double dt)
+inst_amp_phase_freq(
+    std::vector<double> const &data,
+    std::vector<double> &amp,
+    std::vector<double> &phase,
+    std::vector<double> &freq,
+    double sampling_rate)
 {
-  size_t const data_size = data.size();
+  auto const num_samples = data.size();
   auto analytic_signal = hilbert_transform(data);
 
-  std::vector<double> phase(data_size);
-  amp.resize(data_size);
-  freq.resize(data_size);
+  phase.resize(num_samples);
+  amp.resize(num_samples);
+  freq.resize(num_samples);
 
-  for (int i = 0; i < data_size; ++i)
+  for (int i = 0; i < num_samples; ++i)
   {
     amp[i] = std::abs(analytic_signal[i]);
     phase[i] = std::atan2(std::imag(analytic_signal[i]), std::real(analytic_signal[i]));
   }
 
-  for (size_t i = 1; i < data_size; ++i)
+  double constexpr tau = 2 * std::numbers::pi;
+
+  for (size_t i = 1; i < num_samples; ++i)
   {
-    double delta_phase = phase[i] - phase[i - 1];
-    if (delta_phase < 0)
+    double const delta_phase = phase[i] - phase[i - 1];
+    double f = delta_phase * sampling_rate / tau;
+
+    if (f < 0)
     {
-      delta_phase += 2 * std::numbers::pi;
+      f += sampling_rate;
     }
-    freq[i] = delta_phase / (2 * std::numbers::pi * dt);
+    freq[i] = f;
   }
 
   freq[0] = freq[1];

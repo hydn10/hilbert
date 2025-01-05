@@ -29,19 +29,24 @@
       }
     },
     {
-      "name": "x64-windows-release",
-      "displayName": "x64 Release (no)",
-      "inherits": "windows-base",
+      "name": "vcpkg",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
-      "name": "x64-linux-release",
-      "displayName": "x64 Linux",
-      "inherits": "linux-base",
+      "name": "debug",
+      "hidden": true,
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   ]
