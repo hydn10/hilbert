@@ -24,7 +24,6 @@ template<typename Float, typename F, typename Z>
 concept state_derivative_func = requires(F f, Float t, Z const &z) {
   typename std::invoke_result_t<F, Float, Z>;
 } && state_space<Float, Z, std::invoke_result_t<F, Float, Z>>;
-
 // clang-format on
 
 

@@ -27,10 +27,11 @@ generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint3
                  std::views::transform(
                      [fs, fe, d, s](auto idx)
                      {
-                       // Instantaneous frequency is the derivative of the phase.
+                       // Instantaneous angular velocity is the derivative of the phase.
+                       // The frequency is the angular velocity normalized by 2 pi.
                        // Here we are calculating the phase integrating from the desired frequency curve.
 
-                       auto const t = static_cast<Float>(idx) / s; // Time in seconds.
+                       auto const t = static_cast<Float>(idx) / s;
                        auto const f_equiv = fs + (fe - fs) * t * 0.5 / d;
                        auto const chirp_signal = std::sin(2 * std::numbers::pi * t * f_equiv);
 
