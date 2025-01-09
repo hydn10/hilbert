@@ -1,12 +1,15 @@
-﻿#include <hilbert/hilbert.hpp>
+﻿#include <chirp.hpp>
+#include <derivative.hpp>
+#include <hilbert/hilbert.hpp>
+#include <rk4.hpp>
+#include <state.hpp>
 
-#include <chirp.hpp>
-
+#include <cmath>
 #include <print>
 
 
-int
-main()
+void
+hilbert_example()
 {
   double constexpr DURATION = 3;
   uint32_t constexpr SAMPLING_RATE = 5000;
@@ -21,10 +24,10 @@ main()
 
   hilbert::inst_amp_phase_freq(data, amp, phase, freq, SAMPLING_RATE);
 
-  int const index_width = static_cast<int>(std::log10(num_samples)) + 1;
+  auto const index_width = static_cast<int>(std::log10(num_samples)) + 1;
 
-  int constexpr field_with = 12;
-  int constexpr precision = 6;
+  auto constexpr field_with = 12;
+  auto constexpr precision = 6;
 
   auto const format_number = [field_with, precision](double value)
   {
@@ -45,5 +48,137 @@ main()
         format_number(amp[i]),
         format_number(phase[i]),
         format_number(freq[i]));
+  }
+}
+
+
+template<std::floating_point Float>
+static Float
+ground_frequency(Float t)
+{
+  Float const summit_time = 1.5;
+  Float const descent_time = 6;
+  Float const measure_start_time = 7;
+  Float const measure_end_time = 16;
+  Float const test_end_time = 18.5;
+
+  Float const start_freq = 0;
+  Float const summit_freq = 25;
+  Float const measure_start_freq = 18;
+  Float const measure_end_freq = 6;
+  Float const end_freq = 0;
+
+  auto const mk_slope_fn = [](Float t_start, Float t_end, Float f_start, Float f_end)
+  {
+    return [t_start, t_end, f_start, f_end](Float t)
+    {
+      return f_start + (f_end - f_start) / (t_end - t_start) * (t - t_start);
+    };
+  };
+
+  auto const initial_slope = mk_slope_fn(0, summit_time, start_freq, summit_freq);
+  auto const descent_slope = mk_slope_fn(descent_time, measure_start_time, summit_freq, measure_start_freq);
+  auto const measure_slope = mk_slope_fn(measure_start_time, measure_end_time, measure_start_freq, measure_end_freq);
+  auto const windown_slope = mk_slope_fn(measure_end_time, test_end_time, measure_end_freq, end_freq);
+
+  if (t < summit_time)
+  {
+    return initial_slope(t);
+  }
+  if (t < descent_time)
+  {
+    return summit_freq;
+  }
+  if (t < measure_start_time)
+  {
+    return descent_slope(t);
+  }
+  if (t < measure_end_time)
+  {
+    return measure_slope(t);
+  }
+  if (t < test_end_time)
+  {
+    return windown_slope(t);
+  }
+  return 0;
+}
+
+
+template<std::floating_point Float>
+static Float
+ground_position(Float amplitude, Float phase)
+{
+  return amplitude * std::sin(phase);
+}
+
+
+template<std::floating_point Float>
+auto
+mk_state_derivate_fn(
+    Float sprung_mass,
+    Float unsprung_mass,
+    Float suspension_spring_constant,
+    Float suspension_damping_coefficient,
+    Float tire_spring_constant,
+    Float ground_amplitude)
+{
+  Float const ms = sprung_mass;
+  Float const mu = unsprung_mass;
+  Float const ks = suspension_spring_constant;
+  Float const cs = suspension_damping_coefficient;
+  Float const kt = tire_spring_constant;
+  Float const ga = ground_amplitude;
+
+  return [ms, mu, ks, cs, kt, ga](Float t, hilbertcli::state<Float> const &z) -> hilbertcli::derivative<Float>
+  {
+    Float const vphi = 2 * std::numbers::pi * ground_frequency(t);
+
+    Float const vxs = z.vs();
+    Float const vxu = z.vu();
+
+    Float yg = ground_position(ga, z.phi());
+
+    Float const vvs = (-cs * (z.vs() - z.vu()) - ks * (z.xs() - z.xu())) / ms;
+    Float const vvu = (cs * (z.vs() - z.vu()) + ks * (z.xs() - z.xu()) - kt * (z.xu() - yg)) / mu;
+
+    return hilbertcli::derivative{vphi, vxs, vxu, vvs, vvu};
+  };
+}
+
+
+int
+main()
+{
+  double constexpr sprung_mass = 270;                    // Sprung mass (kg)
+  double constexpr unsprung_mass = 30;                   // Unsprung mass (kg)
+  double constexpr suspension_spring_constant = 31000;   // Suspension spring constant (N/m)
+  double constexpr suspension_damping_coefficient = 350; // Suspension damping coefficient (N·s/m)
+  double constexpr tire_spring_constant = 196000;        // Tire spring constant (N/m)
+  double constexpr time_step = 0.001;                    // Simulation time step (s)
+  double constexpr total_time = 20.0;                    // Total simulation time (s)
+  double constexpr ground_amplitude = 0.003;             // Amplitude of platform motion (m)
+
+  hilbertcli::state<double> state{0, 0, 0, 0, 0};
+
+  auto const state_derivate_fn = mk_state_derivate_fn(
+      sprung_mass,
+      unsprung_mass,
+      suspension_spring_constant,
+      suspension_damping_coefficient,
+      tire_spring_constant,
+      ground_amplitude);
+
+  for (double t = 0.0; t <= total_time; t += time_step)
+  {
+    auto const ground = ground_position(ground_amplitude, state.phi());
+    auto const ground_freq = ground_frequency(t);
+
+    auto state_delta = rk4_delta(t, state, state_derivate_fn, time_step);
+    state = state + state_delta;
+
+    auto const tire_force = tire_spring_constant * (state.xu() - ground);
+
+    std::println("{} {} {} {} {} {}", t, state.xs(), state.xu(), ground_freq, ground, tire_force);
   }
 }

@@ -27,8 +27,8 @@ generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint3
                  std::views::transform(
                      [fs, fe, d, s](auto idx)
                      {
-                       // Formula: [1].
-                       // [1]: https://www.mathcore.com/resources/documents/ie_external_functions.pdf
+                       // Instantaneous frequency is the derivative of the phase.
+                       // Here we are calculating the phase integrating from the desired frequency curve.
 
                        auto const t = static_cast<Float>(idx) / s; // Time in seconds.
                        auto const f_equiv = fs + (fe - fs) * t * 0.5 / d;

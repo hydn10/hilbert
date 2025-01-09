@@ -67,7 +67,7 @@ inst_amp_phase_freq(
     double sampling_rate)
 {
   auto const num_samples = data.size();
-  auto analytic_signal = hilbert_transform(data);
+  auto const analytic_signal = hilbert_transform(data);
 
   phase.resize(num_samples);
   amp.resize(num_samples);
