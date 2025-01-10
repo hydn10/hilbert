@@ -15,14 +15,9 @@ hilbert_example()
   uint32_t constexpr SAMPLING_RATE = 5000;
 
   auto const data = hilbertcli::generate_chirp(20., 100., DURATION, SAMPLING_RATE);
-
   auto const num_samples = data.size();
 
-  std::vector<double> amp(num_samples);
-  std::vector<double> phase(num_samples);
-  std::vector<double> freq(num_samples);
-
-  hilbert::inst_amp_phase_freq(data, amp, phase, freq, SAMPLING_RATE);
+  auto const signal_data = hilbert::calculate_inst_signal_data(data, SAMPLING_RATE);
 
   auto const index_width = static_cast<int>(std::log10(num_samples)) + 1;
 
@@ -45,9 +40,9 @@ hilbert_example()
         "{} {} {} {} {}",
         format_index(i),
         format_number(data[i]),
-        format_number(amp[i]),
-        format_number(phase[i]),
-        format_number(freq[i]));
+        format_number(signal_data.ampl[i]),
+        format_number(signal_data.phase[i]),
+        format_number(signal_data.freq[i]));
   }
 }
 
@@ -56,19 +51,19 @@ template<std::floating_point Float>
 static Float
 ground_frequency(Float t)
 {
-  Float const summit_time = 1.5;
-  Float const descent_time = 6;
-  Float const measure_start_time = 7;
-  Float const measure_end_time = 16;
-  Float const test_end_time = 18.5;
+  Float constexpr summit_time = 1.5;
+  Float constexpr descent_time = 6;
+  Float constexpr measure_start_time = 7;
+  Float constexpr measure_end_time = 16;
+  Float constexpr test_end_time = 18.5;
 
-  Float const start_freq = 0;
-  Float const summit_freq = 25;
-  Float const measure_start_freq = 18;
-  Float const measure_end_freq = 6;
-  Float const end_freq = 0;
+  Float constexpr start_freq = 0;
+  Float constexpr summit_freq = 25;
+  Float constexpr measure_start_freq = 18;
+  Float constexpr measure_end_freq = 6;
+  Float constexpr end_freq = 0;
 
-  auto const mk_slope_fn = [](Float t_start, Float t_end, Float f_start, Float f_end)
+  auto constexpr mk_slope_fn = [](Float t_start, Float t_end, Float f_start, Float f_end)
   {
     return [t_start, t_end, f_start, f_end](Float t)
     {
@@ -76,10 +71,11 @@ ground_frequency(Float t)
     };
   };
 
-  auto const initial_slope = mk_slope_fn(0, summit_time, start_freq, summit_freq);
-  auto const descent_slope = mk_slope_fn(descent_time, measure_start_time, summit_freq, measure_start_freq);
-  auto const measure_slope = mk_slope_fn(measure_start_time, measure_end_time, measure_start_freq, measure_end_freq);
-  auto const windown_slope = mk_slope_fn(measure_end_time, test_end_time, measure_end_freq, end_freq);
+  auto constexpr initial_slope = mk_slope_fn(0, summit_time, start_freq, summit_freq);
+  auto constexpr descent_slope = mk_slope_fn(descent_time, measure_start_time, summit_freq, measure_start_freq);
+  auto constexpr measure_slope =
+      mk_slope_fn(measure_start_time, measure_end_time, measure_start_freq, measure_end_freq);
+  auto constexpr windown_slope = mk_slope_fn(measure_end_time, test_end_time, measure_end_freq, end_freq);
 
   if (t < summit_time)
   {
@@ -101,7 +97,7 @@ ground_frequency(Float t)
   {
     return windown_slope(t);
   }
-  return 0;
+  return end_freq;
 }
 
 
@@ -169,8 +165,15 @@ main()
       tire_spring_constant,
       ground_amplitude);
 
-  for (double t = 0.0; t <= total_time; t += time_step)
+  auto const steps = static_cast<size_t>(total_time / time_step);
+
+  std::vector<double> ground_data(steps);
+  std::vector<double> tire_force_data(steps);
+
+  for (size_t i = 0; i < steps; ++i)
   {
+    auto const t = i * time_step;
+
     auto const ground = ground_position(ground_amplitude, state.phi());
     auto const ground_freq = ground_frequency(t);
 
@@ -179,6 +182,29 @@ main()
 
     auto const tire_force = tire_spring_constant * (state.xu() - ground);
 
-    std::println("{} {} {} {} {} {}", t, state.xs(), state.xu(), ground_freq, ground, tire_force);
+    ground_data[i] = ground;
+    tire_force_data[i] = tire_force;
+
+    //std::println("{} {} {} {} {} {}", t, state.xs(), state.xu(), ground_freq, ground, tire_force);
+  }
+
+  auto const sampling_rate = 1 / time_step;
+
+  auto const ground_sd = hilbert::calculate_inst_signal_data(ground_data, sampling_rate);
+  auto const tire_force_sd = hilbert::calculate_inst_signal_data(tire_force_data, sampling_rate);
+
+  for (size_t i = 0; i < steps; ++i)
+  {
+    std::println(
+        "{} {} {} {} {} {} {} {} {}",
+        i * time_step,
+        ground_data[i],
+        tire_force_data[i],
+        ground_sd.freq[i],
+        tire_force_sd.freq[i],
+        ground_sd.phase[i],
+        tire_force_sd.phase[i],
+        ground_sd.ampl[i],
+        tire_force_sd.ampl[i]);
   }
 }

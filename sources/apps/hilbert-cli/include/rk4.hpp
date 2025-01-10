@@ -38,14 +38,12 @@ requires state_derivative_func<Float, Derivate, Z>
 auto
 rk4_delta(Float t, Z const &z, Derivate derivate, Float time_step)
 {
-  using D = std::invoke_result_t<Derivate, double, Z>;
-
   auto const h = time_step;
 
-  D k1 = derivate(t, z);
-  D k2 = derivate(t + h / 2, z + k1 * (h / 2));
-  D k3 = derivate(t + h / 2, z + k2 * (h / 2));
-  D k4 = derivate(t + h, z + k3 * h);
+  auto k1 = derivate(t, z);
+  auto k2 = derivate(t + h / 2, z + k1 * (h / 2));
+  auto k3 = derivate(t + h / 2, z + k2 * (h / 2));
+  auto k4 = derivate(t + h, z + k3 * h);
 
   return (k1 + k2 * 2 + k3 * 2 + k4) * (h / 6);
 }
