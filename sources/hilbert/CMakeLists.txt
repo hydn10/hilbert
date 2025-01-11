@@ -1,6 +1,6 @@
 set(target hilbert)
 
-add_library(${target} "src/hilbert.cpp")
+add_library(${target} "src/hilbert.cpp" "src/fft.cpp")
 
 target_include_directories(${target} PUBLIC include)
 target_compile_features (${target} PUBLIC cxx_std_23)

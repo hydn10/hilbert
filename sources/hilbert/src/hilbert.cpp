@@ -1,7 +1,10 @@
 #include <hilbert/hilbert.hpp>
 
+#include <hilbert/fft.hpp>
+
 #include <fftw3.h>
 
+#include <algorithm>
 #include <complex>
 #include <memory>
 #include <numbers>
@@ -15,18 +18,17 @@ namespace hilbert
 namespace
 {
 
-void
-fftw_free_adapter(fftw_complex *ptr)
+auto
+positive_freqs(size_t n)
 {
-  fftw_free(ptr);
+  return std::views::drop(1) | std::views::take((n - 1) / 2);
 }
 
 
-std::unique_ptr<fftw_complex[], decltype(&fftw_free_adapter)>
-make_fftw_vector(size_t size)
+auto
+negative_freqs(size_t n)
 {
-  auto *const ptr = static_cast<fftw_complex *>(fftw_malloc(sizeof(fftw_complex) * size));
-  return {ptr, fftw_free_adapter};
+  return std::views::reverse | std::views::take((n - 1) / 2);
 }
 
 } // namespace
@@ -35,45 +37,30 @@ make_fftw_vector(size_t size)
 std::vector<std::complex<double>>
 hilbert_transform(std::vector<double> const &input)
 {
-  auto input_size = static_cast<int>(input.size());
+  auto const n = input.size();
 
-  auto in = make_fftw_vector(input_size);
-  auto out = make_fftw_vector(input_size);
+  auto freq_data = fft::fft_transform(input);
 
-  for (int i = 0; i < input_size; ++i)
-  {
-    in[i][0] = input[i];
-    in[i][1] = 0.0;
-  }
+  std::ranges::for_each(
+      freq_data | positive_freqs(n),
+      [](auto &x)
+      {
+        x[0] *= 2;
+        x[1] *= 2;
+      });
 
-  auto const forward_plan = fftw_plan_dft_1d(input_size, in.get(), out.get(), FFTW_FORWARD, FFTW_ESTIMATE);
-  fftw_execute(forward_plan);
+  std::ranges::for_each(
+      freq_data | negative_freqs(n),
+      [](auto &x)
+      {
+        x[0] = 0;
+        x[1] = 0;
+      });
 
-  for (int i = 1; i < input_size / 2; ++i)
-  {
-    out[i][0] *= 2;
-    out[i][1] *= 2;
-  }
-  for (int i = input_size / 2 + 1; i < input_size; ++i)
-  {
-    out[i][0] = 0;
-    out[i][1] = 0;
-  }
+  auto const time_data = fft::fft_transform(freq_data, fft::sign::BACKWARD);
 
-  auto const backward_plan = fftw_plan_dft_1d(input_size, out.get(), in.get(), FFTW_BACKWARD, FFTW_ESTIMATE);
-  fftw_execute(backward_plan);
-
-  auto const output =
-      std::views::iota(0, input_size) |
-      std::views::transform([&](int idx)
-                            { return std::complex<double>(in[idx][0] / input_size, in[idx][1] / input_size); });
-
-  auto res = std::vector(output.begin(), output.end());
-
-  fftw_destroy_plan(forward_plan);
-  fftw_destroy_plan(backward_plan);
-
-  return res;
+  return time_data | std::views::transform([n](auto &x) { return std::complex<double>(x[0] / n, x[1] / n); }) |
+         std::ranges::to<std::vector>();
 }
 
 
@@ -88,7 +75,7 @@ calculate_inst_signal_data(std::vector<double> const &data, double sampling_rate
   for (int i = 0; i < num_samples; ++i)
   {
     res.ampl[i] = std::abs(analytic_signal[i]);
-    res.phase[i] = std::atan2(std::imag(analytic_signal[i]), std::real(analytic_signal[i]));
+    res.phase[i] = std::arg(analytic_signal[i]);
   }
 
   for (size_t i = 1; i < num_samples; ++i)

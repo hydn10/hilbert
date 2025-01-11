@@ -151,7 +151,7 @@ main()
   double constexpr suspension_spring_constant = 31000;   // Suspension spring constant (N/m)
   double constexpr suspension_damping_coefficient = 350; // Suspension damping coefficient (N·s/m)
   double constexpr tire_spring_constant = 196000;        // Tire spring constant (N/m)
-  double constexpr time_step = 0.001;                    // Simulation time step (s)
+  double constexpr time_step = 0.0005;                    // Simulation time step (s)
   double constexpr total_time = 20.0;                    // Total simulation time (s)
   double constexpr ground_amplitude = 0.003;             // Amplitude of platform motion (m)
 
@@ -165,7 +165,7 @@ main()
       tire_spring_constant,
       ground_amplitude);
 
-  auto const steps = static_cast<size_t>(total_time / time_step);
+  auto const steps = static_cast<size_t>(total_time / time_step) + 1;
 
   std::vector<double> ground_data(steps);
   std::vector<double> tire_force_data(steps);
