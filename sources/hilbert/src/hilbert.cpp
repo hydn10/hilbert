@@ -19,16 +19,64 @@ namespace
 {
 
 auto
-positive_freqs(size_t n)
+take_positive_freqs(size_t n)
 {
   return std::views::drop(1) | std::views::take((n - 1) / 2);
 }
 
 
 auto
-negative_freqs(size_t n)
+take_negative_freqs(size_t n)
 {
   return std::views::reverse | std::views::take((n - 1) / 2);
+}
+
+
+inline constexpr auto drop_transform = [](auto &x)
+{
+  x[0] = 0;
+  x[1] = 0;
+};
+
+
+inline constexpr auto hilbert_positive_freqs_transform = [](auto &x)
+{
+  x[0] *= 2;
+  x[1] *= 2;
+};
+
+
+inline constexpr auto hilbert_negative_freqs_transform = drop_transform;
+
+
+size_t
+cutoff_bin(double frequency, size_t num_samples, double sampling_rate)
+{
+  return static_cast<size_t>(frequency * num_samples / sampling_rate);
+}
+
+
+auto
+take_positive_freqs_greater_than(double frequency, size_t num_samples, double sampling_rate)
+{
+  auto const cutoff = cutoff_bin(frequency, num_samples, sampling_rate);
+
+  auto const num_to_drop = cutoff + 1;
+  auto const num_to_take = ((num_samples - 1) / 2) - cutoff;
+
+  return std::views::drop(num_to_drop) | std::views::take(num_to_take);
+}
+
+
+auto
+take_negative_freqs_greater_than(double frequency, size_t num_samples, double sampling_rate)
+{
+  auto const cutoff = cutoff_bin(frequency, num_samples, sampling_rate);
+
+  auto const num_to_drop = cutoff;
+  auto const num_to_take = ((num_samples - 1) / 2) - cutoff;
+
+  return std::views::reverse | std::views::drop(num_to_drop) | std::views::take(num_to_take);
 }
 
 } // namespace
@@ -41,21 +89,8 @@ hilbert_transform(std::vector<double> const &input)
 
   auto freq_data = fft::fft_transform(input);
 
-  std::ranges::for_each(
-      freq_data | positive_freqs(n),
-      [](auto &x)
-      {
-        x[0] *= 2;
-        x[1] *= 2;
-      });
-
-  std::ranges::for_each(
-      freq_data | negative_freqs(n),
-      [](auto &x)
-      {
-        x[0] = 0;
-        x[1] = 0;
-      });
+  std::ranges::for_each(freq_data | take_positive_freqs(n), hilbert_positive_freqs_transform);
+  std::ranges::for_each(freq_data | take_negative_freqs(n), hilbert_negative_freqs_transform);
 
   auto const time_data = fft::fft_transform(freq_data, fft::sign::BACKWARD);
 
