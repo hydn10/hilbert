@@ -13,118 +13,12 @@
 namespace hilbert::fft
 {
 
-class complex_vec
-{
-  static void
-  free_adapter(fftw_complex *p);
-
-  std::unique_ptr<fftw_complex[], decltype(&free_adapter)> ptr_;
-  size_t size_;
-
-public:
-  explicit complex_vec(size_t size);
-
-  complex_vec(complex_vec const &) = delete;
-  complex_vec &
-  operator=(complex_vec const &) = delete;
-  complex_vec(complex_vec &&) = default;
-  complex_vec &
-  operator=(complex_vec &&) = default;
-
-  constexpr size_t
-  size() const noexcept;
-
-  constexpr fftw_complex *
-  data() noexcept;
-  constexpr fftw_complex const *
-  data() const noexcept;
-
-  constexpr fftw_complex *
-  begin() noexcept;
-  constexpr fftw_complex const *
-  begin() const noexcept;
-
-  constexpr fftw_complex *
-  end() noexcept;
-  constexpr fftw_complex const *
-  end() const noexcept;
-
-  constexpr fftw_complex &
-  operator[](size_t pos);
-  constexpr fftw_complex const &
-  operator[](size_t pos) const;
-};
-
-
-inline constexpr size_t
-complex_vec::size() const noexcept
-{
-  return size_;
-}
-
-
-inline constexpr fftw_complex *
-complex_vec::data() noexcept
-{
-  return ptr_.get();
-}
-
-
-inline constexpr fftw_complex const *
-complex_vec::data() const noexcept
-{
-  return ptr_.get();
-}
-
-
-inline constexpr fftw_complex *
-complex_vec::begin() noexcept
-{
-  return ptr_.get();
-}
-
-
-inline constexpr fftw_complex const *
-complex_vec::begin() const noexcept
-{
-  return ptr_.get();
-}
-
-
-inline constexpr fftw_complex *
-complex_vec::end() noexcept
-{
-  return ptr_.get() + size_;
-}
-
-
-inline constexpr fftw_complex const *
-complex_vec::end() const noexcept
-{
-  return ptr_.get() + size_;
-}
-
-
-inline constexpr fftw_complex &
-complex_vec::operator[](size_t pos)
-{
-  return ptr_[pos];
-}
-
-
-inline constexpr fftw_complex const &
-complex_vec::operator[](size_t pos) const
-{
-  return ptr_[pos];
-}
-
-
 class plan_r2c
 {
   fftw_plan plan_;
 
 public:
-  plan_r2c(std::vector<double> const &in, complex_vec &out);
+  plan_r2c(std::vector<double> const &in, std::vector<std::complex<double>> &out);
   ~plan_r2c();
 
   plan_r2c(plan_r2c const &) = delete;
@@ -154,7 +48,7 @@ class plan_c2c
   fftw_plan plan_;
 
 public:
-  plan_c2c(complex_vec const &in, complex_vec &out, sign sign);
+  plan_c2c(std::vector<std::complex<double>> const &in, std::vector<std::complex<double>> &out, sign sign);
   ~plan_c2c();
 
   plan_c2c(plan_c2c const &) = delete;
@@ -169,11 +63,11 @@ public:
 };
 
 
-complex_vec
+std::vector<std::complex<double>>
 fft_transform(std::vector<double> const &input);
 
-complex_vec
-fft_transform(fft::complex_vec const &input, sign sign);
+std::vector<std::complex<double>>
+fft_transform(std::vector<std::complex<double>> const &input, sign sign);
 
 } // namespace hilbert::fft
 

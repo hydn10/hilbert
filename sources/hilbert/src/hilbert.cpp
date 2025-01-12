@@ -34,15 +34,13 @@ take_negative_freqs(size_t n)
 
 inline constexpr auto drop_transform = [](auto &x)
 {
-  x[0] = 0;
-  x[1] = 0;
+  x = 0;
 };
 
 
 inline constexpr auto hilbert_positive_freqs_transform = [](auto &x)
 {
-  x[0] *= 2;
-  x[1] *= 2;
+  x *= 2;
 };
 
 
@@ -92,10 +90,11 @@ hilbert_transform(std::vector<double> const &input)
   std::ranges::for_each(freq_data | take_positive_freqs(n), hilbert_positive_freqs_transform);
   std::ranges::for_each(freq_data | take_negative_freqs(n), hilbert_negative_freqs_transform);
 
-  auto const time_data = fft::fft_transform(freq_data, fft::sign::BACKWARD);
+  auto time_data = fft::fft_transform(freq_data, fft::sign::BACKWARD);
 
-  return time_data | std::views::transform([n](auto &x) { return std::complex<double>(x[0] / n, x[1] / n); }) |
-         std::ranges::to<std::vector>();
+  std::ranges::for_each(time_data, [n](auto &x) { x /= static_cast<double>(n); });
+
+  return time_data;
 }
 
 

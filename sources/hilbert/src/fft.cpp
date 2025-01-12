@@ -4,23 +4,17 @@
 namespace hilbert::fft
 {
 
-void
-complex_vec::free_adapter(fftw_complex *p)
-{
-  fftw_free(p);
-}
+// According to FFTW documentation ([1]) it is OK to use std::vector<std::complex>> and use reinterpret_cast to
+// fftw_complex*.
+// [1]: https://www.fftw.org/doc/Complex-numbers.html
 
 
-complex_vec::complex_vec(size_t size)
-    : ptr_{fftw_alloc_complex(size), free_adapter}
-    , size_{size}
-{
-}
-
-
-plan_r2c::plan_r2c(std::vector<double> const &in, complex_vec &out)
-    : plan_{
-          fftw_plan_dft_r2c_1d(static_cast<int>(in.size()), const_cast<double *>(in.data()), out.data(), FFTW_ESTIMATE)}
+plan_r2c::plan_r2c(std::vector<double> const &in, std::vector<std::complex<double>> &out)
+    : plan_{fftw_plan_dft_r2c_1d(
+          static_cast<int>(in.size()),
+          const_cast<double *>(in.data()),
+          reinterpret_cast<fftw_complex *>(out.data()),
+          FFTW_ESTIMATE)}
 {
 }
 
@@ -45,11 +39,11 @@ plan_c2c::to_fftw_sign(sign sign)
 }
 
 
-plan_c2c::plan_c2c(complex_vec const &in, complex_vec &out, sign sign)
+plan_c2c::plan_c2c(std::vector<std::complex<double>> const &in, std::vector<std::complex<double>> &out, sign sign)
     : plan_{fftw_plan_dft_1d(
           static_cast<int>(in.size()),
-          const_cast<fftw_complex *>(in.data()),
-          out.data(),
+          reinterpret_cast<fftw_complex *>(const_cast<std::complex<double> *>(in.data())),
+          reinterpret_cast<fftw_complex *>(out.data()),
           to_fftw_sign(sign),
           FFTW_ESTIMATE)}
 {
@@ -69,10 +63,10 @@ plan_c2c::execute() const
 }
 
 
-complex_vec
+std::vector<std::complex<double>>
 fft_transform(std::vector<double> const &input)
 {
-  complex_vec output(input.size());
+  std::vector<std::complex<double>> output(input.size());
 
   fft::plan_r2c forward_plan(input, output);
   forward_plan.execute();
@@ -81,10 +75,10 @@ fft_transform(std::vector<double> const &input)
 }
 
 
-complex_vec
-fft_transform(fft::complex_vec const &input, sign sign)
+std::vector<std::complex<double>>
+fft_transform(std::vector<std::complex<double>> const &input, sign sign)
 {
-  complex_vec output(input.size());
+  std::vector<std::complex<double>> output(input.size());
 
   plan_c2c forward_plan(input, output, sign);
   forward_plan.execute();
