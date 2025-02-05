@@ -8,7 +8,8 @@
 
   outputs = { self, nixpkgs, dream2nix }:
     let
-      pkgs-lin64 = import nixpkgs { system = "x86_64-linux"; };
+      #pkgs-lin64 = import nixpkgs { system = "x86_64-linux"; };
+      pkgs-lin64 = nixpkgs.legacyPackages.x86_64-linux;
       packageDrv-lin64 = pkgs-lin64.callPackage ./default.nix {};
 
       pkgName = packageDrv-lin64.pname;

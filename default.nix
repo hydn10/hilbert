@@ -1,4 +1,4 @@
-{ lib, stdenv, cmake, fftw }:
+{ lib, gcc14Stdenv, cmake, fftw }:
 
 let
   vcpkgFile = builtins.fromJSON (builtins.readFile ./vcpkg.json);
@@ -6,7 +6,7 @@ let
   pname = vcpkgFile.name;
   version = vcpkgFile.version;
 in
-  stdenv.mkDerivation
+  gcc14Stdenv.mkDerivation
   {
     inherit pname;
 
@@ -15,7 +15,12 @@ in
 
     src = lib.cleanSource ./.;
 
-    buildInputs = [ fftw ];
+    buildInputs = [ fftw.dev ];
 
     nativeBuildInputs = [ cmake ];
+
+    #cmakeFlags = [
+    #  "-DCMAKE_PREFIX_PATH=${fftw.dev}/lib/cmake"
+    #  "-DFFTW3_ROOT=${fftw.dev}"
+    #];
   }
