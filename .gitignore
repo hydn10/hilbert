@@ -7,6 +7,13 @@ out*/
 **/.ccls
 **/.cache
 
+dist/
+.venv
+__pypackages__
+.pdm-python
+
+**/__pycache__
+
 **/result
 
 .vs/
