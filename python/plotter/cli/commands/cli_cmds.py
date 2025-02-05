@@ -1,2 +1,2 @@
 def execute():
-    fetch()
+    print("hello, plotter!")
