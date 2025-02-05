@@ -18,12 +18,12 @@
         modules = [
           nix/plotter.nix
           ({lib, ...}: {
-            paths.projectRoot = "python";
+            paths.projectRoot = ./python;
             paths.projectRootFile = "pyproject.toml";
             paths.package = ./.;
-            mkDerivation = lib.mkForce {
-              src = "python";
-            };
+            #mkDerivation = lib.mkForce {
+            #  src = ./python;
+            #};
           })
         ];
       };
@@ -51,9 +51,24 @@
 
       packages.x86_64-linux.default = self.packages.x86_64-linux.${pkgName};
 
-      devShells.x86_64-linux.default = import ./shell.nix {
+      devShells.x86_64-linux.cpp = import ./shell.nix {
         pkgs = pkgs-lin64;
         pkg = packageDrv-lin64;
       };
+
+      devShells.x86_64-linux.python = nixpkgs.legacyPackages.${system}.mkShell {
+        inputsFrom = [self.packages.x86_64-linux.plotter.devShell];
+        # add extra packages
+        packages = [ ];
+      };
+
+      devShells.x86_64-linux.all = nixpkgs.legacyPackages.${system}.mkShell {
+        inputsFrom = [
+          self.devShells.x86_64-linux.cpp
+          self.devShells.x86_64-linux.python
+        ];
+      };
+
+      devShells.x86_64-linux.default = self.devShells.x86_64-linux.all;
     };
 }
