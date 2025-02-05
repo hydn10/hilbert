@@ -62,7 +62,7 @@
         packages = [ ];
       };
 
-      devShells.x86_64-linux.all = nixpkgs.legacyPackages.pkgs-lin64.mkShell {
+      devShells.x86_64-linux.all = nixpkgs.legacyPackages.x86_64-linux.mkShell {
         inputsFrom = [
           self.devShells.x86_64-linux.cpp
           self.devShells.x86_64-linux.python
