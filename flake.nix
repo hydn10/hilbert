@@ -56,13 +56,13 @@
         pkg = packageDrv-lin64;
       };
 
-      devShells.x86_64-linux.python = nixpkgs.legacyPackages.${system}.mkShell {
+      devShells.x86_64-linux.python = nixpkgs.legacyPackages.x86_64-linux.mkShell {
         inputsFrom = [self.packages.x86_64-linux.plotter.devShell];
         # add extra packages
         packages = [ ];
       };
 
-      devShells.x86_64-linux.all = nixpkgs.legacyPackages.${system}.mkShell {
+      devShells.x86_64-linux.all = nixpkgs.legacyPackages.pkgs-lin64.mkShell {
         inputsFrom = [
           self.devShells.x86_64-linux.cpp
           self.devShells.x86_64-linux.python
