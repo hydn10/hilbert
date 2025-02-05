@@ -1,0 +1,15 @@
+[project]
+name = "plotter"
+version = "0.1.0"
+description = "Hilbert data plotter"
+dependencies = [
+    "typer"
+]
+requires-python = ">=3.10"
+
+[project.scripts]
+plotter = "plotter.run:run_cli"
+
+[build-system]
+requires = [ "pdm-backend" ]
+build-backend = "pdm.backend"

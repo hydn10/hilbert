@@ -106,7 +106,7 @@ calculate_inst_signal_data(std::vector<double> const &data, double sampling_rate
 
   signal_data<double> res{num_samples};
 
-  for (int i = 0; i < num_samples; ++i)
+  for (size_t i = 0; i < num_samples; ++i)
   {
     res.ampl[i] = std::abs(analytic_signal[i]);
     res.phase[i] = std::arg(analytic_signal[i]);
