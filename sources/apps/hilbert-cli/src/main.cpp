@@ -110,7 +110,7 @@ ground_position(Float amplitude, Float phase)
 
 
 template<std::floating_point Float>
-auto
+constexpr auto
 mk_state_derivate_fn(
     Float sprung_mass,
     Float unsprung_mass,
@@ -151,13 +151,13 @@ main()
   double constexpr suspension_spring_constant = 31000;   // Suspension spring constant (N/m)
   double constexpr suspension_damping_coefficient = 350; // Suspension damping coefficient (N·s/m)
   double constexpr tire_spring_constant = 196000;        // Tire spring constant (N/m)
-  double constexpr time_step = 0.0005;                    // Simulation time step (s)
+  double constexpr time_step = 0.0005;                   // Simulation time step (s)
   double constexpr total_time = 20.0;                    // Total simulation time (s)
   double constexpr ground_amplitude = 0.003;             // Amplitude of platform motion (m)
 
   hilbertcli::state<double> state{0, 0, 0, 0, 0};
 
-  auto const state_derivate_fn = mk_state_derivate_fn(
+  auto constexpr state_derivate_fn = mk_state_derivate_fn(
       sprung_mass,
       unsprung_mass,
       suspension_spring_constant,
@@ -165,30 +165,32 @@ main()
       tire_spring_constant,
       ground_amplitude);
 
-  auto const steps = static_cast<size_t>(total_time / time_step) + 1;
+  auto constexpr steps = static_cast<size_t>(total_time / time_step);
 
-  std::vector<double> ground_data(steps);
-  std::vector<double> tire_force_data(steps);
+  std::vector<double> ground_data(steps + 1);
+  std::vector<double> tire_force_data(steps + 1);
+
+  ground_data[0] = ground_position(ground_amplitude, state.phi());
+  tire_force_data[0] = tire_spring_constant * (state.xu() - ground_data[0]);
 
   for (size_t i = 0; i < steps; ++i)
   {
     auto const t = i * time_step;
 
     auto const ground = ground_position(ground_amplitude, state.phi());
-    auto const ground_freq = ground_frequency(t);
 
-    auto state_delta = rk4_delta(t, state, state_derivate_fn, time_step);
+    auto const state_delta = rk4_delta(t, state, state_derivate_fn, time_step);
     state = state + state_delta;
 
     auto const tire_force = tire_spring_constant * (state.xu() - ground);
 
-    ground_data[i] = ground;
-    tire_force_data[i] = tire_force;
+    ground_data[i + 1] = ground;
+    tire_force_data[i + 1] = tire_force;
 
-    //std::println("{} {} {} {} {} {}", t, state.xs(), state.xu(), ground_freq, ground, tire_force);
+    // std::println("{} {} {} {} {} {}", t, state.xs(), state.xu(), ground_freq, ground, tire_force);
   }
 
-  auto const sampling_rate = 1 / time_step;
+  auto constexpr sampling_rate = 1 / time_step;
 
   auto const ground_sd = hilbert::calculate_inst_signal_data(ground_data, sampling_rate);
   auto const tire_force_sd = hilbert::calculate_inst_signal_data(tire_force_data, sampling_rate);
