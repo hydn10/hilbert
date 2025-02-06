@@ -195,18 +195,18 @@ main()
   auto const ground_sd = hilbert::calculate_inst_signal_data(ground_data, sampling_rate);
   auto const tire_force_sd = hilbert::calculate_inst_signal_data(tire_force_data, sampling_rate);
 
-  //for (size_t i = 0; i < steps; ++i)
+  // for (size_t i = 0; i < steps; ++i)
   //{
-  //  std::println(
-  //      "{} {} {} {} {} {} {} {} {}",
-  //      i * time_step,
-  //      ground_data[i],
-  //      tire_force_data[i],
-  //      ground_sd.freq[i],
-  //      tire_force_sd.freq[i],
-  //      ground_sd.phase[i],
-  //      tire_force_sd.phase[i],
-  //      ground_sd.ampl[i],
-  //      tire_force_sd.ampl[i]);
-  //}
+  //   std::println(
+  //       "{} {} {} {} {} {} {} {} {}",
+  //       i * time_step,
+  //       ground_data[i],
+  //       tire_force_data[i],
+  //       ground_sd.freq[i],
+  //       tire_force_sd.freq[i],
+  //       ground_sd.phase[i],
+  //       tire_force_sd.phase[i],
+  //       ground_sd.ampl[i],
+  //       tire_force_sd.ampl[i]);
+  // }
 }

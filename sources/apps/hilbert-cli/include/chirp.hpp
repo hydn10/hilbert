@@ -24,20 +24,18 @@ generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint3
   auto const d = duration;
   auto const s = sampling_rate;
 
-  auto const r = std::views::iota(uint32_t{0}, num_samples) |
-                 std::views::transform(
-                     [fs, fe, d, s](auto idx)
-                     {
-                       // Instantaneous angular velocity is the derivative of the phase.
-                       // The frequency is the angular velocity normalized by 2 pi.
-                       // Here we are calculating the phase integrating from the desired frequency curve.
+  auto const r = std::views::iota(uint32_t{0}, num_samples) | std::views::transform([fs, fe, d, s](auto idx)
+  {
+    // Instantaneous angular velocity is the derivative of the phase.
+    // The frequency is the angular velocity normalized by 2 * pi.
+    // Here we are calculating the phase integrating from the desired frequency curve.
 
-                       auto const t = static_cast<Float>(idx) / s;
-                       auto const f_equiv = fs + (fe - fs) * t * 0.5 / d;
-                       auto const chirp_signal = std::sin(2 * std::numbers::pi * t * f_equiv);
+    auto const t = static_cast<Float>(idx) / s;
+    auto const f_equiv = fs + (fe - fs) * t * 0.5 / d;
+    auto const chirp_signal = std::sin(2 * std::numbers::pi * t * f_equiv);
 
-                       return chirp_signal;
-                     });
+    return chirp_signal;
+  });
 
   return std::vector<Float>(r.begin(), r.end());
 }

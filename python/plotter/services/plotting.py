@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 
 def plot_data(file_path: str) -> None:
-
     data = np.loadtxt(file_path, delimiter=' ')
 
     # Plot the selected columns

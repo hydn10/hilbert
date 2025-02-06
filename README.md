@@ -88,7 +88,7 @@ m_u \ddot x_u + c_s(\dot x_u - \dot x_s) + k_s(x_u - x_s) + k_t(x_u - y_g) = 0
 
 ## Dependencies
 - FFTW3
-- C++23-compatible compiler (GCC 13+, Clang 16+).
+- C++23-compatible compiler (GCC 14+, Clang 16+, MSVC 19.38+).
 
 
 
