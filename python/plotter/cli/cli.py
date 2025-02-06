@@ -7,5 +7,5 @@ app = typer.Typer()
 
 
 @app.command()
-def execute():
-    cli_cmds.execute()
+def execute(file_path: str):
+    cli_cmds.execute(file_path)

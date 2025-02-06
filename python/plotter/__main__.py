@@ -1,3 +1,3 @@
-from .run import run_cli
+from .main import run_cli
 
 run_cli()

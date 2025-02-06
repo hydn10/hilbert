@@ -1,5 +1,3 @@
-
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23)
 
@@ -7,6 +5,11 @@
 
 A C++ implementation for automotive suspension analysis, developed to experiment with and implement the testing procedures outlined by the _European Garage Equipment Association_ (EGEA).
 Using the Hilbert transform for phase-shift analysis between force and displacement signals, this project aims to provide a reliable method for identifying faulty suspension systems during mandatory vehicle inspections.
+
+<div align="center">
+	<img src="https://i.imgur.com/HC1QBgP.png" alt="Displacement plot">
+</div>
+
 
 
 ## Background
