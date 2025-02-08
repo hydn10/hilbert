@@ -5,7 +5,7 @@ description = "Hilbert data plotter"
 dependencies = [
     "typer",
     "matplotlib>=3.10.0",
-    "numpy>=2.2.2"
+    "numpy>=2.2.2",
 ]
 requires-python = ">=3.10"
 

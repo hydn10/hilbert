@@ -14,7 +14,7 @@ namespace hilbertcli
 {
 
 template<std::floating_point Float>
-std::vector<Float>
+auto
 generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint32_t sampling_rate)
 {
   auto const num_samples = static_cast<uint32_t>(duration * sampling_rate);
@@ -24,7 +24,7 @@ generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint3
   auto const d = duration;
   auto const s = sampling_rate;
 
-  auto const r = std::views::iota(uint32_t{0}, num_samples) | std::views::transform([fs, fe, d, s](auto idx)
+  return std::views::iota(uint32_t{0}, num_samples) | std::views::transform([fs, fe, d, s](auto idx)
   {
     // Instantaneous angular velocity is the derivative of the phase.
     // The frequency is the angular velocity normalized by 2 * pi.
@@ -36,8 +36,6 @@ generate_chirp(Float frequency_start, Float frequency_end, Float duration, uint3
 
     return chirp_signal;
   });
-
-  return std::vector<Float>(r.begin(), r.end());
 }
 
 } // namespace hilbertcli

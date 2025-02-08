@@ -9,7 +9,7 @@ namespace hilbert::fft
 // [1]: https://www.fftw.org/doc/Complex-numbers.html
 
 
-plan_r2c::plan_r2c(std::vector<double> const &in, std::vector<std::complex<double>> &out)
+plan_r2c::plan_r2c(std::span<double const> in, std::span<std::complex<double>> out)
     : plan_{fftw_plan_dft_r2c_1d(
           static_cast<int>(in.size()),
           const_cast<double *>(in.data()),
@@ -39,7 +39,7 @@ plan_c2c::to_fftw_sign(sign sign)
 }
 
 
-plan_c2c::plan_c2c(std::vector<std::complex<double>> const &in, std::vector<std::complex<double>> &out, sign sign)
+plan_c2c::plan_c2c(std::span<std::complex<double> const> in, std::span<std::complex<double>> out, sign sign)
     : plan_{fftw_plan_dft_1d(
           static_cast<int>(in.size()),
           reinterpret_cast<fftw_complex *>(const_cast<std::complex<double> *>(in.data())),
@@ -64,7 +64,7 @@ plan_c2c::execute() const
 
 
 std::vector<std::complex<double>>
-fft_transform(std::vector<double> const &input)
+fft_transform(std::span<double const> input)
 {
   std::vector<std::complex<double>> output(input.size());
 
@@ -76,7 +76,7 @@ fft_transform(std::vector<double> const &input)
 
 
 std::vector<std::complex<double>>
-fft_transform(std::vector<std::complex<double>> const &input, sign sign)
+fft_transform(std::span<std::complex<double> const> input, sign sign)
 {
   std::vector<std::complex<double>> output(input.size());
 

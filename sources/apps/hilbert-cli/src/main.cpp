@@ -1,50 +1,15 @@
 ﻿#include <chirp.hpp>
+#include <collectors.hpp>
 #include <derivative.hpp>
-#include <hilbert/hilbert.hpp>
+#include <print_utils.hpp>
 #include <rk4.hpp>
 #include <state.hpp>
 
+#include <hilbert/hilbert.hpp>
+
 #include <cmath>
 #include <print>
-
-
-void
-hilbert_example()
-{
-  double constexpr DURATION = 3;
-  uint32_t constexpr SAMPLING_RATE = 5000;
-
-  auto const data = hilbertcli::generate_chirp(20., 100., DURATION, SAMPLING_RATE);
-  auto const num_samples = data.size();
-
-  auto const signal_data = hilbert::calculate_inst_signal_data(data, SAMPLING_RATE);
-
-  auto const index_width = static_cast<int>(std::log10(num_samples)) + 1;
-
-  auto constexpr field_with = 12;
-  auto constexpr precision = 6;
-
-  auto const format_number = [field_with, precision](double value)
-  {
-    return std::format("{:>{}.{}f}", value, field_with, precision);
-  };
-
-  auto format_index = [index_width](std::size_t index)
-  {
-    return std::format("{:>{}}", index, index_width);
-  };
-
-  for (size_t i = 0; i < num_samples; ++i)
-  {
-    std::println(
-        "{} {} {} {} {}",
-        format_index(i),
-        format_number(data[i]),
-        format_number(signal_data.ampl[i]),
-        format_number(signal_data.phase[i]),
-        format_number(signal_data.freq[i]));
-  }
-}
+#include <ranges>
 
 
 template<std::floating_point Float>
@@ -102,10 +67,13 @@ ground_frequency(Float t)
 
 
 template<std::floating_point Float>
-static Float
-ground_position(Float amplitude, Float phase)
+constexpr auto
+mk_ground_position_fn(Float amplitude)
 {
-  return amplitude * std::sin(phase);
+  return [amplitude](Float phase)
+  {
+    return amplitude * std::sin(phase);
+  };
 }
 
 
@@ -117,29 +85,40 @@ mk_state_derivate_fn(
     Float suspension_spring_constant,
     Float suspension_damping_coefficient,
     Float tire_spring_constant,
-    Float ground_amplitude)
+    auto ground_position_fn)
 {
   Float const ms = sprung_mass;
   Float const mu = unsprung_mass;
   Float const ks = suspension_spring_constant;
   Float const cs = suspension_damping_coefficient;
   Float const kt = tire_spring_constant;
-  Float const ga = ground_amplitude;
+  auto const ground_pos_fn = std::move(ground_position_fn);
 
-  return [ms, mu, ks, cs, kt, ga](Float t, hilbertcli::state<Float> const &z) -> hilbertcli::derivative<Float>
+  return
+      [ms, mu, ks, cs, kt, ground_pos_fn](Float t, hilbertcli::state<Float> const &z) -> hilbertcli::derivative<Float>
   {
     Float const vphi = 2 * std::numbers::pi * ground_frequency(t);
 
     Float const vxs = z.vs();
     Float const vxu = z.vu();
 
-    Float yg = ground_position(ga, z.phi());
+    Float yg = ground_pos_fn(z.phi());
 
     Float const vvs = (-cs * (z.vs() - z.vu()) - ks * (z.xs() - z.xu())) / ms;
     Float const vvu = (cs * (z.vs() - z.vu()) + ks * (z.xs() - z.xu()) - kt * (z.xu() - yg)) / mu;
 
     return hilbertcli::derivative{vphi, vxs, vxu, vvs, vvu};
   };
+}
+
+
+void
+print_values(std::ranges::contiguous_range auto... ranges)
+{
+  auto r = std::views::zip(ranges...);
+  std::ranges::for_each(std::move(r), [](auto const &elem) {
+    std::apply([](auto const &...e) { hilbertcli::println_join<' '>(e...); }, elem);
+  });
 }
 
 
@@ -157,56 +136,56 @@ main()
 
   hilbertcli::state<double> state{0, 0, 0, 0, 0};
 
+  auto constexpr ground_positon_fn = mk_ground_position_fn(ground_amplitude);
+
   auto constexpr state_derivate_fn = mk_state_derivate_fn(
       sprung_mass,
       unsprung_mass,
       suspension_spring_constant,
       suspension_damping_coefficient,
       tire_spring_constant,
-      ground_amplitude);
+      ground_positon_fn);
 
   auto constexpr steps = static_cast<size_t>(total_time / time_step);
 
-  std::vector<double> ground_data(steps + 1);
-  std::vector<double> tire_force_data(steps + 1);
+  auto const initial_ground_data = ground_positon_fn(state.phi());
 
-  ground_data[0] = ground_position(ground_amplitude, state.phi());
-  tire_force_data[0] = tire_spring_constant * (state.xu() - ground_data[0]);
+  hilbertcli::vec_collector collector(
+      steps + 1,
+      {0, state.xs(), state.xu(), initial_ground_data, tire_spring_constant * (state.xu() - initial_ground_data)});
 
   for (size_t i = 0; i < steps; ++i)
   {
     auto const t = i * time_step;
 
-    auto const ground = ground_position(ground_amplitude, state.phi());
+    auto const ground = ground_positon_fn(state.phi());
 
     auto const state_delta = rk4_delta(t, state, state_derivate_fn, time_step);
     state = state + state_delta;
 
     auto const tire_force = tire_spring_constant * (state.xu() - ground);
 
-    ground_data[i + 1] = ground;
-    tire_force_data[i + 1] = tire_force;
-
-    std::println("{} {} {} {} {}", t, state.xs(), state.xu(), ground, tire_force);
+    collector.collect({t + time_step, state.xs(), state.xu(), ground, tire_force});
   }
 
   auto constexpr sampling_rate = 1 / time_step;
 
+  auto ground_data = collector.ground_span();
+  auto tire_force_data = collector.tire_force_span();
+
   auto const ground_sd = hilbert::calculate_inst_signal_data(ground_data, sampling_rate);
   auto const tire_force_sd = hilbert::calculate_inst_signal_data(tire_force_data, sampling_rate);
 
-  // for (size_t i = 0; i < steps; ++i)
-  //{
-  //   std::println(
-  //       "{} {} {} {} {} {} {} {} {}",
-  //       i * time_step,
-  //       ground_data[i],
-  //       tire_force_data[i],
-  //       ground_sd.freq[i],
-  //       tire_force_sd.freq[i],
-  //       ground_sd.phase[i],
-  //       tire_force_sd.phase[i],
-  //       ground_sd.ampl[i],
-  //       tire_force_sd.ampl[i]);
-  // }
+  print_values(
+      collector.time_span(),
+      collector.xs_span(),
+      collector.xu_span(),
+      ground_data,
+      tire_force_data,
+      ground_sd.ampl,
+      ground_sd.phase,
+      ground_sd.freq,
+      tire_force_sd.ampl,
+      tire_force_sd.phase,
+      tire_force_sd.freq);
 }

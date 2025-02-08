@@ -2,8 +2,14 @@
 #define HILBERT_EXAMPLE_HPP
 
 
+#include <hilbert/fft.hpp>
+
+#include <algorithm>
 #include <complex>
 #include <concepts>
+#include <numbers>
+#include <ranges>
+#include <span>
 #include <vector>
 
 
@@ -21,10 +27,10 @@ struct signal_data
 };
 
 std::vector<std::complex<double>>
-hilbert_transform(std::vector<double> const &input);
+hilbert_transform(std::span<double const> input);
 
 signal_data<double>
-calculate_inst_signal_data(std::vector<double> const &data, double sampling_rate);
+calculate_inst_signal_data(std::span<double const> data, double sampling_rate);
 
 
 template<std::floating_point Float>

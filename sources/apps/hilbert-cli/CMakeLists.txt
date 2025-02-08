@@ -1,8 +1,9 @@
 ﻿set(target hilbert-cli)
 
 add_executable(${target}
-  src/main.cpp
-  "src/chirp.cpp")
+  "src/main.cpp"
+  "src/collectors.cpp"
+)
 
 target_include_directories(${target} PRIVATE include)
 target_compile_features(${target} PRIVATE cxx_std_23)

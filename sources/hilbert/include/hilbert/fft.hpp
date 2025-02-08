@@ -18,7 +18,7 @@ class plan_r2c
   fftw_plan plan_;
 
 public:
-  plan_r2c(std::vector<double> const &in, std::vector<std::complex<double>> &out);
+  plan_r2c(std::span<double const> in, std::span<std::complex<double>> out);
   ~plan_r2c();
 
   plan_r2c(plan_r2c const &) = delete;
@@ -48,7 +48,7 @@ class plan_c2c
   fftw_plan plan_;
 
 public:
-  plan_c2c(std::vector<std::complex<double>> const &in, std::vector<std::complex<double>> &out, sign sign);
+  plan_c2c(std::span<std::complex<double> const> in, std::span<std::complex<double>> out, sign sign);
   ~plan_c2c();
 
   plan_c2c(plan_c2c const &) = delete;
@@ -64,10 +64,10 @@ public:
 
 
 std::vector<std::complex<double>>
-fft_transform(std::vector<double> const &input);
+fft_transform(std::span<double const> input);
 
 std::vector<std::complex<double>>
-fft_transform(std::vector<std::complex<double>> const &input, sign sign);
+fft_transform(std::span<std::complex<double> const> input, sign sign);
 
 } // namespace hilbert::fft
 

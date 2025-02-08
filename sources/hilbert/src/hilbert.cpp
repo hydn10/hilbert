@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <complex>
-#include <memory>
 #include <numbers>
 #include <ranges>
 #include <vector>
@@ -81,7 +80,7 @@ take_negative_freqs_greater_than(double frequency, size_t num_samples, double sa
 
 
 std::vector<std::complex<double>>
-hilbert_transform(std::vector<double> const &input)
+hilbert_transform(std::span<double const> input)
 {
   auto const n = input.size();
 
@@ -99,7 +98,7 @@ hilbert_transform(std::vector<double> const &input)
 
 
 signal_data<double>
-calculate_inst_signal_data(std::vector<double> const &data, double sampling_rate)
+calculate_inst_signal_data(std::span<double const> data, double sampling_rate)
 {
   auto const num_samples = data.size();
   auto const analytic_signal = hilbert_transform(data);

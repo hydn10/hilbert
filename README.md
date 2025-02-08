@@ -7,7 +7,7 @@ A C++ implementation for automotive suspension analysis, developed to experiment
 Using the Hilbert transform for phase-shift analysis between force and displacement signals, this project aims to provide a reliable method for identifying faulty suspension systems during mandatory vehicle inspections.
 
 <div align="center">
-	<img src="https://i.imgur.com/HC1QBgP.png" alt="Displacement plot">
+	<img src="https://i.imgur.com/grnkbA2.png" alt="plot">
 </div>
 
 
