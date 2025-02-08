@@ -8,4 +8,12 @@ project(${PROJ_NAME_FROM_JSON} LANGUAGES CXX VERSION ${VERSION_FROM_JSON})
 
 find_package(FFTW3 REQUIRED)
 
-add_subdirectory(sources)
+if (MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-error=unused-function)
+endif()
+
+add_subdirectory(hilbert)
+add_subdirectory(apps)
+
