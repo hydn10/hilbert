@@ -1,0 +1,13 @@
+- Smooth phase shift and use it to calculate minima.
+
+- Different sampling frequency than simulation frequency
+  (100hz should be good i think).
+
+- Add noise.
+
+- Implement peak detection algorithm and compare it to hilbert.
+
+- Simulate a faulty damper.
+
+- Generate test runs with good/bad dampers and compare various methods
+  and their success rates.
