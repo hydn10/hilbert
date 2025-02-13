@@ -26,7 +26,7 @@
       };
     in
     {
-      apps.x86_64-linux.${pkgName} = 
+      apps.x86_64-linux.${pkgName} =
       {
         type = "app";
         program = "${packageDrv-lin64}/bin/${pkgName}";

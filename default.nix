@@ -15,7 +15,6 @@ in
 
     src = lib.cleanSource ./.;
 
-    buildInputs = [ fftw.dev ];
-
+    buildInputs = [ fftw ];
     nativeBuildInputs = [ cmake ];
   }
