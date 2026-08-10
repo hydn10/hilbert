@@ -1,76 +1,70 @@
-import numpy as np
+from pathlib import Path
+
 import matplotlib.pyplot as plt
-from scipy.signal import hilbert, butter, filtfilt
+import numpy as np
+from scipy.signal import butter, filtfilt, hilbert
+
+from .data import load_simulation_csv
 
 
-def bandpass_filter(signal, lowcut, highcut, fs, order=3):
-    nyquist = 0.5 * fs
-    low = lowcut / nyquist
-    high = highcut / nyquist
-    b, a = butter(order, [low, high], btype='band')
-    return filtfilt(b, a, signal)
+def bandpass_filter(
+    signal: np.ndarray,
+    low_cut_hz: float,
+    high_cut_hz: float,
+    sampling_frequency_hz: float,
+    order: int = 3,
+) -> np.ndarray:
+    nyquist_frequency = 0.5 * sampling_frequency_hz
+    if not 0 < low_cut_hz < high_cut_hz < nyquist_frequency:
+        raise ValueError("band-pass cutoffs must lie between zero and the Nyquist frequency")
+    numerator, denominator = butter(
+        order,
+        [low_cut_hz / nyquist_frequency, high_cut_hz / nyquist_frequency],
+        btype="band",
+    )
+    return filtfilt(numerator, denominator, signal)
 
 
+def plot_data(
+    file_path: str | Path,
+    *,
+    save_path: str | Path | None = None,
+    show: bool = True,
+) -> None:
+    data = load_simulation_csv(file_path)
 
-def plot_data(file_path: str) -> None:
-    data = np.loadtxt(file_path, delimiter=" ")
+    time = data["time_s"]
+    platform = data["platform_displacement_m"]
+    tire_force = data["tire_force_n"]
 
-    x = data[:, 0]
+    filtered_force = bandpass_filter(tire_force, 5, 30, data.sampling_frequency_hz)
+    filtered_platform = bandpass_filter(platform, 2, 22, data.sampling_frequency_hz)
 
-    ground = data[:, 3]
-    force = data[:, 4]
-    ground_phase = data[:, 6]
-    ground_freq = data[:, 7]
-    force_amp = data[:, 8]
-    force_phase = data[:, 9]
-    force_freq = data[:, 10]
+    native_phase_shift = np.unwrap(data["platform_phase_rad"]) - np.unwrap(
+        data["tire_force_phase_rad"]
+    )
+    filtered_phase_shift = np.unwrap(np.angle(hilbert(filtered_platform))) - np.unwrap(
+        np.angle(hilbert(filtered_force))
+    )
 
-    sampling_freq = 2000;
+    figure, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 8))
+    line_width = 0.8
 
-    bandforce = bandpass_filter(force, 5, 30, sampling_freq)
-    bandground = bandpass_filter(ground, 2, 22, sampling_freq)
+    axes[0].plot(time, native_phase_shift, label="Native analytic signals", linewidth=line_width)
+    axes[0].set_title("Platform–tire-force phase shift")
+    axes[0].set_ylabel("Phase shift (rad)")
+    axes[0].legend(loc="upper right")
 
-    analytic_bandforce = hilbert(bandforce)
-    bandforce_phase = np.unwrap(np.angle(analytic_bandforce))
+    axes[1].plot(time, filtered_phase_shift, label="SciPy filtered signals", linewidth=line_width)
+    axes[1].set_title("Band-pass-filtered phase shift")
+    axes[1].set_xlabel("Time (s)")
+    axes[1].set_ylabel("Phase shift (rad)")
+    axes[1].legend(loc="upper right")
 
-    analytic_bandground = hilbert(bandground)
-    bandground_phase = np.angle(analytic_bandground)
+    figure.tight_layout()
 
-    lnwdth = 0.60
-
-    fig, axs = plt.subplots(2, 1, sharex=True, figsize=(10, 8))
-    
-    #axs[0].plot(x, ground, label="Sprung mass", color="#EA0988", linewidth=lnwdth)
-    #axs2 =axs[0].twinx()
-    #axs2.plot(x, normforce, label="Unsprung mass", color="#1397D8", linewidth=lnwdth)
-    #axs[0].set_title("Displacements")
-    #axs[0].set_ylabel("Displacement (m)")
-    #axs[0].legend(loc="lower right")
-
-    #axs[1].plot(x, data[:, 3], label="Ground", color="orange", linewidth=lnwdth)
-    #ax2 = axs[1].twinx()
-    #ax2.plot(x, data[:, 4], label="Force", color="blue", linewidth=lnwdth)
-    #axs[1].set_title("Ground-Force Values")
-    #lines1, labels1 = axs[1].get_legend_handles_labels()
-    #lines2, labels2 = ax2.get_legend_handles_labels()
-    #axs[1].legend(lines1 + lines2, labels1 + labels2, loc="upper right")
-
-    axs[0].plot(x, np.unwrap(ground_phase - force_phase) + -2 * np.pi, label="orig", color="red", linewidth=lnwdth)
-    #axs[0].plot(x, force, label="phase", color="red", linewidth=lnwdth)
-    axs[0].set_title("Ground-Force Phase Shift")
-    axs[0].set_ylim(0, 4)
-    axs[0].set_ylabel("Phase Shift (rad)")
-    axs[0].legend(loc="upper right")
-
-    axs[1].plot(x, np.unwrap(bandground_phase - force_phase) + -4 * np.pi, label="norm", color="blue", linewidth=lnwdth)
-    #axs[1].plot(x, np.unwrap(bandground_phase - normforce_phase) + 2 * np.pi, label="adapt", color="red", linewidth=lnwdth)
-    axs[1].set_title("Ground-Force Phase Shift")
-    axs[1].set_ylim(0, 4)
-    axs[1].set_ylabel("Phase Shift (rad)")
-    axs[1].legend(loc="upper right")
-
-    plt.xlabel("Time (s)")
-
-    plt.tight_layout()
-
-    plt.show()
+    if save_path is not None:
+        figure.savefig(save_path)
+    if show:
+        plt.show()
+    plt.close(figure)

@@ -1,6 +1,6 @@
 #include <collectors.hpp>
 
-#include <print>
+#include <cstddef>
 #include <span>
 
 
@@ -22,11 +22,11 @@ vec_collector::vec_collector(size_t size, streamed_data_point initial_data)
 void
 vec_collector::collect(streamed_data_point data_point)
 {
-  time_data_.emplace_back(std::move(data_point.time));
-  xs_data_.emplace_back(std::move(data_point.xs));
-  xu_data_.emplace_back(std::move(data_point.xu));
-  ground_data_.emplace_back(std::move(data_point.ground));
-  tire_force_data_.emplace_back(std::move(data_point.tire_force));
+  time_data_.emplace_back(data_point.time);
+  xs_data_.emplace_back(data_point.xs);
+  xu_data_.emplace_back(data_point.xu);
+  ground_data_.emplace_back(data_point.ground);
+  tire_force_data_.emplace_back(data_point.tire_force);
 }
 
 

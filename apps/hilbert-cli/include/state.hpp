@@ -33,7 +33,6 @@ public:
   vu() const;
 };
 
-
 template<std::floating_point Float>
 state<Float>::state(Float phi, Float xs, Float xu, Float vs, Float vu)
     : phi_{phi}

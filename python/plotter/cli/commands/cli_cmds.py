@@ -1,5 +1,15 @@
-from plotter.services.plotting import plot_data
+from pathlib import Path
+
+from plotter.services.data import load_simulation_csv
 
 
-def execute(file_path: str):
-    plot_data(file_path)
+def execute(file_path: Path, save_path: Path | None, show: bool) -> None:
+    from plotter.services.plotting import plot_data
+
+    plot_data(file_path, save_path=save_path, show=show)
+
+
+def validate(file_path: Path) -> str:
+    data = load_simulation_csv(file_path)
+    sample_count = data["time_s"].size
+    return f"{sample_count} samples at {data.sampling_frequency_hz:g} Hz"

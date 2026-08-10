@@ -1,8 +1,7 @@
 from .cli.cli import app
 
-
 APP_NAME = "plotter"
 
 
-def run_cli():
+def run_cli() -> None:
     app(prog_name=APP_NAME)

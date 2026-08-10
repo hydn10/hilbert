@@ -1,71 +1,117 @@
 {
-  description = "";
+  description = "Hilbert suspension analysis and visualization";
 
   inputs = {
-    dream2nix.url = "github:nix-community/dream2nix";
-    nixpkgs.follows = "dream2nix/nixpkgs";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+
+    vcpkg-nix-adapter = {
+      url = "github:hydn10/vcpkg-nix-adapter/v0.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    mise-nix-adapter = {
+      url = "github:hydn10/mise-nix-adapter/v0.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, dream2nix }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      vcpkg-nix-adapter,
+      mise-nix-adapter,
+      uv2nix,
+      pyproject-nix,
+      pyproject-build-systems,
+    }:
     let
-      pkgs-lin64 = nixpkgs.legacyPackages.x86_64-linux;
-      packageDrv-lin64 = pkgs-lin64.callPackage ./default.nix {};
+      supportedSystems = [ "x86_64-linux" ];
 
-      pkgName = packageDrv-lin64.pname;
+      mkSystemOutputs =
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          workspace = import ./nix {
+            inherit
+              pkgs
+              uv2nix
+              pyproject-nix
+              pyproject-build-systems
+              ;
+            vcpkgAdapter = vcpkg-nix-adapter.lib;
+            miseAdapter = mise-nix-adapter.lib;
+          };
 
-      plotter = dream2nix.lib.evalModules {
-        packageSets.nixpkgs = dream2nix.inputs.nixpkgs.legacyPackages.x86_64-linux;
-        modules = [
-          nix/plotter.nix
-          ({lib, ...}: {
-            paths.projectRoot = ./python;
-            paths.projectRootFile = "pyproject.toml";
-            paths.package = ./python;
-          })
-        ];
-      };
+          projectName = workspace.project.package.pname;
+          nativeAppName = "${projectName}-cli";
+          pythonAppName = workspace.python.applicationScript;
+        in
+        {
+          packages = {
+            default = self.packages.${system}.${projectName};
+            "${projectName}" = workspace.project.package;
+            "${nativeAppName}" = workspace.project.packageWithApps;
+            "${pythonAppName}" = workspace.python.application;
+          };
+
+          apps = {
+            default = self.apps.${system}.${nativeAppName};
+
+            "${nativeAppName}" = {
+              type = "app";
+              program = "${workspace.project.packageWithApps}/bin/${nativeAppName}";
+              meta.description = "Run the Hilbert suspension simulation.";
+            };
+
+            "${pythonAppName}" = {
+              type = "app";
+              program = "${workspace.python.application}/bin/${pythonAppName}";
+              meta.description = "Validate or plot Hilbert simulation CSV data.";
+            };
+          };
+
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [ workspace.project.package ];
+            packages = workspace.development.mise.packages ++ workspace.python.shellPackages;
+            env = workspace.python.shellEnv;
+          };
+
+          formatter = pkgs.nixfmt-tree;
+
+          checks = {
+            cpp-quality = workspace.project.qualityCheck;
+            python-plotter = workspace.python.application;
+            data-contract = workspace.dataContractCheck;
+            nix-format = self.formatter.${system}.check self;
+          };
+        };
+
+      perSystem = nixpkgs.lib.genAttrs supportedSystems mkSystemOutputs;
     in
     {
-      apps.x86_64-linux.${pkgName} =
-      {
-        type = "app";
-        program = "${packageDrv-lin64}/bin/${pkgName}";
-      };
-
-      apps.x86_64-linux.plotter =
-      {
-        type = "app";
-        program = "${plotter}";
-      };
-
-      apps.x86_64-linux.default = self.apps.x86_64-linux.${pkgName};
-
-      overlays.default = final: prev: { ${pkgName} = self.packages.x86_64-linux.${pkgName}; };
-
-      packages.x86_64-linux.${pkgName} = packageDrv-lin64;
-
-      packages.x86_64-linux.plotter = plotter;
-
-      packages.x86_64-linux.default = self.packages.x86_64-linux.${pkgName};
-
-      devShells.x86_64-linux.cpp = import ./shell.nix {
-        pkgs = pkgs-lin64;
-        pkg = packageDrv-lin64;
-      };
-
-      devShells.x86_64-linux.python = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-        inputsFrom = [self.packages.x86_64-linux.plotter.devShell];
-        # Add extra packages.
-        packages = [ ];
-      };
-
-      devShells.x86_64-linux.all = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-        inputsFrom = [
-          self.devShells.x86_64-linux.cpp
-          self.devShells.x86_64-linux.python
-        ];
-      };
-
-      devShells.x86_64-linux.default = self.devShells.x86_64-linux.all;
+      packages = nixpkgs.lib.mapAttrs (_: outputs: outputs.packages) perSystem;
+      apps = nixpkgs.lib.mapAttrs (_: outputs: outputs.apps) perSystem;
+      devShells = nixpkgs.lib.mapAttrs (_: outputs: outputs.devShells) perSystem;
+      formatter = nixpkgs.lib.mapAttrs (_: outputs: outputs.formatter) perSystem;
+      checks = nixpkgs.lib.mapAttrs (_: outputs: outputs.checks) perSystem;
     };
 }

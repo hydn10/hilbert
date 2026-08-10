@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# The installed package carries the same dependency-normalization module used
+# by the source tree, so consumers do not need to know provider target names.
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+find_dependency(FFTW3)
+list(POP_FRONT CMAKE_MODULE_PATH)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")
+
+check_required_components("@PROJECT_NAME@")

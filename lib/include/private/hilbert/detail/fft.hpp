@@ -1,16 +1,15 @@
-#ifndef HILBERT_FFT_HPP
-#define HILBERT_FFT_HPP
+#ifndef HILBERT_DETAIL_FFT_HPP
+#define HILBERT_DETAIL_FFT_HPP
 
 
 #include <fftw3.h>
 
 #include <complex>
-#include <memory>
 #include <span>
 #include <vector>
 
 
-namespace hilbert::fft
+namespace hilbert::detail::fft
 {
 
 class plan_r2c
@@ -35,20 +34,20 @@ public:
 
 enum class sign
 {
-  FORWARD,
-  BACKWARD
+  forward,
+  backward,
 };
 
 
 class plan_c2c
 {
-  static constexpr auto
-  to_fftw_sign(sign sign);
+  static constexpr int
+  to_fftw_sign(sign direction);
 
   fftw_plan plan_;
 
 public:
-  plan_c2c(std::span<std::complex<double> const> in, std::span<std::complex<double>> out, sign sign);
+  plan_c2c(std::span<std::complex<double> const> in, std::span<std::complex<double>> out, sign direction);
   ~plan_c2c();
 
   plan_c2c(plan_c2c const &) = delete;
@@ -64,11 +63,12 @@ public:
 
 
 std::vector<std::complex<double>>
-fft_transform(std::span<double const> input);
+transform(std::span<double const> input);
+
 
 std::vector<std::complex<double>>
-fft_transform(std::span<std::complex<double> const> input, sign sign);
+transform(std::span<std::complex<double> const> input, sign direction);
 
-} // namespace hilbert::fft
+} // namespace hilbert::detail::fft
 
 #endif

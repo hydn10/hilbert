@@ -50,7 +50,6 @@ template<std::floating_point Float>
 derivative<Float>
 operator*(Float scalar, derivative<Float> const &d);
 
-
 template<std::floating_point Float>
 derivative<Float>::derivative(Float vphi, Float vxs, Float vxu, Float vvs, Float vvu)
     : vphi_{vphi}

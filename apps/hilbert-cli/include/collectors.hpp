@@ -2,6 +2,7 @@
 #define HILBERTCLI_COLLECTORS_HPP
 
 
+#include <cstddef>
 #include <ranges>
 #include <span>
 #include <vector>

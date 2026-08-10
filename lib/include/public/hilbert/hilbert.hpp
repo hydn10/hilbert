@@ -1,14 +1,10 @@
-#ifndef HILBERT_EXAMPLE_HPP
-#define HILBERT_EXAMPLE_HPP
+#ifndef HILBERT_HILBERT_HPP
+#define HILBERT_HILBERT_HPP
 
 
-#include <hilbert/fft.hpp>
-
-#include <algorithm>
 #include <complex>
 #include <concepts>
-#include <numbers>
-#include <ranges>
+#include <cstddef>
 #include <span>
 #include <vector>
 
@@ -23,12 +19,17 @@ struct signal_data
   std::vector<Float> phase;
   std::vector<Float> freq;
 
-  signal_data(size_t size);
+  explicit signal_data(size_t size);
 };
 
+
+// At least two samples are required. Throws std::invalid_argument otherwise.
 std::vector<std::complex<double>>
 hilbert_transform(std::span<double const> input);
 
+
+// At least two samples and a finite, positive sampling rate are required.
+// Throws std::invalid_argument when either precondition is not satisfied.
 signal_data<double>
 calculate_inst_signal_data(std::span<double const> data, double sampling_rate);
 

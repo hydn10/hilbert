@@ -1,0 +1,37 @@
+min_version = "2026.7.12"
+
+[settings]
+lockfile = true
+lockfile_platforms = ["linux-x64", "windows-x64"]
+windows_shim_mode = "exe"
+
+[tool_alias]
+clang-format = "conda:clang-format"
+clang-tools = "conda:clang-tools"
+gersemi = "pipx:gersemi"
+oxfmt = "npm:oxfmt"
+precious = "github:houseabsolute/precious"
+
+[tools]
+# Mise owns portable repository tools, not the platform compiler or SDK.
+actionlint = "latest"
+cmake = "4.1"
+clang-format = "22.1.8"
+clang-tools = "22.1.8"
+gersemi = "0.25.4"
+oxfmt = "0.61.0"
+just = "latest"
+ninja = "latest"
+precious = "latest"
+shellcheck = "latest"
+uv = "latest"
+
+[env]
+# Conda exposes the LLVM executables through Mise, while Windows also needs the
+# packages' runtime DLL directories available to clang-tidy.
+_.path = { path = [
+  "{% if tools[\"clang-format\"] is defined %}{{ tools[\"clang-format\"].path }}/Library/bin{% endif %}",
+  "{% if tools[\"clang-tools\"] is defined %}{{ tools[\"clang-tools\"].path }}/Library/bin{% endif %}",
+  "{% if tools[\"clang-format\"] is defined %}{{ tools[\"clang-format\"].path }}/bin{% endif %}",
+  "{% if tools[\"clang-tools\"] is defined %}{{ tools[\"clang-tools\"].path }}/bin{% endif %}",
+], tools = true }

@@ -10,8 +10,6 @@ out*/
 dist/
 .venv
 __pypackages__
-.pdm-python
-**/.pdm-build/**
 
 **/__pycache__
 
