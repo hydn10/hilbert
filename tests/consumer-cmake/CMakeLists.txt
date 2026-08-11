@@ -42,14 +42,38 @@ target_compile_features(hilbert-consumer PRIVATE cxx_std_23)
 target_link_libraries(hilbert-consumer PRIVATE hilbert::hilbert)
 
 if(WIN32)
-    add_custom_command(
-        TARGET hilbert-consumer
-        POST_BUILD
+    set(installed_consumer_runtime_dependencies
+        "$<TARGET_RUNTIME_DLLS:hilbert-consumer>"
+    )
+
+    if(NOT TARGET FFTW3::fftw3)
+        find_file(
+            fftw3_runtime_dll
+            NAMES fftw3.dll
+            PATHS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin"
+            NO_DEFAULT_PATH
+            REQUIRED
+        )
+        list(
+            APPEND installed_consumer_runtime_dependencies
+            "${fftw3_runtime_dll}"
+        )
+    endif()
+
+    add_custom_target(
+        setup-installed-consumer-runtime-dependencies
         COMMAND
-            "${CMAKE_COMMAND}" -E copy -t "$<TARGET_FILE_DIR:hilbert-consumer>"
-            "$<TARGET_RUNTIME_DLLS:hilbert-consumer>"
+            "${CMAKE_COMMAND}" -E copy_if_different
+            ${installed_consumer_runtime_dependencies}
+            "$<TARGET_FILE_DIR:hilbert-consumer>"
+        DEPENDS hilbert-consumer
         COMMAND_EXPAND_LISTS
         VERBATIM
+    )
+else()
+    add_custom_target(
+        setup-installed-consumer-runtime-dependencies
+        DEPENDS hilbert-consumer
     )
 endif()
 
