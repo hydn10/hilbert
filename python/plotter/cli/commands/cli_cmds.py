@@ -8,8 +8,11 @@ def execute(file_path: Path, save_path: Path | None, show: bool) -> None:
 
 
 def validate(file_path: Path) -> str:
-    from plotter.services.data import load_simulation_csv
+    from plotter.services.data import load_simulation_data
 
-    data = load_simulation_csv(file_path)
-    sample_count = data["time_s"].size
-    return f"{sample_count} samples at {data.sampling_frequency_hz:g} Hz"
+    data = load_simulation_data(file_path)
+    return (
+        f"raw: {data.raw.data.size} samples at {data.raw.sampling_frequency_hz:g} Hz; "
+        f"refined: {data.refined.data.size} samples at "
+        f"{data.refined.sampling_frequency_hz:g} Hz"
+    )

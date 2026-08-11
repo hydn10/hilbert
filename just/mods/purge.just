@@ -11,5 +11,3 @@ out:
 # Delete the uv-managed Python environment and local Python test caches.
 python:
     cmake -E remove_directory "python/.venv"
-    cmake -E remove_directory "python/.pytest_cache"
-    cmake -E remove_directory ".pytest_cache"

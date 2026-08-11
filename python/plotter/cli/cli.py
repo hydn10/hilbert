@@ -20,7 +20,7 @@ def execute(
         typer.Option("--show/--no-show", help="Open an interactive plot window."),
     ] = True,
 ) -> None:
-    """Plot one Hilbert simulation CSV file."""
+    """Plot one Hilbert multi-table simulation data file."""
     cli_cmds.execute(file_path, save, show)
 
 
@@ -28,5 +28,5 @@ def execute(
 def validate(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
 ) -> None:
-    """Validate the CSV contract without opening a plot."""
+    """Validate the multi-table text contract without opening a plot."""
     typer.echo(cli_cmds.validate(file_path))

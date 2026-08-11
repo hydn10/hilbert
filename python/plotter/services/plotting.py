@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import butter, filtfilt, hilbert
 
-from .data import load_simulation_csv
+from .data import load_simulation_data
 
 
 def continuous_relative_phase(
@@ -39,17 +39,22 @@ def plot_data(
     save_path: str | Path | None = None,
     show: bool = True,
 ) -> None:
-    data = load_simulation_csv(file_path)
+    data = load_simulation_data(file_path)
 
-    time = data["time_s"]
-    platform = data["platform_displacement_m"]
-    tire_force = data["tire_force_n"]
+    raw_time = data.raw["time_s"]
+    refined_time = data.refined["time_s"]
+    platform = data.raw["platform_displacement_m"]
+    tire_force = data.raw["tire_force_n"]
 
-    filtered_force = bandpass_filter(tire_force, 5, 30, data.sampling_frequency_hz)
-    filtered_platform = bandpass_filter(platform, 2, 22, data.sampling_frequency_hz)
+    filtered_force = bandpass_filter(tire_force, 5, 30, data.raw.sampling_frequency_hz)
+    filtered_platform = bandpass_filter(platform, 2, 22, data.raw.sampling_frequency_hz)
 
-    platform_analytic = data["platform_amplitude_m"] * np.exp(1j * data["platform_phase_rad"])
-    force_analytic = data["tire_force_amplitude_n"] * np.exp(1j * data["tire_force_phase_rad"])
+    platform_analytic = data.refined["platform_amplitude_m"] * np.exp(
+        1j * data.refined["platform_phase_rad"]
+    )
+    force_analytic = data.refined["tire_force_amplitude_n"] * np.exp(
+        1j * data.refined["tire_force_phase_rad"]
+    )
     native_phase_shift = continuous_relative_phase(platform_analytic, force_analytic)
 
     filtered_platform_analytic = hilbert(filtered_platform)
@@ -62,12 +67,16 @@ def plot_data(
     figure, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 8))
     line_width = 0.8
 
-    axes[0].plot(time, native_phase_shift, label="Native analytic signals", linewidth=line_width)
+    axes[0].plot(
+        refined_time, native_phase_shift, label="Native analytic signals", linewidth=line_width
+    )
     axes[0].set_title("Platform–tire-force phase shift")
     axes[0].set_ylabel("Phase shift (rad)")
     axes[0].legend(loc="upper right")
 
-    axes[1].plot(time, filtered_phase_shift, label="SciPy filtered signals", linewidth=line_width)
+    axes[1].plot(
+        raw_time, filtered_phase_shift, label="SciPy filtered signals", linewidth=line_width
+    )
     axes[1].set_title("Band-pass-filtered phase shift")
     axes[1].set_xlabel("Time (s)")
     axes[1].set_ylabel("Phase shift (rad)")

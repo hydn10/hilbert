@@ -50,8 +50,8 @@ check-installed preset=default-release-preset: (fresh-build preset)
     cmake --build "out/build/consumer-cmake/{{ preset }}" --target setup-installed-consumer-runtime-dependencies
     ctest --test-dir "out/build/consumer-cmake/{{ preset }}" --output-on-failure --no-tests=error
 
-# Generate simulation CSV with the selected native build.
-simulate output="out/simulation.csv" preset=default-release-preset duration="20":
+# Generate multi-table simulation data with the selected native build.
+simulate output="out/simulation.txt" preset=default-release-preset duration="20":
     cmake --preset {{ preset }}
     cmake --build --preset {{ preset }} --target hilbert-cli
     cmake -E make_directory "{{ parent_directory(output) }}"
