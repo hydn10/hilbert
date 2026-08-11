@@ -15,7 +15,7 @@ precious = "github:houseabsolute/precious"
 [tools]
 # Mise owns portable repository tools, not the platform compiler or SDK.
 actionlint = "latest"
-cmake = "4.1"
+cmake = "4.3"
 clang-format = "22.1.8"
 clang-tools = "22.1.8"
 gersemi = "0.25.4"
