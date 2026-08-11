@@ -1,11 +1,12 @@
-#ifndef HILBERTCLI_RK4_HPP
-#define HILBERTCLI_RK4_HPP
+#ifndef HILBERTCLI_NUMERICS_RK4_HPP
+#define HILBERTCLI_NUMERICS_RK4_HPP
 
 
 #include <concepts>
+#include <type_traits>
 
 
-namespace hilbertcli
+namespace hilbertcli::numerics
 {
 
 // clang-format off
@@ -30,12 +31,6 @@ concept state_derivative_func = requires(F f, Float t, Z const &z) {
 template<std::floating_point Float, typename Z, typename Derivate>
 requires state_derivative_func<Float, Derivate, Z>
 auto
-rk4_delta(Float t, Z const &z, Derivate derivate, Float time_step);
-
-
-template<std::floating_point Float, typename Z, typename Derivate>
-requires state_derivative_func<Float, Derivate, Z>
-auto
 rk4_delta(Float t, Z const &z, Derivate derivate, Float time_step)
 {
   auto const h = time_step;
@@ -48,6 +43,6 @@ rk4_delta(Float t, Z const &z, Derivate derivate, Float time_step)
   return (k1 + k2 * 2 + k3 * 2 + k4) * (h / 6);
 }
 
-} // namespace hilbertcli
+} // namespace hilbertcli::numerics
 
-#endif
+#endif // HILBERTCLI_NUMERICS_RK4_HPP

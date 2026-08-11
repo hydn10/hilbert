@@ -10,18 +10,14 @@ target_sources(
     PUBLIC
         FILE_SET public_headers
             TYPE HEADERS
-            BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/public"
-            FILES
-                "${CMAKE_CURRENT_SOURCE_DIR}/include/public/hilbert/hilbert.hpp"
+            BASE_DIRS include/public
+            FILES include/public/hilbert/hilbert.hpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS
-            BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include/private"
-            FILES
-                "${CMAKE_CURRENT_SOURCE_DIR}/include/private/hilbert/detail/fft.hpp"
-    PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/fft.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/hilbert.cpp"
+            BASE_DIRS include/private
+            FILES include/private/hilbert/detail/fft.hpp
+    PRIVATE src/fft.cpp src/hilbert.cpp
 )
 
 target_compile_features(${target_name} PUBLIC cxx_std_23)
@@ -29,7 +25,10 @@ target_link_libraries(${target_name} PRIVATE FFTW3::fftw3)
 
 set_target_properties(
     ${target_name}
-    PROPERTIES EXPORT_NAME "${PROJECT_NAME}" VERIFY_INTERFACE_HEADER_SETS ON
+    PROPERTIES
+        EXPORT_NAME "${PROJECT_NAME}"
+        VERIFY_INTERFACE_HEADER_SETS ON
+        VERIFY_PRIVATE_HEADER_SETS ON
 )
 
 if(BUILD_SHARED_LIBS)

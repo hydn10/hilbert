@@ -1,4 +1,4 @@
-#include <collectors.hpp>
+#include <hilbertcli/simulation/collector.hpp>
 
 #include <cstddef>
 #include <span>

@@ -102,7 +102,6 @@
             cpp-quality = workspace.project.qualityCheck;
             fftw-cmake-package = workspace.project.fftwPackageCheck;
             python-plotter = workspace.python.application;
-            data-contract = workspace.dataContractCheck;
             nix-format = self.formatter.${system}.check self;
           };
         };

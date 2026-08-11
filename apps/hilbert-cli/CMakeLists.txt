@@ -4,20 +4,28 @@ add_executable(${target_name})
 target_sources(
     ${target_name}
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/collectors.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/derivative.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/rk4.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/state.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/collectors.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
+        src/cli.cpp
+        src/main.cpp
+        src/output.cpp
+        src/simulation.cpp
+        src/simulation/collector.cpp
+    PRIVATE
+        FILE_SET private_headers
+            TYPE HEADERS
+            BASE_DIRS include
+            FILES
+                include/hilbertcli/cli.hpp
+                include/hilbertcli/exit_status.hpp
+                include/hilbertcli/numerics/rk4.hpp
+                include/hilbertcli/output.hpp
+                include/hilbertcli/simulation.hpp
+                include/hilbertcli/simulation/collector.hpp
+                include/hilbertcli/simulation/suspension.hpp
 )
 
-target_include_directories(
-    ${target_name}
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
 target_compile_features(${target_name} PRIVATE cxx_std_23)
 target_link_libraries(${target_name} PRIVATE "${PROJECT_NAME}::${PROJECT_NAME}")
+set_target_properties(${target_name} PROPERTIES VERIFY_PRIVATE_HEADER_SETS ON)
 
 stage_runtime_dlls(${target_name})
 

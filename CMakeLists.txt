@@ -9,8 +9,11 @@ string(JSON PROJECT_VERSION_FROM_JSON GET "${PROJECT_MANIFEST_JSON}" version)
 
 project(
     "${PROJECT_NAME_FROM_JSON}"
-    LANGUAGES CXX
     VERSION "${PROJECT_VERSION_FROM_JSON}"
+    SPDX_LICENSE
+    "MIT"
+    HOMEPAGE_URL "https://github.com/hydn10/hilbert"
+    LANGUAGES CXX
 )
 
 # Hilbert does not use C++ modules. Disabling scanning also keeps

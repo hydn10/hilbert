@@ -1,9 +1,8 @@
-#ifndef HILBERTCLI_COLLECTORS_HPP
-#define HILBERTCLI_COLLECTORS_HPP
+#ifndef HILBERTCLI_SIMULATION_COLLECTOR_HPP
+#define HILBERTCLI_SIMULATION_COLLECTOR_HPP
 
 
 #include <cstddef>
-#include <ranges>
 #include <span>
 #include <vector>
 
@@ -35,6 +34,9 @@ public:
   vec_collector(vec_collector const &) = delete;
   vec_collector &
   operator=(vec_collector const &) = delete;
+  vec_collector(vec_collector &&) noexcept = default;
+  vec_collector &
+  operator=(vec_collector &&) noexcept = default;
 
   void
   collect(streamed_data_point data_point);
@@ -53,4 +55,4 @@ public:
 
 } // namespace hilbertcli
 
-#endif
+#endif // HILBERTCLI_SIMULATION_COLLECTOR_HPP

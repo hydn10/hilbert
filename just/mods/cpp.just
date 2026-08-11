@@ -29,7 +29,7 @@ test preset=default-quality-preset:
 
 # Verify that every public header can be included on its own.
 verify-headers preset=default-quality-preset:
-    cmake --build --preset {{ preset }} --target all_verify_interface_header_sets
+    cmake --build --preset {{ preset }} --target all_verify_header_sets
 
 [private]
 fresh-build preset: (configure preset "true")
