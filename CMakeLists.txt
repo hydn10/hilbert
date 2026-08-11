@@ -51,6 +51,17 @@ endif()
 set(project_targets_export "${PROJECT_NAME}-targets")
 set(project_package_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
+# TODO: Replace this manual dependency handling with
+# install(EXPORT ... EXPORT_PACKAGE_DEPENDENCIES) once that API is stable.
+# It can generate find_dependency() from exported link interfaces, but is
+# currently experimental behind CMAKE_EXPERIMENTAL_EXPORT_PACKAGE_DEPENDENCIES.
+# https://cmake.org/cmake/help/latest/command/install.html
+get_target_property(project_library_type "${PROJECT_NAME}" TYPE)
+set(project_package_requires_fftw FALSE)
+if(project_library_type STREQUAL "STATIC_LIBRARY")
+    set(project_package_requires_fftw TRUE)
+endif()
+
 install(
     EXPORT "${project_targets_export}"
     NAMESPACE "${PROJECT_NAME}::"
@@ -66,14 +77,23 @@ configure_package_config_file(
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/lib/${PROJECT_NAME}-version.cmake"
-    COMPATIBILITY SameMajorVersion
+    "${CMAKE_CURRENT_BINARY_DIR}/lib/${PROJECT_NAME}-config-version.cmake"
+    COMPATIBILITY ExactVersion
 )
 
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/lib/${PROJECT_NAME}-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/lib/${PROJECT_NAME}-version.cmake"
+set(project_package_files
+    "${CMAKE_CURRENT_BINARY_DIR}/lib/${PROJECT_NAME}-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/lib/${PROJECT_NAME}-config-version.cmake"
+)
+
+if(project_package_requires_fftw)
+    list(
+        APPEND project_package_files
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/FindFFTW3.cmake"
+    )
+endif()
+
+install(
+    FILES ${project_package_files}
     DESTINATION "${project_package_install_dir}"
 )

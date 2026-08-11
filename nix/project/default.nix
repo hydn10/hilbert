@@ -12,6 +12,7 @@ let
   package = pkgs.callPackage ./package.nix {
     targetBuildInputs = vcpkgDependencies.root.targetPackages;
     hostBuildInputs = vcpkgDependencies.root.hostPackages;
+    consumerBuildInputs = [ pkgs.fftw ];
   };
 
   packageWithApps = package.override {
@@ -34,9 +35,38 @@ let
           cmake --build . --target all_verify_interface_header_sets
         '';
       });
+
+  installedConsumerCheck = pkgs.stdenv.mkDerivation {
+    pname = "hilbert-installed-consumer";
+    inherit (package) version;
+
+    src = ../../tests/consumer-cmake;
+    strictDeps = true;
+
+    nativeBuildInputs = [
+      pkgs.cmake
+      pkgs.ninja
+    ];
+    buildInputs = [ package ];
+
+    cmakeGenerator = "Ninja";
+    cmakeFlags = [
+      "-DHILBERT_EXPECT_FFTW_TARGET=ON"
+      "-DHILBERT_PACKAGE_VERSION=${package.version}"
+    ];
+
+    doCheck = true;
+
+    installPhase = ''
+      runHook preInstall
+      touch "$out"
+      runHook postInstall
+    '';
+  };
 in
 {
   inherit
+    installedConsumerCheck
     package
     packageWithApps
     qualityCheck

@@ -98,6 +98,7 @@
           formatter = pkgs.nixfmt-tree;
 
           checks = {
+            cmake-installed-consumer = workspace.project.installedConsumerCheck;
             cpp-quality = workspace.project.qualityCheck;
             python-plotter = workspace.python.application;
             data-contract = workspace.dataContractCheck;

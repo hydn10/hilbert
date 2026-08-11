@@ -5,6 +5,7 @@
   ninja,
   targetBuildInputs,
   hostBuildInputs,
+  consumerBuildInputs,
   buildApps ? false,
   buildTests ? false,
 }:
@@ -26,6 +27,7 @@ stdenv.mkDerivation {
   ]
   ++ hostBuildInputs;
   buildInputs = targetBuildInputs;
+  propagatedBuildInputs = consumerBuildInputs;
 
   cmakeGenerator = "Ninja";
   cmakeFlags = [

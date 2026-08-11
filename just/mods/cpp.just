@@ -45,7 +45,7 @@ validate preset=default-quality-preset: (fresh-build preset) (validate-built pre
 [arg("preset", pattern="release|shared-release|vcpkg-release|vcpkg-shared-release")]
 check-installed preset=default-release-preset: (fresh-build preset)
     cmake --install "out/build/{{ preset }}"
-    cmake -S tests/consumer-cmake -B "out/build/consumer-cmake/{{ preset }}" --fresh -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_PREFIX_PATH={{ repo-root }}/out/install/{{ preset }}" {{ if preset =~ "^vcpkg-" { "-DCMAKE_TOOLCHAIN_FILE=" + repo-root + "/cmake/toolchains/vcpkg.cmake" } else { "" } }} {{ if preset =~ "^vcpkg-" { "-DVCPKG_INSTALLED_DIR=" + repo-root + "/out/build/" + preset + "/vcpkg_installed" } else { "" } }}
+    cmake -S tests/consumer-cmake -B "out/build/consumer-cmake/{{ preset }}" --fresh -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_PREFIX_PATH={{ repo-root }}/out/install/{{ preset }}" "-DHILBERT_EXPECT_FFTW_TARGET={{ if preset =~ "shared-release$" { "OFF" } else { "ON" } }}" {{ if preset =~ "^vcpkg-" { "-DCMAKE_TOOLCHAIN_FILE=" + repo-root + "/cmake/toolchains/vcpkg.cmake" } else { "" } }} {{ if preset =~ "^vcpkg-" { "-DVCPKG_INSTALLED_DIR=" + repo-root + "/out/build/" + preset + "/vcpkg_installed" } else { "" } }}
     cmake --build "out/build/consumer-cmake/{{ preset }}" --clean-first
     ctest --test-dir "out/build/consumer-cmake/{{ preset }}" --output-on-failure --no-tests=error
 
