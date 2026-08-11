@@ -84,6 +84,40 @@ test_instantaneous_data_for_sinusoid()
 }
 
 
+void
+test_instantaneous_frequency_preserves_negative_phase_deltas()
+{
+  constexpr size_t sample_count = 256;
+  constexpr double sampling_rate = 256.0;
+
+  std::vector<double> input(sample_count);
+  for (auto [index, sample] : std::views::enumerate(input))
+  {
+    auto const time = static_cast<double>(index) / sampling_rate;
+    sample = 2.0 * std::cos(2.0 * std::numbers::pi * time) + std::cos(2.0 * std::numbers::pi * 3.0 * time);
+  }
+
+  auto const data = hilbert::calculate_inst_signal_data(input, sampling_rate);
+  auto const phase_pairs = data.phase | std::views::adjacent<2>;
+  auto const frequencies = data.freq | std::views::drop(1);
+
+  bool found_negative_frequency = false;
+  for (auto const &[phases, frequency] : std::views::zip(phase_pairs, frequencies))
+  {
+    auto const &[previous_phase, current_phase] = phases;
+    auto const expected_delta = std::remainder(current_phase - previous_phase, 2.0 * std::numbers::pi);
+    auto const expected_frequency = expected_delta * sampling_rate / (2.0 * std::numbers::pi);
+
+    require(
+        std::abs(frequency - expected_frequency) < tolerance,
+        "instantaneous frequency used a non-principal phase delta");
+    found_negative_frequency = found_negative_frequency || frequency < 0.0;
+  }
+
+  require(found_negative_frequency, "test signal did not produce a negative instantaneous frequency");
+}
+
+
 template<typename Function>
 void
 require_invalid_argument(Function function, std::string_view message)
@@ -142,6 +176,7 @@ run_tests()
   {
     test_cosine_analytic_signal();
     test_instantaneous_data_for_sinusoid();
+    test_instantaneous_frequency_preserves_negative_phase_deltas();
     test_preconditions();
   }
   catch (std::exception const &error)

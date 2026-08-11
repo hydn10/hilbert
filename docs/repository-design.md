@@ -14,7 +14,7 @@ The repository follows an inside-out ownership model:
 - `python/pyproject.toml` and `python/uv.lock` own the plotter package and Python dependency graph.
 - vcpkg and Nix provision dependencies without redefining native targets.
 - Mise provisions portable repository tools, not the compiler, linker, SDK, or native platform setup.
-- Just delegates discoverable workflows to CMake, CTest, uv, and the formatters; it is not a build system.
+- Just delegates discoverable workflows to CMake, CTest, uv, and the formatters. It is not a build system.
 
 Generic CMake presets remain provider-independent. Provider-specific presets compose the vcpkg adapter with those same configurations. A caller-supplied `CMAKE_TOOLCHAIN_FILE` takes priority in the Just defaults, so external toolchains remain ordinary CMake inputs.
 

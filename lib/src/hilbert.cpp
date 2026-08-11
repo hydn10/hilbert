@@ -79,6 +79,14 @@ take_negative_freqs_greater_than(double frequency, size_t num_samples, double sa
   return std::views::reverse | std::views::drop(num_to_drop) | std::views::take(num_to_take);
 }
 
+
+double
+principal_phase_delta(double previous_phase, double current_phase)
+{
+  double constexpr tau = 2 * std::numbers::pi;
+  return std::remainder(current_phase - previous_phase, tau);
+}
+
 } // namespace
 
 
@@ -142,13 +150,8 @@ calculate_inst_signal_data(std::span<double const> data, double sampling_rate)
     double constexpr tau = 2 * std::numbers::pi;
 
     auto const &[previous_phase, current_phase] = phases;
-    double const delta_phase = current_phase - previous_phase;
+    double const delta_phase = principal_phase_delta(previous_phase, current_phase);
     frequency = delta_phase * sampling_rate / tau;
-
-    if (frequency < 0)
-    {
-      frequency += sampling_rate;
-    }
   }
 
   auto first_frequency = res.freq.begin();
