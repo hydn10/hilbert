@@ -1,0 +1,9 @@
+if(NOT TARGET FFTW3::fftw3)
+    add_library(FFTW3::fftw3 UNKNOWN IMPORTED)
+    set_target_properties(
+        FFTW3::fftw3
+        PROPERTIES
+            IMPORTED_LOCATION "@out@/lib/@fftwLibraryName@"
+            INTERFACE_INCLUDE_DIRECTORIES "@dev@/include"
+    )
+endif()

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 4.3)
 
 project(hilbert_consumer LANGUAGES CXX)
 
@@ -23,6 +23,10 @@ endif()
 unset(hilbert_DIR CACHE)
 
 find_package(hilbert ${HILBERT_PACKAGE_VERSION} EXACT CONFIG REQUIRED)
+
+if(NOT hilbert_CONFIG MATCHES "[.]cps$")
+    message(FATAL_ERROR "Hilbert was not discovered through its CPS package")
+endif()
 
 if(HILBERT_EXPECT_FFTW_TARGET AND NOT TARGET FFTW3::fftw3)
     message(FATAL_ERROR "the static package did not resolve FFTW3::fftw3")

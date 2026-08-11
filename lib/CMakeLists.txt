@@ -1,4 +1,4 @@
-find_package(FFTW3 REQUIRED)
+find_package(FFTW3 CONFIG REQUIRED)
 
 set(target_name "${PROJECT_NAME}")
 

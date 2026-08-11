@@ -90,7 +90,7 @@ m_u \ddot x_u + c_s(\dot x_u - \dot x_s) + k_s(x_u - x_s) + k_t(x_u - y_g) = 0
 ## Dependencies
 
 - FFTW3.
-- CMake 3.28 or newer.
+- CMake 4.3 or newer.
 - Ninja.
 - C++23-compatible compiler.
 - Python 3.10 or newer and uv, for the plotting tools.

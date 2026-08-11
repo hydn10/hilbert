@@ -18,7 +18,7 @@ let
     colorama
   ];
 in
-# Remove once nixpkgs catches up: 0.23.2 cannot parse @PACKAGE_INIT@.
+# Remove once nixpkgs catches up: 0.23.2 predates stable CPS syntax.
 pkgs.gersemi.overrideAttrs (_oldAttrs: {
   version = "0.25.4";
   src = pkgs.fetchPypi {

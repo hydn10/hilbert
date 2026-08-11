@@ -1,18 +1,20 @@
 { pkgs, adapter }:
 let
+  fftw = import ../packages/fftw.nix { inherit pkgs; };
+
   vcpkgDependencies =
     adapter.mapDependencies
       {
         vcpkgJson = ../../vcpkg.json;
       }
       {
-        fftw3 = _: pkgs.fftw;
+        fftw3 = _: fftw;
       };
 
   package = pkgs.callPackage ./package.nix {
     targetBuildInputs = vcpkgDependencies.root.targetPackages;
     hostBuildInputs = vcpkgDependencies.root.hostPackages;
-    consumerBuildInputs = [ pkgs.fftw ];
+    consumerBuildInputs = [ fftw ];
   };
 
   packageWithApps = package.override {
@@ -63,9 +65,34 @@ let
       runHook postInstall
     '';
   };
+
+  fftwPackageCheck = pkgs.stdenv.mkDerivation {
+    pname = "fftw-cmake-package-consumer";
+    inherit (fftw) version;
+
+    src = ../../tests/fftw-consumer-cmake;
+    strictDeps = true;
+
+    nativeBuildInputs = [
+      pkgs.cmake
+      pkgs.ninja
+    ];
+    buildInputs = [ fftw ];
+
+    cmakeGenerator = "Ninja";
+    doCheck = true;
+
+    installPhase = ''
+      runHook preInstall
+      touch "$out"
+      runHook postInstall
+    '';
+  };
 in
 {
   inherit
+    fftw
+    fftwPackageCheck
     installedConsumerCheck
     package
     packageWithApps
