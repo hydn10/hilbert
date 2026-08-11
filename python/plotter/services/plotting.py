@@ -7,6 +7,14 @@ from scipy.signal import butter, filtfilt, hilbert
 from .data import load_simulation_csv
 
 
+def continuous_relative_phase(
+    first_analytic_signal: np.ndarray,
+    second_analytic_signal: np.ndarray,
+) -> np.ndarray:
+    relative_analytic_signal = first_analytic_signal * np.conj(second_analytic_signal)
+    return np.unwrap(np.angle(relative_analytic_signal))
+
+
 def bandpass_filter(
     signal: np.ndarray,
     low_cut_hz: float,
@@ -40,11 +48,15 @@ def plot_data(
     filtered_force = bandpass_filter(tire_force, 5, 30, data.sampling_frequency_hz)
     filtered_platform = bandpass_filter(platform, 2, 22, data.sampling_frequency_hz)
 
-    native_phase_shift = np.unwrap(data["platform_phase_rad"]) - np.unwrap(
-        data["tire_force_phase_rad"]
-    )
-    filtered_phase_shift = np.unwrap(np.angle(hilbert(filtered_platform))) - np.unwrap(
-        np.angle(hilbert(filtered_force))
+    platform_analytic = data["platform_amplitude_m"] * np.exp(1j * data["platform_phase_rad"])
+    force_analytic = data["tire_force_amplitude_n"] * np.exp(1j * data["tire_force_phase_rad"])
+    native_phase_shift = continuous_relative_phase(platform_analytic, force_analytic)
+
+    filtered_platform_analytic = hilbert(filtered_platform)
+    filtered_force_analytic = hilbert(filtered_force)
+    filtered_phase_shift = continuous_relative_phase(
+        filtered_platform_analytic,
+        filtered_force_analytic,
     )
 
     figure, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 8))
