@@ -8,6 +8,6 @@ all: out python
 out:
     cmake -E remove_directory "out"
 
-# Delete the uv-managed Python environment and local Python test caches.
+# Delete the uv-managed Python environment.
 python:
     cmake -E remove_directory "python/.venv"

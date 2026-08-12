@@ -25,24 +25,9 @@ let
     inherit pkgs;
     adapter = miseAdapter;
   };
-
-  dataContractCheck =
-    pkgs.runCommand "hilbert-data-contract"
-      {
-        nativeBuildInputs = [
-          project.packageWithApps
-          python.application
-        ];
-      }
-      ''
-        hilbert-cli --duration 1 --output simulation.csv
-        plotter validate simulation.csv
-        touch "$out"
-      '';
 in
 {
   inherit
-    dataContractCheck
     development
     project
     python

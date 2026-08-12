@@ -40,7 +40,7 @@ jobs:
         run: just check format all
 
   native-linux:
-    name: Native package (Linux GCC 15)
+    name: Native packaging (Linux GCC 15)
     runs-on: ubuntu-latest
     env:
       CC: gcc-15
@@ -69,20 +69,20 @@ jobs:
           triplet: x64-linux
           toolchain: gcc
 
-      - name: Validate native static Release
+      - name: Build and test static Release
         run: just cpp validate vcpkg-release
 
-      - name: Check installed static CMake package
+      - name: Test installed static CMake package
         run: just cpp check-installed vcpkg-release
 
-      - name: Validate native shared Release
+      - name: Build and test shared Release
         run: just cpp validate vcpkg-shared-release
 
-      - name: Check installed shared CMake package
+      - name: Test installed shared CMake package
         run: just cpp check-installed vcpkg-shared-release
 
   native-windows:
-    name: Native package (Windows MSVC)
+    name: Native packaging (Windows MSVC)
     runs-on: windows-latest
     env:
       CC: cl.exe
@@ -118,20 +118,20 @@ jobs:
           triplet: x64-windows
           toolchain: msvc
 
-      - name: Validate native static Release
+      - name: Build and test static Release
         run: just cpp validate vcpkg-release
 
-      - name: Check installed static CMake package
+      - name: Test installed static CMake package
         run: just cpp check-installed vcpkg-release
 
-      - name: Validate native shared Release
+      - name: Build and test shared Release
         run: just cpp validate vcpkg-shared-release
 
-      - name: Check installed shared CMake package
+      - name: Test installed shared CMake package
         run: just cpp check-installed vcpkg-shared-release
 
   quality:
-    name: Native and Python quality (Linux Clang)
+    name: Native, Python, and workflow quality (Linux Clang)
     runs-on: ubuntu-latest
     env:
       CC: clang
@@ -170,11 +170,11 @@ jobs:
           triplet: x64-linux
           toolchain: clang
 
-      - name: Run native, Python, and CI linters
+      - name: Run native, Python, and workflow quality checks
         run: just check lint all vcpkg-quality
 
-  data-pipeline:
-    name: CSV pipeline (${{ matrix.name }}, Python ${{ matrix.python }})
+  python-integration:
+    name: Native/Python integration (${{ matrix.name }}, Python ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -252,7 +252,7 @@ jobs:
           triplet: ${{ matrix.triplet }}
           toolchain: ${{ matrix.toolchain }}
 
-      - name: Test Python and the file-based integration
+      - name: Validate native-to-Python file integration
         run: just py validate vcpkg-release
 
   nix:
@@ -265,5 +265,5 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 
-      - name: Check packages, quality, and the CSV contract
+      - name: Build and check flake outputs
         run: nix flake check -L

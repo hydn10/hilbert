@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <complex>
-#include <cstddef>
 #include <exception>
 #include <iostream>
 #include <limits>
@@ -33,8 +32,8 @@ require(bool condition, std::string_view message)
 void
 test_cosine_analytic_signal()
 {
-  constexpr size_t sample_count = 128;
-  constexpr size_t cycles = 7;
+  constexpr auto sample_count = 128uz;
+  constexpr auto cycles = 7uz;
 
   std::vector<double> input(sample_count);
   for (auto [index, sample] : std::views::enumerate(input))
@@ -59,7 +58,7 @@ test_cosine_analytic_signal()
 void
 test_instantaneous_data_for_sinusoid()
 {
-  constexpr size_t sample_count = 256;
+  constexpr auto sample_count = 256uz;
   constexpr double sampling_rate = 256.0;
   constexpr double frequency = 11.0;
   constexpr double amplitude = 2.5;
@@ -87,7 +86,7 @@ test_instantaneous_data_for_sinusoid()
 void
 test_instantaneous_frequency_preserves_negative_phase_deltas()
 {
-  constexpr size_t sample_count = 256;
+  constexpr auto sample_count = 256uz;
   constexpr double sampling_rate = 256.0;
 
   std::vector<double> input(sample_count);

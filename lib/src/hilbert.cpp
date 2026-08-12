@@ -23,14 +23,14 @@ namespace
 auto
 take_positive_freqs(size_t n)
 {
-  return std::views::drop(1) | std::views::take((n - 1) / 2);
+  return std::views::drop(1) | std::views::take((n - 1uz) / 2uz);
 }
 
 
 auto
 take_negative_freqs(size_t n)
 {
-  return std::views::reverse | std::views::take((n - 1) / 2);
+  return std::views::reverse | std::views::take((n - 1uz) / 2uz);
 }
 
 
@@ -61,8 +61,8 @@ take_positive_freqs_greater_than(double frequency, size_t num_samples, double sa
 {
   auto const cutoff = cutoff_bin(frequency, num_samples, sampling_rate);
 
-  auto const num_to_drop = cutoff + 1;
-  auto const num_to_take = ((num_samples - 1) / 2) - cutoff;
+  auto const num_to_drop = cutoff + 1uz;
+  auto const num_to_take = ((num_samples - 1uz) / 2uz) - cutoff;
 
   return std::views::drop(num_to_drop) | std::views::take(num_to_take);
 }
@@ -74,7 +74,7 @@ take_negative_freqs_greater_than(double frequency, size_t num_samples, double sa
   auto const cutoff = cutoff_bin(frequency, num_samples, sampling_rate);
 
   auto const num_to_drop = cutoff;
-  auto const num_to_take = ((num_samples - 1) / 2) - cutoff;
+  auto const num_to_take = ((num_samples - 1uz) / 2uz) - cutoff;
 
   return std::views::reverse | std::views::drop(num_to_drop) | std::views::take(num_to_take);
 }
@@ -95,7 +95,7 @@ hilbert_transform(std::span<double const> input)
 {
   auto const n = input.size();
 
-  if (n < 2)
+  if (n < 2uz)
   {
     throw std::invalid_argument{"hilbert_transform requires at least two samples"};
   }

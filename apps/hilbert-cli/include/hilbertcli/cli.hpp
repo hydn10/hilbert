@@ -2,14 +2,19 @@
 #define HILBERTCLI_CLI_HPP
 
 
-#include <hilbertcli/exit_status.hpp>
+#include <hilbertcli/process/exit_status.hpp>
+
+#include <span>
 
 
 namespace hilbertcli
 {
 
-exit_status
-run_cli(int argc, char const **argv);
+using cli_result = process_exit_domain::result_for<failure_domain::cli>;
+
+
+cli_result
+run_cli(std::span<char const *const> arguments);
 
 } // namespace hilbertcli
 

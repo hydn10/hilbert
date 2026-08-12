@@ -85,7 +85,7 @@
             "${pythonAppName}" = {
               type = "app";
               program = "${workspace.python.application}/bin/${pythonAppName}";
-              meta.description = "Validate or plot Hilbert simulation CSV data.";
+              meta.description = "Validate or plot Hilbert multi-table simulation data.";
             };
           };
 

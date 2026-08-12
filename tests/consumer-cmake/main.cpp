@@ -7,8 +7,8 @@
 int
 main()
 {
-  std::vector<double> samples(32);
-  for (size_t index = 0; index < samples.size(); ++index)
+  std::vector<double> samples(32uz);
+  for (auto index = 0uz; index < samples.size(); ++index)
   {
     samples[index] = std::cos(2.0 * std::numbers::pi * static_cast<double>(index) / samples.size());
   }

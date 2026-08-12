@@ -47,7 +47,7 @@ run_simulation(simulation_config const &config)
   auto const initial_platform_position = ground_position_function(current_state.phi());
 
   vec_collector collector(
-      steps + 1,
+      steps + 1uz,
       {
           .time = 0,
           .xs = current_state.xs(),
@@ -56,7 +56,7 @@ run_simulation(simulation_config const &config)
           .tire_force = tire_spring_constant * (current_state.xu() - initial_platform_position),
       });
 
-  for (size_t index = 0; index < steps; ++index)
+  for (auto index = 0uz; index < steps; ++index)
   {
     auto const time = static_cast<double>(index) * config.time_step;
     auto const state_delta = numerics::rk4_delta(time, current_state, state_derivative_function, config.time_step);
@@ -80,7 +80,7 @@ run_simulation(simulation_config const &config)
   auto const measurement_offset = static_cast<size_t>(measurement_begin - time.begin());
   auto const measurement_size = static_cast<size_t>(measurement_end - measurement_begin);
 
-  if (measurement_size < 2)
+  if (measurement_size < 2uz)
   {
     throw std::invalid_argument{"measurement interval must contain at least two samples"};
   }

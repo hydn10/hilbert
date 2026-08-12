@@ -1,15 +1,17 @@
 #include <hilbertcli/cli.hpp>
 
-#include <hilbertcli/exit_status.hpp>
 #include <hilbertcli/output.hpp>
+#include <hilbertcli/process/exit_status.hpp>
 #include <hilbertcli/simulation.hpp>
 
+#include <charconv>
 #include <cmath>
-#include <cstddef>
 #include <exception>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <print>
 #include <ranges>
@@ -17,6 +19,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <variant>
 
 
@@ -41,25 +44,35 @@ using command = std::variant<simulation_command, help_command>;
 
 
 void
+print_usage_synopsis(std::ostream &output)
+{
+  std::print(output, "Usage: hilbert-cli [--output PATH] [--duration SECONDS] [--time-step SECONDS]\n");
+}
+
+
+void
 print_usage(std::ostream &output)
 {
-  std::print(
-      output,
-      "Usage: hilbert-cli [--output PATH] [--duration SECONDS] [--time-step SECONDS]\n"
-      "\n"
-      "Write the suspension simulation as multi-table text. Output defaults to stdout.\n");
+  print_usage_synopsis(output);
+  std::print(output, "\nWrite the suspension simulation as multi-table text. Output defaults to stdout.\n");
 }
 
 
 double
-parse_positive_double(std::string const &value, std::string_view option)
+parse_positive_double(std::string_view value, std::string_view option)
 {
-  size_t parsed_characters = 0;
-  auto const result = std::stod(value, &parsed_characters);
-  if (parsed_characters != value.size() || !std::isfinite(result) || result <= 0)
+  double result{};
+
+  auto const *const value_begin = std::to_address(value.begin());
+  auto const *const value_end = std::to_address(value.end());
+
+  auto const [parsed_end, error] = std::from_chars(value_begin, value_end, result);
+
+  if (error != std::errc{} || parsed_end != value_end || !std::isfinite(result) || result <= 0)
   {
     throw std::invalid_argument{std::string{option} + " requires a finite, positive number"};
   }
+
   return result;
 }
 
@@ -72,7 +85,7 @@ parse_command(std::span<char const *const> arguments)
   for (auto const &option_tokens : arguments | std::views::drop(1) | std::views::chunk(2))
   {
     auto current_argument = option_tokens.begin();
-    std::string const argument{*current_argument++};
+    std::string_view const argument{*current_argument++};
 
     if (argument == "--help" || argument == "-h")
     {
@@ -81,13 +94,13 @@ parse_command(std::span<char const *const> arguments)
 
     if (current_argument == option_tokens.end())
     {
-      throw std::invalid_argument{"missing value for " + argument};
+      throw std::invalid_argument{std::format("missing value for {}", argument)};
     }
 
-    std::string const value{*current_argument++};
+    std::string_view const value{*current_argument++};
     if (argument == "--output")
     {
-      simulation.output_path = value;
+      simulation.output_path.emplace(value.begin(), value.end());
     }
     else if (argument == "--duration")
     {
@@ -99,7 +112,7 @@ parse_command(std::span<char const *const> arguments)
     }
     else
     {
-      throw std::invalid_argument{"unknown option: " + argument};
+      throw std::invalid_argument{std::format("unknown option: {}", argument)};
     }
   }
 
@@ -148,23 +161,22 @@ struct command_dispatcher
 } // namespace
 
 
-exit_status
-run_cli(int argc, char const **argv)
+cli_result
+run_cli(std::span<char const *const> arguments)
+try
 {
-  try
-  {
-    auto const arguments = std::span<char const *const>{argv, static_cast<size_t>(argc)};
-    auto const parsed_command = parse_command(arguments);
-    std::visit(command_dispatcher{}, parsed_command);
-  }
-  catch (std::exception const &error)
-  {
-    std::println(std::cerr, "hilbert-cli: {}", error.what());
-    std::println(std::cerr, "Usage: hilbert-cli [--output PATH] [--duration SECONDS] [--time-step SECONDS]");
-    return exit_status::cli_error;
-  }
+  auto const parsed_command = parse_command(arguments);
 
-  return exit_status::success;
+  std::visit(command_dispatcher{}, parsed_command);
+
+  return outcome::success{};
+}
+catch (std::exception const &error)
+{
+  std::println(std::cerr, "hilbert-cli: {}", error.what());
+  print_usage_synopsis(std::cerr);
+
+  return outcome::cli::error{};
 }
 
 } // namespace hilbertcli
