@@ -13,14 +13,17 @@ def execute(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
     save: Annotated[
         Path | None,
-        typer.Option("--save", help="Save the plot to this path."),
+        typer.Option(
+            "--save",
+            help="Save both figures; the phase-frequency filename gets a '-phase-frequency' suffix.",
+        ),
     ] = None,
     show: Annotated[
         bool,
-        typer.Option("--show/--no-show", help="Open an interactive plot window."),
+        typer.Option("--show/--no-show", help="Open the interactive plot windows."),
     ] = True,
 ) -> None:
-    """Plot one Hilbert multi-table simulation data file."""
+    """Plot one Hilbert simulation data file in two figures."""
     cli_cmds.execute(file_path, save, show)
 
 

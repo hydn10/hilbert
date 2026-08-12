@@ -15,6 +15,11 @@ write_simulation_data(std::ostream &output, simulation_result const &result)
 {
   output << std::setprecision(17);
 
+  output << "# table: intervals\n"
+            "measurement_start_s,measurement_end_s,hilbert_start_s,hilbert_end_s\n"
+         << result.measurement_interval.start_time << ',' << result.measurement_interval.end_time << ','
+         << result.hilbert_interval.start_time << ',' << result.hilbert_interval.end_time << "\n\n";
+
   auto const time = result.samples.time_span();
   auto const sprung = result.samples.xs_span();
   auto const unsprung = result.samples.xu_span();
@@ -36,7 +41,7 @@ write_simulation_data(std::ostream &output, simulation_result const &result)
             "time_s,platform_amplitude_m,platform_phase_rad,platform_frequency_hz,tire_force_amplitude_n,"
             "tire_force_phase_rad,tire_force_frequency_hz\n";
 
-  auto const refined_time = result.samples.time_span().subspan(result.measurement_offset, result.measurement_size);
+  auto const refined_time = result.samples.time_span().subspan(result.hilbert_offset, result.hilbert_size);
   for (
       auto const
           &[time_value,

@@ -126,16 +126,7 @@ just py validate-data out/simulation.txt
 just py plot out/simulation.txt
 ```
 
-The generated UTF-8 text file contains independent CSV-style tables. Each table starts with a
-"# table: &lt;name&gt;" marker followed immediately by its header:
-
-    # table: raw
-    time_s,sprung_displacement_m,unsprung_displacement_m,platform_displacement_m,tire_force_n
-    ...
-
-    # table: refined
-    time_s,platform_amplitude_m,platform_phase_rad,platform_frequency_hz,tire_force_amplitude_n,tire_force_phase_rad,tire_force_frequency_hz
-    ...
+The generated UTF-8 text file contains the simulation information.
 
 ## License
 

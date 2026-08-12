@@ -19,10 +19,10 @@ namespace hilbertcli
 simulation_result
 run_simulation(simulation_config const &config)
 {
-  if (config.duration < measurement_end_time)
+  if (config.duration < hilbert_end_time)
   {
-    throw std::invalid_argument{std::format(
-        "duration must cover the complete measurement interval ending at {} seconds", measurement_end_time)};
+    throw std::invalid_argument{
+        std::format("duration must cover the complete Hilbert interval ending at {} seconds", hilbert_end_time)};
   }
 
   double constexpr sprung_mass = 270;                    // kg
@@ -75,27 +75,29 @@ run_simulation(simulation_config const &config)
   }
 
   auto const time = collector.time_span();
-  auto const measurement_begin = std::ranges::lower_bound(time, measurement_start_time);
-  auto const measurement_end = std::ranges::lower_bound(measurement_begin, time.end(), measurement_end_time);
-  auto const measurement_offset = static_cast<size_t>(measurement_begin - time.begin());
-  auto const measurement_size = static_cast<size_t>(measurement_end - measurement_begin);
+  auto const hilbert_begin = std::ranges::lower_bound(time, hilbert_start_time);
+  auto const hilbert_end = std::ranges::lower_bound(hilbert_begin, time.end(), hilbert_end_time);
+  auto const hilbert_offset = static_cast<size_t>(hilbert_begin - time.begin());
+  auto const hilbert_size = static_cast<size_t>(hilbert_end - hilbert_begin);
 
-  if (measurement_size < 2uz)
+  if (hilbert_size < 2uz)
   {
-    throw std::invalid_argument{"measurement interval must contain at least two samples"};
+    throw std::invalid_argument{"Hilbert interval must contain at least two samples"};
   }
 
-  auto const measurement_platform = collector.ground_span().subspan(measurement_offset, measurement_size);
-  auto const measurement_tire_force = collector.tire_force_span().subspan(measurement_offset, measurement_size);
+  auto const hilbert_platform = collector.ground_span().subspan(hilbert_offset, hilbert_size);
+  auto const hilbert_tire_force = collector.tire_force_span().subspan(hilbert_offset, hilbert_size);
 
   auto const sampling_rate = 1.0 / config.time_step;
-  auto platform_signal = hilbert::calculate_inst_signal_data(measurement_platform, sampling_rate);
-  auto tire_force_signal = hilbert::calculate_inst_signal_data(measurement_tire_force, sampling_rate);
+  auto platform_signal = hilbert::calculate_inst_signal_data(hilbert_platform, sampling_rate);
+  auto tire_force_signal = hilbert::calculate_inst_signal_data(hilbert_tire_force, sampling_rate);
 
   return {
       .samples = std::move(collector),
-      .measurement_offset = measurement_offset,
-      .measurement_size = measurement_size,
+      .hilbert_offset = hilbert_offset,
+      .hilbert_size = hilbert_size,
+      .measurement_interval = {.start_time = measurement_start_time, .end_time = measurement_end_time},
+      .hilbert_interval = {.start_time = hilbert_start_time, .end_time = hilbert_end_time},
       .platform_signal = std::move(platform_signal),
       .tire_force_signal = std::move(tire_force_signal),
   };

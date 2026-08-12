@@ -12,6 +12,9 @@ namespace hilbertcli
 
 inline constexpr double measurement_start_time = 7.0;
 inline constexpr double measurement_end_time = 16.0;
+inline constexpr double hilbert_margin_time = 0.2;
+inline constexpr double hilbert_start_time = measurement_start_time - hilbert_margin_time;
+inline constexpr double hilbert_end_time = measurement_end_time + hilbert_margin_time;
 
 
 template<std::floating_point Float>

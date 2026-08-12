@@ -19,11 +19,20 @@ struct simulation_config
 };
 
 
+struct time_interval
+{
+  double start_time;
+  double end_time;
+};
+
+
 struct simulation_result
 {
   vec_collector samples;
-  size_t measurement_offset;
-  size_t measurement_size;
+  size_t hilbert_offset;
+  size_t hilbert_size;
+  time_interval measurement_interval;
+  time_interval hilbert_interval;
   hilbert::signal_data<double> platform_signal;
   hilbert::signal_data<double> tire_force_signal;
 };

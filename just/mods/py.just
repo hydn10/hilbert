@@ -20,7 +20,7 @@ upgrade:
 # Validate the Python application and its native multi-table text integration.
 validate preset=default-release-preset: (smoke preset default-output-dir)
 
-# Generate representative native data, validate it, and render a headless plot.
+# Generate representative native data, validate it, and render both figures headlessly.
 smoke preset=default-release-preset output_dir=default-output-dir: (prepare-output output_dir)
     just cpp simulate "{{ output_dir }}/simulation.txt" {{ preset }} 20
     uv run --project python --locked plotter validate "{{ output_dir }}/simulation.txt"
