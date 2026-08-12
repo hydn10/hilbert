@@ -1,11 +1,18 @@
 { pkgs, adapter }:
 let
+  # Use the default version once nixpkgs catches up: 0.23.2 predates stable CPS.
+  gersemiPackage = import ../packages/gersemi.nix { inherit pkgs; };
+
+  # Expose only the command so Gersemi's private Python does not leak into the dev shell.
+  gersemiCommand = pkgs.writeShellScriptBin "gersemi" ''
+    exec ${gersemiPackage}/bin/gersemi "$@"
+  '';
+
   mappings = {
     clang-format = _: pkgs.llvmPackages_22.clang-tools;
     clang-tools = _: pkgs.llvmPackages_22.clang-tools;
     cmake = _: pkgs.cmake;
-    # Use the default version once nixpkgs catches up: 0.23.2 predates stable CPS.
-    gersemi = _: import ../packages/gersemi.nix { inherit pkgs; };
+    gersemi = _: gersemiCommand;
     just = _: pkgs.just;
     ninja = _: pkgs.ninja;
     actionlint = _: pkgs.actionlint;

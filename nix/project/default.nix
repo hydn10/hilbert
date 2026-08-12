@@ -34,7 +34,7 @@ let
         ];
         doCheck = true;
         preCheck = (oldAttrs.preCheck or "") + ''
-          cmake --build . --target all_verify_interface_header_sets
+          cmake --build . --target all_verify_header_sets
         '';
       });
 

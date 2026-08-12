@@ -54,19 +54,4 @@ in
     python
     pythonSet
     ;
-
-  shellPackages = [ python ];
-  shellEnv = {
-    UV_PYTHON_DOWNLOADS = "never";
-    UV_PYTHON = python.interpreter;
-    PYTHONPATH = "${python.pkgs.tkinter}/${python.sitePackages}";
-  }
-  // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-    LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-      pkgs.stdenv.cc.cc.lib
-      pkgs.zlib
-      pkgs.libx11
-      pkgs.wayland
-    ];
-  };
 }

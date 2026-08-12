@@ -91,8 +91,7 @@
 
           devShells.default = pkgs.mkShell {
             inputsFrom = [ workspace.project.package ];
-            packages = workspace.development.mise.packages ++ workspace.python.shellPackages;
-            env = workspace.python.shellEnv;
+            packages = workspace.development.mise.packages;
           };
 
           formatter = pkgs.nixfmt-tree;
