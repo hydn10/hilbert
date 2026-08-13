@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -16,11 +17,10 @@ env:
   MISE_LOCKED: "1"
   LLVM_VERSION: "22.1.6"
   LLVM_LINUX_X64_SHA256: c5ac8ef89ca39d30cb32e9b83772f995dd891c685ebc188d593c943a64d5f8b5
-  LLVM_WINDOWS_X64_SHA256: e2d9a6855ff22c0acf3adc87ff1e1ad9705b8b6fc5bab2542aefc3315fc24cf7
 
 jobs:
-  formatting:
-    name: Formatting
+  repository-quality:
+    name: Repository quality
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,195 +34,68 @@ jobs:
       - name: Set up repository tools
         uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
         with:
-          install_args: clang-format gersemi just node oxfmt precious uv
+          install_args: actionlint clang-format gersemi just node oxfmt precious shellcheck uv
 
       - name: Check formatting
         run: just check format all
 
-  native-linux:
-    name: Native packaging (Linux GCC 15)
-    runs-on: ubuntu-latest
-    env:
-      CC: gcc-15
-      CXX: g++-15
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up repository tools
-        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
-        with:
-          install_args: cmake ninja just
-
-      - name: Install GCC 15
-        shell: bash
+      - name: Lint Python and workflows
         run: |
-          # ubuntu-latest only includes GCC through version 14.
-          sudo add-apt-repository --yes --no-update ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
-          sudo apt-get install -y gcc-15 g++-15
+          just check lint py
+          just check lint ci
 
-      - name: Set up vcpkg and its binary cache
-        uses: ./.github/actions/setup-vcpkg
-        with:
-          triplet: x64-linux
-          toolchain: gcc
-
-      - name: Build and test static Release
-        run: just cpp validate vcpkg-release
-
-      - name: Test installed static CMake package
-        run: just cpp check-installed vcpkg-release
-
-      - name: Build and test shared Release
-        run: just cpp validate vcpkg-shared-release
-
-      - name: Test installed shared CMake package
-        run: just cpp check-installed vcpkg-shared-release
-
-  native-windows:
-    name: Native packaging (Windows MSVC)
-    runs-on: windows-latest
-    env:
-      CC: cl.exe
-      CXX: cl.exe
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up repository tools
-        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
-        with:
-          install_args: cmake ninja just
-
-      - name: Set up the Visual Studio environment
-        shell: pwsh
-        run: |
-          $info = vswhere -latest -format json | ConvertFrom-Json
-          $moduleName = 'Microsoft.VisualStudio.DevShell.dll'
-          $modulePath = Join-Path $info.installationPath 'Common7' 'Tools' $moduleName
-          Import-Module $modulePath
-          Enter-VsDevShell `
-            -VsInstanceId $info.instanceId `
-            -SkipAutomaticLocation `
-            -DevCmdArguments "-arch=x64 -no_logo"
-          Get-ChildItem 'env:' | ForEach-Object {
-            "$($_.Name)=$($_.Value)" >> $env:GITHUB_ENV
-          }
-
-      - name: Set up vcpkg and its binary cache
-        uses: ./.github/actions/setup-vcpkg
-        with:
-          triplet: x64-windows
-          toolchain: msvc
-
-      - name: Build and test static Release
-        run: just cpp validate vcpkg-release
-
-      - name: Test installed static CMake package
-        run: just cpp check-installed vcpkg-release
-
-      - name: Build and test shared Release
-        run: just cpp validate vcpkg-shared-release
-
-      - name: Test installed shared CMake package
-        run: just cpp check-installed vcpkg-shared-release
-
-  quality:
-    name: Native, Python, and workflow quality (Linux Clang)
-    runs-on: ubuntu-latest
-    env:
-      CC: clang
-      CXX: clang++
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: "3.12"
-
-      - name: Set up repository tools
-        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
-        with:
-          install_args: actionlint clang-tools cmake ninja just shellcheck uv
-
-      - name: Install pinned LLVM
-        uses: hydn10/setup-llvm@v1
-        with:
-          version: ${{ env.LLVM_VERSION }}
-          linux-x64-sha256: ${{ env.LLVM_LINUX_X64_SHA256 }}
-          windows-x64-sha256: ${{ env.LLVM_WINDOWS_X64_SHA256 }}
-
-      - name: Select the installed Clang compiler
-        shell: bash
-        run: |
-          echo "CC=${LLVM_PATH}/bin/clang" >> "$GITHUB_ENV"
-          echo "CXX=${LLVM_PATH}/bin/clang++" >> "$GITHUB_ENV"
-
-      - name: Set up vcpkg and its binary cache
-        uses: ./.github/actions/setup-vcpkg
-        with:
-          triplet: x64-linux
-          toolchain: clang
-
-      - name: Run native, Python, and workflow quality checks
-        run: just check lint all vcpkg-quality
-
-  python-integration:
-    name: Native/Python integration (${{ matrix.name }}, Python ${{ matrix.python }})
+  native:
+    name: Native (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: Linux
+          - name: Linux GCC 15, static, clang-tidy
             os: ubuntu-latest
-            python: "3.10"
             cc: gcc-15
             cxx: g++-15
             triplet: x64-linux
             toolchain: gcc
-          - name: Linux
+            preset: vcpkg-quality
+            mise-tools: clang-tools cmake ninja just
+            check-installed: true
+            produce-simulation: true
+          - name: Linux Clang 22
             os: ubuntu-latest
-            python: "3.14"
-            cc: gcc-15
-            cxx: g++-15
+            cc: clang
+            cxx: clang++
             triplet: x64-linux
-            toolchain: gcc
-          - name: Windows
+            toolchain: clang
+            preset: vcpkg-release
+            mise-tools: cmake ninja just
+            check-installed: false
+            produce-simulation: false
+          - name: Windows MSVC, shared
             os: windows-latest
-            python: "3.12"
             cc: cl.exe
             cxx: cl.exe
             triplet: x64-windows
             toolchain: msvc
+            preset: vcpkg-shared-release
+            mise-tools: cmake ninja just
+            check-installed: true
+            produce-simulation: false
     env:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
-      MPLBACKEND: Agg
-      UV_PYTHON: ${{ matrix.python }}
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: ${{ matrix.python }}
-
       - name: Set up repository tools
         uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
         with:
-          install_args: cmake ninja just uv
+          install_args: ${{ matrix.mise-tools }}
 
       - name: Install GCC 15
-        if: runner.os == 'Linux'
+        if: matrix.toolchain == 'gcc'
         shell: bash
         run: |
           # ubuntu-latest only includes GCC through version 14.
@@ -230,8 +103,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-15 g++-15
 
+      - name: Install pinned LLVM
+        if: matrix.toolchain == 'clang'
+        uses: hydn10/setup-llvm@v1
+        with:
+          version: ${{ env.LLVM_VERSION }}
+          linux-x64-sha256: ${{ env.LLVM_LINUX_X64_SHA256 }}
+
       - name: Set up the Visual Studio environment
-        if: runner.os == 'Windows'
+        if: matrix.toolchain == 'msvc'
         shell: pwsh
         run: |
           $info = vswhere -latest -format json | ConvertFrom-Json
@@ -252,11 +132,69 @@ jobs:
           triplet: ${{ matrix.triplet }}
           toolchain: ${{ matrix.toolchain }}
 
-      - name: Validate native-to-Python file integration
-        run: just py validate vcpkg-release
+      - name: Build and test
+        if: ${{ !matrix.check-installed }}
+        run: just cpp validate ${{ matrix.preset }}
+
+      - name: Build, test, and validate the installed CMake package
+        if: matrix.check-installed
+        run: just cpp check-installed ${{ matrix.preset }}
+
+      - name: Generate representative simulation data
+        if: matrix.produce-simulation
+        shell: bash
+        run: |
+          mkdir -p out/ci
+          out/build/${{ matrix.preset }}/apps/hilbert-cli/hilbert-cli \
+            --duration 20 --output out/ci/simulation.txt
+
+      - name: Upload representative simulation data
+        if: matrix.produce-simulation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: simulation-data
+          path: out/ci/simulation.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  python-integration:
+    name: Python integration (${{ matrix.python }})
+    needs: native
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.14"]
+    env:
+      MPLBACKEND: Agg
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Set up repository tools
+        uses: jdx/mise-action@7e36c90d9ab29c415a2384db3006f3ec8a8cc654 # v4.2.4
+        with:
+          install_args: just uv
+
+      - name: Download representative simulation data
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: simulation-data
+          path: out/ci
+
+      - name: Validate and render native simulation data
+        run: |
+          just py validate-data out/ci/simulation.txt
+          just py plot out/ci/simulation.txt --save out/ci/simulation.png --no-show
 
   nix:
-    name: Nix flake
+    name: Nix
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -265,5 +203,8 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 
-      - name: Build and check flake outputs
+      - name: Check flake outputs
         run: nix flake check -L
+
+      - name: Verify the development environment
+        run: nix develop -c just verify

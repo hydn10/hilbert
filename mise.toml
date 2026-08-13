@@ -7,13 +7,14 @@ windows_shim_mode = "exe"
 
 [tool_alias]
 clang-format = "conda:clang-format"
-clang-tools = "conda:clang-tools"
+clang-tools = "conda:clangdev"
 gersemi = "pipx:gersemi"
 oxfmt = "npm:oxfmt"
 precious = "github:houseabsolute/precious"
 
 [tools]
-# Mise owns portable repository tools, not the platform compiler or SDK.
+# Mise owns portable repository tools and the Clang toolchain used for quality checks.
+# Packaging jobs select their platform compiler independently.
 actionlint = "latest"
 cmake = "4.3"
 clang-format = "22.1.8"
