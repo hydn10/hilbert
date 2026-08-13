@@ -3,12 +3,7 @@ set(target_name "${PROJECT_NAME}-cli")
 add_executable(${target_name})
 target_sources(
     ${target_name}
-    PRIVATE
-        src/cli.cpp
-        src/main.cpp
-        src/output.cpp
-        src/simulation.cpp
-        src/simulation/collector.cpp
+    PRIVATE src/cli.cpp src/main.cpp src/output.cpp src/simulation/collector.cpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS
@@ -21,6 +16,7 @@ target_sources(
                 include/hilbertcli/process/exit_status.hpp
                 include/hilbertcli/simulation.hpp
                 include/hilbertcli/simulation/collector.hpp
+                include/hilbertcli/simulation/parameters.hpp
                 include/hilbertcli/simulation/suspension.hpp
 )
 

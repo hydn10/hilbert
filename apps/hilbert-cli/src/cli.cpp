@@ -3,6 +3,7 @@
 #include <hilbertcli/output.hpp>
 #include <hilbertcli/process/exit_status.hpp>
 #include <hilbertcli/simulation.hpp>
+#include <hilbertcli/simulation/suspension.hpp>
 
 #include <charconv>
 #include <cmath>
@@ -30,7 +31,15 @@ namespace
 
 struct simulation_command
 {
-  simulation_config simulation;
+  simulation_config simulation{
+      .parameters = {
+          .sprung_mass = 270,
+          .unsprung_mass = 30,
+          .suspension_spring_constant = 31000,
+          .suspension_damping_coefficient = 350,
+          .tire_spring_constant = 196000,
+          .ground_amplitude = 0.003,
+      }};
   std::optional<std::filesystem::path> output_path;
 };
 
@@ -132,7 +141,7 @@ struct command_dispatcher
   {
     auto const simulate_to = [&command](std::ostream &output)
     {
-      auto const result = run_simulation(command.simulation);
+      auto const result = run_simulation(command.simulation, scheduled_ground_frequency{});
       write_simulation_data(output, result);
     };
 

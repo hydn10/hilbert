@@ -6,6 +6,8 @@
 #include <concepts>
 #include <numbers>
 
+#include <hilbertcli/simulation/parameters.hpp>
+
 
 namespace hilbertcli
 {
@@ -154,7 +156,7 @@ operator*(Float scalar, derivative<Float> const &state_delta)
 
 
 template<std::floating_point Float>
-Float
+constexpr Float
 ground_frequency(Float time)
 {
   Float constexpr summit_time = 1.5;
@@ -211,6 +213,38 @@ ground_frequency(Float time)
 }
 
 
+// A profile is a callable object rather than a function pointer. The concrete profile type can therefore be known by
+// the compiler and inlined into each derivative evaluation.
+struct scheduled_ground_frequency
+{
+  template<std::floating_point Float>
+  constexpr Float
+  operator()(Float time) const
+  {
+    return ground_frequency(time);
+  }
+};
+
+
+struct constant_ground_frequency
+{
+  double frequency_hz;
+
+  template<std::floating_point Float>
+  constexpr Float
+  operator()([[maybe_unused]] Float time) const
+  {
+    return static_cast<Float>(frequency_hz);
+  }
+};
+
+
+template<typename Function>
+concept ground_frequency_profile = requires(Function const &function, double time) {
+  { function(time) } -> std::convertible_to<double>;
+};
+
+
 template<std::floating_point Float>
 constexpr auto
 make_ground_position_function(Float amplitude)
@@ -222,27 +256,31 @@ make_ground_position_function(Float amplitude)
 }
 
 
-template<std::floating_point Float>
+template<std::floating_point Float, typename GroundPositionFunction, ground_frequency_profile FrequencyProfile>
+requires requires(
+    GroundPositionFunction const &ground_position_function, FrequencyProfile const &frequency_profile, Float value) {
+  { ground_position_function(value) } -> std::convertible_to<Float>;
+  { frequency_profile(value) } -> std::convertible_to<Float>;
+}
 constexpr auto
 make_state_derivative_function(
-    Float sprung_mass,
-    Float unsprung_mass,
-    Float suspension_spring_constant,
-    Float suspension_damping_coefficient,
-    Float tire_spring_constant,
-    auto ground_position_function)
+    simulation_parameters const &parameters,
+    GroundPositionFunction ground_position_function,
+    FrequencyProfile frequency_profile)
 {
   return [=](Float time, state<Float> const &current_state) -> derivative<Float>
   {
-    Float const phase_velocity = 2 * std::numbers::pi * ground_frequency(time);
+    Float const phase_velocity = 2 * std::numbers::pi * static_cast<Float>(frequency_profile(time));
     Float const platform_position = ground_position_function(current_state.phi());
-    Float const sprung_acceleration = (-suspension_damping_coefficient * (current_state.vs() - current_state.vu()) -
-                                       suspension_spring_constant * (current_state.xs() - current_state.xu())) /
-                                      sprung_mass;
-    Float const unsprung_acceleration = (suspension_damping_coefficient * (current_state.vs() - current_state.vu()) +
-                                         suspension_spring_constant * (current_state.xs() - current_state.xu()) -
-                                         tire_spring_constant * (current_state.xu() - platform_position)) /
-                                        unsprung_mass;
+    Float const sprung_acceleration =
+        (-parameters.suspension_damping_coefficient * (current_state.vs() - current_state.vu()) -
+         parameters.suspension_spring_constant * (current_state.xs() - current_state.xu())) /
+        parameters.sprung_mass;
+    Float const unsprung_acceleration =
+        (parameters.suspension_damping_coefficient * (current_state.vs() - current_state.vu()) +
+         parameters.suspension_spring_constant * (current_state.xs() - current_state.xu()) -
+         parameters.tire_spring_constant * (current_state.xu() - platform_position)) /
+        parameters.unsprung_mass;
 
     return derivative{
         phase_velocity,

@@ -15,6 +15,9 @@ let
     gersemi = _: gersemiCommand;
     just = _: pkgs.just;
     ninja = _: pkgs.ninja;
+    # Nixpkgs wraps Oxfmt with its own Node runtime; sharing this derivation
+    # keeps Node explicit in Mise without adding a redundant shell package.
+    node = _: pkgs.oxfmt;
     actionlint = _: pkgs.actionlint;
     oxfmt = _: pkgs.oxfmt;
     precious = _: pkgs.precious;
