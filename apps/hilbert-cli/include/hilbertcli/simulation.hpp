@@ -47,7 +47,7 @@ struct simulation_result
 };
 
 
-template<ground_frequency_profile FrequencyProfile>
+template<std::floating_point Float, ground_frequency_profile<Float> FrequencyProfile>
 simulation_result
 run_simulation(simulation_config const &config, FrequencyProfile frequency_profile)
 {

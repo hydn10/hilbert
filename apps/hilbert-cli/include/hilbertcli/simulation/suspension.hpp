@@ -215,9 +215,10 @@ ground_frequency(Float time)
 
 // A profile is a callable object rather than a function pointer. The concrete profile type can therefore be known by
 // the compiler and inlined into each derivative evaluation.
-struct scheduled_ground_frequency
+template<std::floating_point Float>
+class scheduled_ground_frequency
 {
-  template<std::floating_point Float>
+public:
   constexpr Float
   operator()(Float time) const
   {
@@ -226,22 +227,28 @@ struct scheduled_ground_frequency
 };
 
 
-struct constant_ground_frequency
+template<std::floating_point Float>
+class constant_ground_frequency
 {
-  double frequency_hz;
+  Float frequency_hz_;
 
-  template<std::floating_point Float>
+public:
+  constant_ground_frequency(Float frequency_hz)
+      : frequency_hz_{frequency_hz}
+  {
+  }
+
   constexpr Float
   operator()([[maybe_unused]] Float time) const
   {
-    return static_cast<Float>(frequency_hz);
+    return static_cast<Float>(frequency_hz_);
   }
 };
 
 
-template<typename Function>
-concept ground_frequency_profile = requires(Function const &function, double time) {
-  { function(time) } -> std::convertible_to<double>;
+template<typename Function, typename Float>
+concept ground_frequency_profile = std::floating_point<Float> && requires(Function const &function, Float time) {
+  { function(time) } -> std::convertible_to<Float>;
 };
 
 
@@ -256,11 +263,10 @@ make_ground_position_function(Float amplitude)
 }
 
 
-template<std::floating_point Float, typename GroundPositionFunction, ground_frequency_profile FrequencyProfile>
+template<std::floating_point Float, typename GroundPositionFunction, ground_frequency_profile<Float> FrequencyProfile>
 requires requires(
     GroundPositionFunction const &ground_position_function, FrequencyProfile const &frequency_profile, Float value) {
   { ground_position_function(value) } -> std::convertible_to<Float>;
-  { frequency_profile(value) } -> std::convertible_to<Float>;
 }
 constexpr auto
 make_state_derivative_function(

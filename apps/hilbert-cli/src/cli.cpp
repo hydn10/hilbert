@@ -141,7 +141,7 @@ struct command_dispatcher
   {
     auto const simulate_to = [&command](std::ostream &output)
     {
-      auto const result = run_simulation(command.simulation, scheduled_ground_frequency{});
+      auto const result = run_simulation<double>(command.simulation, scheduled_ground_frequency<double>{});
       write_simulation_data(output, result);
     };
 
