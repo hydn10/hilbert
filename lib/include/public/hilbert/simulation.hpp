@@ -10,6 +10,7 @@
 #include <hilbert/simulation/sample.hpp>
 #include <hilbert/simulation/sinks/soa_vector.hpp>
 #include <hilbert/simulation/sinks/vector.hpp>
+#include <hilbert/simulation/view.hpp>
 
 #include <concepts>
 #include <cstddef>

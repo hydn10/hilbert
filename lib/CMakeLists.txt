@@ -24,6 +24,7 @@ target_sources(
                 include/public/hilbert/simulation/sample.hpp
                 include/public/hilbert/simulation/sinks/soa_vector.hpp
                 include/public/hilbert/simulation/sinks/vector.hpp
+                include/public/hilbert/simulation/view.hpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS
