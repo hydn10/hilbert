@@ -10,14 +10,10 @@ target_sources(
             BASE_DIRS include
             FILES
                 include/hilbertcli/cli.hpp
-                include/hilbertcli/numerics/rk4.hpp
                 include/hilbertcli/output.hpp
                 include/hilbertcli/process/exit_domain.hpp
                 include/hilbertcli/process/exit_status.hpp
                 include/hilbertcli/simulation.hpp
-                include/hilbertcli/simulation/collector.hpp
-                include/hilbertcli/simulation/parameters.hpp
-                include/hilbertcli/simulation/suspension.hpp
 )
 
 target_compile_features(${target_name} PRIVATE cxx_std_23)

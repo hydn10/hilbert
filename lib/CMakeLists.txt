@@ -11,7 +11,19 @@ target_sources(
         FILE_SET public_headers
             TYPE HEADERS
             BASE_DIRS include/public
-            FILES include/public/hilbert/hilbert.hpp
+            FILES
+                include/public/hilbert/hilbert.hpp
+                include/public/hilbert/simulation.hpp
+                include/public/hilbert/simulation/config.hpp
+                include/public/hilbert/simulation/detail/evolution.hpp
+                include/public/hilbert/simulation/detail/rk4.hpp
+                include/public/hilbert/simulation/detail/suspension_state.hpp
+                include/public/hilbert/simulation/frequency/constant.hpp
+                include/public/hilbert/simulation/frequency/profile.hpp
+                include/public/hilbert/simulation/frequency/scheduled.hpp
+                include/public/hilbert/simulation/sample.hpp
+                include/public/hilbert/simulation/sinks/soa_vector.hpp
+                include/public/hilbert/simulation/sinks/vector.hpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS

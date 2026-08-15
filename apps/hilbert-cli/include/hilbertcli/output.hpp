@@ -17,7 +17,7 @@ namespace hilbertcli
 
 template<hilbert::supported_float Float>
 void
-write_simulation_data(std::ostream &output, simulation_result<Float> const &result)
+write_simulation_data(std::ostream &output, analyzed_simulation<Float> const &result)
 {
   output << std::setprecision(std::numeric_limits<Float>::max_digits10);
 
@@ -26,15 +26,14 @@ write_simulation_data(std::ostream &output, simulation_result<Float> const &resu
          << result.measurement_interval.start_time << ',' << result.measurement_interval.end_time << ','
          << result.hilbert_interval.start_time << ',' << result.hilbert_interval.end_time << "\n\n";
 
-  auto const time = result.samples.time_span();
-  auto const sprung = result.samples.xs_span();
-  auto const unsprung = result.samples.xu_span();
-  auto const platform = result.samples.ground_span();
-  auto const tire_force = result.samples.tire_force_span();
-
   output << "# table: raw\n"
             "time_s,sprung_displacement_m,unsprung_displacement_m,platform_displacement_m,tire_force_n\n";
 
+  auto const time = result.samples.time_span();
+  auto const sprung = result.samples.sprung_displacement_span();
+  auto const unsprung = result.samples.unsprung_displacement_span();
+  auto const platform = result.samples.ground_displacement_span();
+  auto const tire_force = result.samples.tire_force_span();
   for (
       auto const &[time_value, sprung_value, unsprung_value, platform_value, tire_force_value] :
       std::views::zip(time, sprung, unsprung, platform, tire_force))

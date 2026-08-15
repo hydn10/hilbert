@@ -3,7 +3,11 @@
 #include <hilbertcli/output.hpp>
 #include <hilbertcli/process/exit_status.hpp>
 #include <hilbertcli/simulation.hpp>
-#include <hilbertcli/simulation/suspension.hpp>
+
+#include <hilbert/simulation.hpp>
+#include <hilbert/simulation/config.hpp>
+#include <hilbert/simulation/frequency/scheduled.hpp>
+#include <hilbert/simulation/sinks/soa_vector.hpp>
 
 #include <charconv>
 #include <cmath>
@@ -21,6 +25,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <variant>
 
 
@@ -31,7 +36,7 @@ namespace
 
 struct simulation_command
 {
-  simulation_config<double> simulation{
+  hilbert::simulation::config<double> simulation{
       .parameters = {
           .sprung_mass = 270,
           .unsprung_mass = 30,
@@ -141,7 +146,11 @@ struct command_dispatcher
   {
     auto const simulate_to = [&command](std::ostream &output)
     {
-      auto const result = run_simulation(command.simulation, scheduled_ground_frequency<double>{});
+      auto samples = hilbert::simulation::run_simulation(
+          command.simulation,
+          hilbert::simulation::frequency::scheduled<double>{},
+          hilbert::simulation::sinks::soa_vector_sink_factory<double>{});
+      auto const result = analyze_simulation(command.simulation, std::move(samples));
       write_simulation_data(output, result);
     };
 
