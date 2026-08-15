@@ -6,7 +6,6 @@
 
 #include <hilbert/simulation.hpp>
 #include <hilbert/simulation/config.hpp>
-#include <hilbert/simulation/frequency/scheduled.hpp>
 #include <hilbert/simulation/sinks/soa_vector.hpp>
 
 #include <charconv>
@@ -25,7 +24,6 @@
 #include <string>
 #include <string_view>
 #include <system_error>
-#include <utility>
 #include <variant>
 
 
@@ -148,10 +146,11 @@ struct command_dispatcher
     {
       auto samples = hilbert::simulation::run_simulation(
           command.simulation,
-          hilbert::simulation::frequency::scheduled<double>{},
+          frequency_profile<double>{},
           hilbert::simulation::sinks::soa_vector_sink_factory<double>{});
-      auto const result = analyze_simulation(command.simulation, std::move(samples));
-      write_simulation_data(output, result);
+
+      auto const analysis = analyze_simulation(command.simulation, samples);
+      write_simulation_data(output, samples, analysis);
     };
 
     if (command.output_path)

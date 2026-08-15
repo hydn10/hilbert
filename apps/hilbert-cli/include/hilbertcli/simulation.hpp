@@ -4,6 +4,7 @@
 
 #include <hilbert/hilbert.hpp>
 #include <hilbert/simulation/config.hpp>
+#include <hilbert/simulation/frequency/scheduled.hpp>
 #include <hilbert/simulation/sinks/soa_vector.hpp>
 
 #include <algorithm>
@@ -19,10 +20,13 @@ namespace hilbertcli
 {
 
 template<std::floating_point Float>
-inline constexpr Float measurement_start_time = static_cast<Float>(7.0);
+using frequency_profile = hilbert::simulation::frequency::scheduled<Float>;
 
 template<std::floating_point Float>
-inline constexpr Float measurement_end_time = static_cast<Float>(16.0);
+inline constexpr Float measurement_start_time = frequency_profile<Float>::measurement::start_time;
+
+template<std::floating_point Float>
+inline constexpr Float measurement_end_time = frequency_profile<Float>::measurement::end_time;
 
 template<std::floating_point Float>
 inline constexpr Float hilbert_margin_time = static_cast<Float>(0.2);
@@ -43,9 +47,12 @@ struct time_interval
 
 
 template<std::floating_point Float>
-struct analyzed_simulation
+using simulation_data = typename hilbert::simulation::sinks::soa_vector_sink<Float>::simulation_data;
+
+
+template<std::floating_point Float>
+struct analysis_result
 {
-  typename hilbert::simulation::sinks::soa_vector_sink<Float>::simulation_data samples;
   size_t hilbert_offset;
   size_t hilbert_size;
   time_interval<Float> measurement_interval;
@@ -56,10 +63,8 @@ struct analyzed_simulation
 
 
 template<hilbert::supported_float Float>
-analyzed_simulation<Float>
-analyze_simulation(
-    hilbert::simulation::config<Float> const &config,
-    typename hilbert::simulation::sinks::soa_vector_sink<Float>::simulation_data samples)
+analysis_result<Float>
+analyze_simulation(hilbert::simulation::config<Float> const &config, simulation_data<Float> const &samples)
 {
   if (config.duration < hilbert_end_time<Float>)
   {
@@ -85,7 +90,6 @@ analyze_simulation(
   auto tire_force_signal = hilbert::calculate_inst_signal_data(hilbert_tire_force, sampling_rate);
 
   return {
-      .samples = std::move(samples),
       .hilbert_offset = hilbert_offset,
       .hilbert_size = hilbert_size,
       .measurement_interval = {.start_time = measurement_start_time<Float>, .end_time = measurement_end_time<Float>},

@@ -12,13 +12,17 @@ template<std::floating_point Float>
 class scheduled
 {
 public:
+  struct measurement
+  {
+    static constexpr Float start_time = static_cast<Float>(7);
+    static constexpr Float end_time = static_cast<Float>(16);
+  };
+
   constexpr Float
   operator()(Float time) const
   {
     Float constexpr summit_time = static_cast<Float>(1.5);
     Float constexpr descent_time = static_cast<Float>(6);
-    Float constexpr measurement_start_time = static_cast<Float>(7);
-    Float constexpr measurement_end_time = static_cast<Float>(16);
     Float constexpr test_end_time = static_cast<Float>(18.5);
 
     Float constexpr start_frequency = static_cast<Float>(0);
@@ -38,11 +42,11 @@ public:
 
     auto constexpr initial_slope = make_slope(0, summit_time, start_frequency, summit_frequency);
     auto constexpr descent_slope =
-        make_slope(descent_time, measurement_start_time, summit_frequency, measurement_start_frequency);
+        make_slope(descent_time, measurement::start_time, summit_frequency, measurement_start_frequency);
     auto constexpr measurement_slope = make_slope(
-        measurement_start_time, measurement_end_time, measurement_start_frequency, measurement_end_frequency);
+        measurement::start_time, measurement::end_time, measurement_start_frequency, measurement_end_frequency);
     auto constexpr wind_down_slope =
-        make_slope(measurement_end_time, test_end_time, measurement_end_frequency, end_frequency);
+        make_slope(measurement::end_time, test_end_time, measurement_end_frequency, end_frequency);
 
     if (time < summit_time)
     {
@@ -52,11 +56,11 @@ public:
     {
       return summit_frequency;
     }
-    if (time < measurement_start_time)
+    if (time < measurement::start_time)
     {
       return descent_slope(time);
     }
-    if (time < measurement_end_time)
+    if (time < measurement::end_time)
     {
       return measurement_slope(time);
     }

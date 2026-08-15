@@ -17,23 +17,24 @@ namespace hilbertcli
 
 template<hilbert::supported_float Float>
 void
-write_simulation_data(std::ostream &output, analyzed_simulation<Float> const &result)
+write_simulation_data(
+    std::ostream &output, simulation_data<Float> const &samples, analysis_result<Float> const &analysis)
 {
   output << std::setprecision(std::numeric_limits<Float>::max_digits10);
 
   output << "# table: intervals\n"
             "measurement_start_s,measurement_end_s,hilbert_start_s,hilbert_end_s\n"
-         << result.measurement_interval.start_time << ',' << result.measurement_interval.end_time << ','
-         << result.hilbert_interval.start_time << ',' << result.hilbert_interval.end_time << "\n\n";
+         << analysis.measurement_interval.start_time << ',' << analysis.measurement_interval.end_time << ','
+         << analysis.hilbert_interval.start_time << ',' << analysis.hilbert_interval.end_time << "\n\n";
 
   output << "# table: raw\n"
             "time_s,sprung_displacement_m,unsprung_displacement_m,platform_displacement_m,tire_force_n\n";
 
-  auto const time = result.samples.time_span();
-  auto const sprung = result.samples.sprung_displacement_span();
-  auto const unsprung = result.samples.unsprung_displacement_span();
-  auto const platform = result.samples.ground_displacement_span();
-  auto const tire_force = result.samples.tire_force_span();
+  auto const time = samples.time_span();
+  auto const sprung = samples.sprung_displacement_span();
+  auto const unsprung = samples.unsprung_displacement_span();
+  auto const platform = samples.ground_displacement_span();
+  auto const tire_force = samples.tire_force_span();
   for (
       auto const &[time_value, sprung_value, unsprung_value, platform_value, tire_force_value] :
       std::views::zip(time, sprung, unsprung, platform, tire_force))
@@ -46,7 +47,7 @@ write_simulation_data(std::ostream &output, analyzed_simulation<Float> const &re
             "time_s,platform_amplitude_m,platform_phase_rad,platform_frequency_hz,tire_force_amplitude_n,"
             "tire_force_phase_rad,tire_force_frequency_hz\n";
 
-  auto const refined_time = result.samples.time_span().subspan(result.hilbert_offset, result.hilbert_size);
+  auto const refined_time = samples.time_span().subspan(analysis.hilbert_offset, analysis.hilbert_size);
   for (
       auto const
           &[time_value,
@@ -58,12 +59,12 @@ write_simulation_data(std::ostream &output, analyzed_simulation<Float> const &re
             tire_force_frequency] :
       std::views::zip(
           refined_time,
-          result.platform_signal.ampl,
-          result.platform_signal.phase,
-          result.platform_signal.freq,
-          result.tire_force_signal.ampl,
-          result.tire_force_signal.phase,
-          result.tire_force_signal.freq))
+          analysis.platform_signal.ampl,
+          analysis.platform_signal.phase,
+          analysis.platform_signal.freq,
+          analysis.tire_force_signal.ampl,
+          analysis.tire_force_signal.phase,
+          analysis.tire_force_signal.freq))
   {
     output << time_value << ',' << platform_amplitude << ',' << platform_phase << ',' << platform_frequency << ','
            << tire_force_amplitude << ',' << tire_force_phase << ',' << tire_force_frequency << '\n';
