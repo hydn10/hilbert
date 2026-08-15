@@ -12,6 +12,10 @@
 namespace hilbert
 {
 
+template<typename Float>
+concept supported_float = std::same_as<Float, double>;
+
+
 template<std::floating_point Float>
 struct signal_data
 {
@@ -23,15 +27,40 @@ struct signal_data
 };
 
 
-// At least two samples are required. Throws std::invalid_argument otherwise.
-std::vector<std::complex<double>>
-hilbert_transform(std::span<double const> input);
+// At least two samples are required. Throws std::invalid_argument otherwise. Float must be a supported floating type.
+template<supported_float Float>
+std::vector<std::complex<Float>>
+hilbert_transform(std::span<Float const> input);
 
 
-// At least two samples and a finite, positive sampling rate are required.
+// At least two samples and a finite, positive sampling rate are required. Float must be a supported floating type.
 // Throws std::invalid_argument when either precondition is not satisfied.
-signal_data<double>
-calculate_inst_signal_data(std::span<double const> data, double sampling_rate);
+template<supported_float Float>
+signal_data<Float>
+calculate_inst_signal_data(std::span<Float const> data, Float sampling_rate);
+
+
+template<supported_float Float, typename Allocator>
+std::vector<std::complex<Float>>
+hilbert_transform(std::vector<Float, Allocator> const &input)
+{
+  return hilbert_transform<Float>(std::span<Float const>{input});
+}
+
+
+template<supported_float Float, typename Allocator>
+signal_data<Float>
+calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float sampling_rate)
+{
+  return calculate_inst_signal_data<Float>(std::span<Float const>{data}, sampling_rate);
+}
+
+
+extern template std::vector<std::complex<double>>
+hilbert_transform<double>(std::span<double const> input);
+
+extern template signal_data<double>
+calculate_inst_signal_data<double>(std::span<double const> data, double sampling_rate);
 
 
 template<std::floating_point Float>

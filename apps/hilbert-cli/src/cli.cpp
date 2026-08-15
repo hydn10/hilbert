@@ -31,7 +31,7 @@ namespace
 
 struct simulation_command
 {
-  simulation_config simulation{
+  simulation_config<double> simulation{
       .parameters = {
           .sprung_mass = 270,
           .unsprung_mass = 30,
@@ -141,7 +141,7 @@ struct command_dispatcher
   {
     auto const simulate_to = [&command](std::ostream &output)
     {
-      auto const result = run_simulation<double>(command.simulation, scheduled_ground_frequency<double>{});
+      auto const result = run_simulation(command.simulation, scheduled_ground_frequency<double>{});
       write_simulation_data(output, result);
     };
 

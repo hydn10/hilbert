@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <complex>
+#include <concepts>
 #include <exception>
 #include <iostream>
 #include <limits>
@@ -16,7 +17,8 @@
 namespace
 {
 
-constexpr double tolerance = 1e-10;
+template<std::floating_point Float>
+Float constexpr tolerance = std::same_as<Float, float> ? Float{1e-3} : Float{1e-10};
 
 
 void
@@ -29,16 +31,18 @@ require(bool condition, std::string_view message)
 }
 
 
+template<hilbert::supported_float Float>
 void
 test_cosine_analytic_signal()
 {
   constexpr auto sample_count = 128uz;
   constexpr auto cycles = 7uz;
 
-  std::vector<double> input(sample_count);
+  std::vector<Float> input(sample_count);
   for (auto [index, sample] : std::views::enumerate(input))
   {
-    auto const phase = 2.0 * std::numbers::pi * static_cast<double>(cycles) * static_cast<double>(index) / sample_count;
+    auto const phase = 2 * std::numbers::pi_v<Float> * static_cast<Float>(cycles) * static_cast<Float>(index) /
+                       static_cast<Float>(sample_count);
     sample = std::cos(phase);
   }
 
@@ -48,25 +52,27 @@ test_cosine_analytic_signal()
 
   for (auto const &[index, sample] : std::views::enumerate(analytic))
   {
-    auto const phase = 2.0 * std::numbers::pi * static_cast<double>(cycles) * static_cast<double>(index) / sample_count;
-    auto const expected = std::polar(1.0, phase);
-    require(std::abs(sample - expected) < tolerance, "cosine analytic signal mismatch");
+    auto const phase = 2 * std::numbers::pi_v<Float> * static_cast<Float>(cycles) * static_cast<Float>(index) /
+                       static_cast<Float>(sample_count);
+    auto const expected = std::polar(Float{1}, phase);
+    require(std::abs(sample - expected) < tolerance<Float>, "cosine analytic signal mismatch");
   }
 }
 
 
+template<hilbert::supported_float Float>
 void
 test_instantaneous_data_for_sinusoid()
 {
   constexpr auto sample_count = 256uz;
-  constexpr double sampling_rate = 256.0;
-  constexpr double frequency = 11.0;
-  constexpr double amplitude = 2.5;
+  Float constexpr sampling_rate = 256;
+  Float constexpr frequency = 11;
+  Float constexpr amplitude = 2.5;
 
-  std::vector<double> input(sample_count);
+  std::vector<Float> input(sample_count);
   for (auto [index, sample] : std::views::enumerate(input))
   {
-    auto const phase = 2.0 * std::numbers::pi * frequency * static_cast<double>(index) / sampling_rate;
+    auto const phase = 2 * std::numbers::pi_v<Float> * frequency * static_cast<Float>(index) / sampling_rate;
     sample = amplitude * std::cos(phase);
   }
 
@@ -77,23 +83,24 @@ test_instantaneous_data_for_sinusoid()
 
   for (auto const &[sample_amplitude, sample_frequency] : std::views::zip(data.ampl, data.freq))
   {
-    require(std::abs(sample_amplitude - amplitude) < tolerance, "sinusoid amplitude mismatch");
-    require(std::abs(sample_frequency - frequency) < tolerance, "sinusoid frequency mismatch");
+    require(std::abs(sample_amplitude - amplitude) < tolerance<Float>, "sinusoid amplitude mismatch");
+    require(std::abs(sample_frequency - frequency) < tolerance<Float>, "sinusoid frequency mismatch");
   }
 }
 
 
+template<hilbert::supported_float Float>
 void
 test_instantaneous_frequency_preserves_negative_phase_deltas()
 {
   constexpr auto sample_count = 256uz;
-  constexpr double sampling_rate = 256.0;
+  Float constexpr sampling_rate = 256;
 
-  std::vector<double> input(sample_count);
+  std::vector<Float> input(sample_count);
   for (auto [index, sample] : std::views::enumerate(input))
   {
-    auto const time = static_cast<double>(index) / sampling_rate;
-    sample = 2.0 * std::cos(2.0 * std::numbers::pi * time) + std::cos(2.0 * std::numbers::pi * 3.0 * time);
+    auto const time = static_cast<Float>(index) / sampling_rate;
+    sample = 2 * std::cos(2 * std::numbers::pi_v<Float> * time) + std::cos(2 * std::numbers::pi_v<Float> * 3 * time);
   }
 
   auto const data = hilbert::calculate_inst_signal_data(input, sampling_rate);
@@ -104,13 +111,13 @@ test_instantaneous_frequency_preserves_negative_phase_deltas()
   for (auto const &[phases, frequency] : std::views::zip(phase_pairs, frequencies))
   {
     auto const &[previous_phase, current_phase] = phases;
-    auto const expected_delta = std::remainder(current_phase - previous_phase, 2.0 * std::numbers::pi);
-    auto const expected_frequency = expected_delta * sampling_rate / (2.0 * std::numbers::pi);
+    auto const expected_delta = std::remainder(current_phase - previous_phase, 2 * std::numbers::pi_v<Float>);
+    auto const expected_frequency = expected_delta * sampling_rate / (2 * std::numbers::pi_v<Float>);
 
     require(
-        std::abs(frequency - expected_frequency) < tolerance,
+        std::abs(frequency - expected_frequency) < tolerance<Float>,
         "instantaneous frequency used a non-principal phase delta");
-    found_negative_frequency = found_negative_frequency || frequency < 0.0;
+    found_negative_frequency = found_negative_frequency || frequency < 0;
   }
 
   require(found_negative_frequency, "test signal did not produce a negative instantaneous frequency");
@@ -134,12 +141,13 @@ require_invalid_argument(Function function, std::string_view message)
 }
 
 
+template<hilbert::supported_float Float>
 void
 test_preconditions()
 {
-  std::vector<double> empty;
-  std::vector<double> singleton{1.0};
-  std::vector<double> valid{1.0, -1.0};
+  std::vector<Float> empty;
+  std::vector<Float> singleton{1};
+  std::vector<Float> valid{1, -1};
 
   require_invalid_argument(
       [&empty]
@@ -156,15 +164,26 @@ test_preconditions()
   require_invalid_argument(
       [&valid]
       {
-        static_cast<void>(hilbert::calculate_inst_signal_data(valid, 0.0));
+        static_cast<void>(hilbert::calculate_inst_signal_data(valid, Float{0}));
       },
       "zero sampling rate accepted");
   require_invalid_argument(
       [&valid]
       {
-        static_cast<void>(hilbert::calculate_inst_signal_data(valid, std::numeric_limits<double>::quiet_NaN()));
+        static_cast<void>(hilbert::calculate_inst_signal_data(valid, std::numeric_limits<Float>::quiet_NaN()));
       },
       "non-finite sampling rate accepted");
+}
+
+
+template<hilbert::supported_float Float>
+void
+test_precision()
+{
+  test_cosine_analytic_signal<Float>();
+  test_instantaneous_data_for_sinusoid<Float>();
+  test_instantaneous_frequency_preserves_negative_phase_deltas<Float>();
+  test_preconditions<Float>();
 }
 
 
@@ -173,10 +192,7 @@ run_tests()
 {
   try
   {
-    test_cosine_analytic_signal();
-    test_instantaneous_data_for_sinusoid();
-    test_instantaneous_frequency_preserves_negative_phase_deltas();
-    test_preconditions();
+    test_precision<double>();
   }
   catch (std::exception const &error)
   {

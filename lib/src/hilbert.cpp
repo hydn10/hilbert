@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
+#include <concepts>
 #include <cstddef>
 #include <limits>
 #include <numbers>
@@ -49,15 +50,17 @@ inline constexpr auto hilbert_positive_freqs_transform = [](auto &x)
 inline constexpr auto hilbert_negative_freqs_transform = drop_transform;
 
 
+template<std::floating_point Float>
 size_t
-cutoff_bin(double frequency, size_t num_samples, double sampling_rate)
+cutoff_bin(Float frequency, size_t num_samples, Float sampling_rate)
 {
-  return static_cast<size_t>(frequency * static_cast<double>(num_samples) / sampling_rate);
+  return static_cast<size_t>(frequency * static_cast<Float>(num_samples) / sampling_rate);
 }
 
 
+template<std::floating_point Float>
 auto
-take_positive_freqs_greater_than(double frequency, size_t num_samples, double sampling_rate)
+take_positive_freqs_greater_than(Float frequency, size_t num_samples, Float sampling_rate)
 {
   auto const cutoff = cutoff_bin(frequency, num_samples, sampling_rate);
 
@@ -68,8 +71,9 @@ take_positive_freqs_greater_than(double frequency, size_t num_samples, double sa
 }
 
 
+template<std::floating_point Float>
 auto
-take_negative_freqs_greater_than(double frequency, size_t num_samples, double sampling_rate)
+take_negative_freqs_greater_than(Float frequency, size_t num_samples, Float sampling_rate)
 {
   auto const cutoff = cutoff_bin(frequency, num_samples, sampling_rate);
 
@@ -80,18 +84,20 @@ take_negative_freqs_greater_than(double frequency, size_t num_samples, double sa
 }
 
 
-double
-principal_phase_delta(double previous_phase, double current_phase)
+template<std::floating_point Float>
+Float
+principal_phase_delta(Float previous_phase, Float current_phase)
 {
-  double constexpr tau = 2 * std::numbers::pi;
+  Float constexpr tau = 2 * std::numbers::pi_v<Float>;
   return std::remainder(current_phase - previous_phase, tau);
 }
 
 } // namespace
 
 
-std::vector<std::complex<double>>
-hilbert_transform(std::span<double const> input)
+template<supported_float Float>
+std::vector<std::complex<Float>>
+hilbert_transform(std::span<Float const> input)
 {
   auto const n = input.size();
 
@@ -110,21 +116,22 @@ hilbert_transform(std::span<double const> input)
   std::ranges::for_each(freq_data | take_positive_freqs(n), hilbert_positive_freqs_transform);
   std::ranges::for_each(freq_data | take_negative_freqs(n), hilbert_negative_freqs_transform);
 
-  auto time_data = detail::fft::transform(freq_data, detail::fft::sign::backward);
+  auto time_data = detail::fft::transform(std::span<std::complex<Float> const>{freq_data}, detail::fft::sign::backward);
 
   std::ranges::for_each(
       time_data,
       [n](auto &x)
       {
-        x /= static_cast<double>(n);
+        x /= static_cast<Float>(n);
       });
 
   return time_data;
 }
 
 
-signal_data<double>
-calculate_inst_signal_data(std::span<double const> data, double sampling_rate)
+template<supported_float Float>
+signal_data<Float>
+calculate_inst_signal_data(std::span<Float const> data, Float sampling_rate)
 {
   if (!std::isfinite(sampling_rate) || sampling_rate <= 0)
   {
@@ -134,7 +141,7 @@ calculate_inst_signal_data(std::span<double const> data, double sampling_rate)
   auto const num_samples = data.size();
   auto const analytic_signal = hilbert_transform(data);
 
-  signal_data<double> res{num_samples};
+  signal_data<Float> res{num_samples};
 
   for (auto [sample, amplitude, phase] : std::views::zip(analytic_signal, res.ampl, res.phase))
   {
@@ -147,10 +154,10 @@ calculate_inst_signal_data(std::span<double const> data, double sampling_rate)
 
   for (auto [phases, frequency] : std::views::zip(phase_pairs, frequencies))
   {
-    double constexpr tau = 2 * std::numbers::pi;
+    Float constexpr tau = 2 * std::numbers::pi_v<Float>;
 
     auto const &[previous_phase, current_phase] = phases;
-    double const delta_phase = principal_phase_delta(previous_phase, current_phase);
+    Float const delta_phase = principal_phase_delta(previous_phase, current_phase);
     frequency = delta_phase * sampling_rate / tau;
   }
 
@@ -161,5 +168,12 @@ calculate_inst_signal_data(std::span<double const> data, double sampling_rate)
 
   return res;
 }
+
+
+template std::vector<std::complex<double>>
+hilbert_transform<double>(std::span<double const> input);
+
+template signal_data<double>
+calculate_inst_signal_data<double>(std::span<double const> data, double sampling_rate);
 
 } // namespace hilbert

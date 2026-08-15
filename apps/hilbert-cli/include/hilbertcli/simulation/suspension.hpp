@@ -12,11 +12,20 @@
 namespace hilbertcli
 {
 
-inline constexpr double measurement_start_time = 7.0;
-inline constexpr double measurement_end_time = 16.0;
-inline constexpr double hilbert_margin_time = 0.2;
-inline constexpr double hilbert_start_time = measurement_start_time - hilbert_margin_time;
-inline constexpr double hilbert_end_time = measurement_end_time + hilbert_margin_time;
+template<std::floating_point Float>
+inline constexpr Float measurement_start_time = static_cast<Float>(7.0);
+
+template<std::floating_point Float>
+inline constexpr Float measurement_end_time = static_cast<Float>(16.0);
+
+template<std::floating_point Float>
+inline constexpr Float hilbert_margin_time = static_cast<Float>(0.2);
+
+template<std::floating_point Float>
+inline constexpr Float hilbert_start_time = measurement_start_time<Float> - hilbert_margin_time<Float>;
+
+template<std::floating_point Float>
+inline constexpr Float hilbert_end_time = measurement_end_time<Float> + hilbert_margin_time<Float>;
 
 
 template<std::floating_point Float>
@@ -180,14 +189,11 @@ ground_frequency(Float time)
 
   auto constexpr initial_slope = make_slope(0, summit_time, start_frequency, summit_frequency);
   auto constexpr descent_slope =
-      make_slope(descent_time, static_cast<Float>(measurement_start_time), summit_frequency, measure_start_frequency);
+      make_slope(descent_time, measurement_start_time<Float>, summit_frequency, measure_start_frequency);
   auto constexpr measure_slope = make_slope(
-      static_cast<Float>(measurement_start_time),
-      static_cast<Float>(measurement_end_time),
-      measure_start_frequency,
-      measure_end_frequency);
+      measurement_start_time<Float>, measurement_end_time<Float>, measure_start_frequency, measure_end_frequency);
   auto constexpr wind_down_slope =
-      make_slope(static_cast<Float>(measurement_end_time), test_end_time, measure_end_frequency, end_frequency);
+      make_slope(measurement_end_time<Float>, test_end_time, measure_end_frequency, end_frequency);
 
   if (time < summit_time)
   {
@@ -197,11 +203,11 @@ ground_frequency(Float time)
   {
     return summit_frequency;
   }
-  if (time < measurement_start_time)
+  if (time < measurement_start_time<Float>)
   {
     return descent_slope(time);
   }
-  if (time < measurement_end_time)
+  if (time < measurement_end_time<Float>)
   {
     return measure_slope(time);
   }
@@ -270,13 +276,13 @@ requires requires(
 }
 constexpr auto
 make_state_derivative_function(
-    simulation_parameters const &parameters,
+    simulation_parameters<Float> const &parameters,
     GroundPositionFunction ground_position_function,
     FrequencyProfile frequency_profile)
 {
   return [=](Float time, state<Float> const &current_state) -> derivative<Float>
   {
-    Float const phase_velocity = 2 * std::numbers::pi * static_cast<Float>(frequency_profile(time));
+    Float const phase_velocity = 2 * std::numbers::pi_v<Float> * static_cast<Float>(frequency_profile(time));
     Float const platform_position = ground_position_function(current_state.phi());
     Float const sprung_acceleration =
         (-parameters.suspension_damping_coefficient * (current_state.vs() - current_state.vu()) -

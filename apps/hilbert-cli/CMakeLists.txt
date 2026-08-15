@@ -3,7 +3,7 @@ set(target_name "${PROJECT_NAME}-cli")
 add_executable(${target_name})
 target_sources(
     ${target_name}
-    PRIVATE src/cli.cpp src/main.cpp src/output.cpp src/simulation/collector.cpp
+    PRIVATE src/cli.cpp src/main.cpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS
