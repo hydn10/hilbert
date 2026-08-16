@@ -5,7 +5,11 @@
 #include <hilbert/simulation/core/concepts.hpp>
 #include <hilbert/simulation/core/settings.hpp>
 
+#include <cmath>
 #include <concepts>
+#include <cstddef>
+#include <limits>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 
@@ -13,7 +17,10 @@
 namespace hilbert::simulation::detail
 {
 
-struct simulation_problem_access;
+template<std::floating_point Float, typename State, typename Model, typename Integrator>
+requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
+         executable_state<State>
+class simulation_engine;
 
 
 template<typename Simulation>
@@ -41,14 +48,18 @@ public:
   simulation_problem(simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator);
 
 private:
-  simulation_settings<Float> settings_;
+  Float time_step_;
+  std::size_t sample_count_;
   State initial_state_;
   [[no_unique_address]]
   Model model_;
   [[no_unique_address]]
   Integrator integrator_;
 
-  friend struct detail::simulation_problem_access;
+  static std::size_t
+  sample_count_for(simulation_settings<Float> settings);
+
+  friend class detail::simulation_engine<Float, State, Model, Integrator>;
 };
 
 
@@ -67,11 +78,38 @@ requires physical_model_for<Model, Float, State> && integrator_for<Integrator, F
              executable_state<State>
 simulation_problem<Float, State, Model, Integrator>::simulation_problem(
     simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator)
-    : settings_{std::move(settings)}
+    : time_step_{settings.time_step}
+    , sample_count_{sample_count_for(settings)}
     , initial_state_{std::move(initial_state)}
     , model_{std::move(model)}
     , integrator_{std::move(integrator)}
 {
+}
+
+
+template<std::floating_point Float, typename State, typename Model, typename Integrator>
+requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
+         executable_state<State>
+std::size_t
+simulation_problem<Float, State, Model, Integrator>::sample_count_for(simulation_settings<Float> settings)
+{
+  if (!std::isfinite(settings.time_step) || settings.time_step <= 0)
+  {
+    throw std::invalid_argument{"time step must be finite and positive"};
+  }
+  if (!std::isfinite(settings.duration) || settings.duration < 0)
+  {
+    throw std::invalid_argument{"duration must be finite and non-negative"};
+  }
+
+  auto const step_count_value = settings.duration / settings.time_step;
+
+  if (step_count_value >= static_cast<Float>(std::numeric_limits<std::size_t>::max()))
+  {
+    throw std::invalid_argument{"simulation sample count exceeds size_t"};
+  }
+
+  return static_cast<std::size_t>(step_count_value) + 1uz;
 }
 
 } // namespace hilbert::simulation

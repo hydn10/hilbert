@@ -23,7 +23,9 @@ requires simulation_problem_for<Simulation>
 decltype(auto)
 run_simulation(Simulation simulation, SinkFactory &&sink_factory)
 {
-  auto engine = detail::make_engine(std::move(simulation));
+  using engine_type = detail::engine_for_t<Simulation>;
+
+  auto engine = engine_type{std::move(simulation)};
   auto const count = engine.sample_count();
   auto sink = std::invoke(std::forward<SinkFactory>(sink_factory), count);
 

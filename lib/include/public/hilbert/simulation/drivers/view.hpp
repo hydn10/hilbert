@@ -155,7 +155,7 @@ simulation_view<Simulation>::iterator::operator++(int)
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
 simulation_view<Simulation>::simulation_view(Simulation simulation)
-    : engine_{detail::make_engine(std::move(simulation))}
+    : engine_{std::move(simulation)}
     , remaining_{engine_.sample_count()}
 {
 }
