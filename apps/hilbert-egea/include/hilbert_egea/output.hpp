@@ -18,6 +18,12 @@ namespace hilbert_egea
 template<hilbert::supported_float Float>
 void
 write_simulation_data(
+    std::ostream &output, simulation_data<Float> const &samples, analysis_result<Float> const &analysis);
+
+
+template<hilbert::supported_float Float>
+void
+write_simulation_data(
     std::ostream &output, simulation_data<Float> const &samples, analysis_result<Float> const &analysis)
 {
   output << std::setprecision(std::numeric_limits<Float>::max_digits10);

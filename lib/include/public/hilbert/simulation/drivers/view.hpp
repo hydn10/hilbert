@@ -25,108 +25,184 @@ class simulation_view : public std::ranges::view_interface<simulation_view<Simul
   std::size_t remaining_;
 
 public:
-  class sentinel
-  {
-  };
+  class sentinel;
+  class iterator;
 
-  class iterator
-  {
-    simulation_view *view_;
-
-    bool
-    at_end() const
-    {
-      return view_->remaining_ == 0;
-    }
-
-  public:
-    using iterator_concept = std::input_iterator_tag;
-    using iterator_category = std::input_iterator_tag;
-    using value_type = model_sample_t<
-        typename Simulation::model_type,
-        typename Simulation::float_type,
-        typename Simulation::state_type>;
-    using difference_type = std::ptrdiff_t;
-
-    value_type
-    operator*() const
-    {
-      return view_->engine_.current_sample();
-    }
-
-    iterator &
-    operator++()
-    {
-      if (view_->remaining_ > 1uz)
-      {
-        view_->engine_.advance();
-        --view_->remaining_;
-      }
-      else
-      {
-        view_->remaining_ = 0;
-      }
-      return *this;
-    }
-
-    void
-    operator++(int)
-    {
-      ++*this;
-    }
-
-    friend bool
-    operator==(iterator const &iterator, sentinel)
-    {
-      return iterator.at_end();
-    }
-
-    friend bool
-    operator==(sentinel sentinel, iterator const &iterator)
-    {
-      return iterator == sentinel;
-    }
-
-  private:
-    explicit iterator(simulation_view *view)
-        : view_{view}
-    {
-    }
-
-    friend class simulation_view;
-  };
-
-  explicit simulation_view(Simulation simulation)
-      : engine_{detail::make_engine(std::move(simulation))}
-      , remaining_{engine_.sample_count()}
-  {
-  }
+  explicit simulation_view(Simulation simulation);
 
   simulation_view(simulation_view const &) = delete;
   simulation_view &
   operator=(simulation_view const &) = delete;
-  simulation_view(simulation_view &&) = default;
+  simulation_view(simulation_view &&);
   simulation_view &
-  operator=(simulation_view &&) = default;
+  operator=(simulation_view &&);
 
   iterator
-  begin()
-  {
-    return iterator{this};
-  }
+  begin();
 
   sentinel
-  end() const
-  {
-    return {};
-  }
+  end() const;
 
   std::size_t
-  size() const
-  {
-    return remaining_;
-  }
+  size() const;
 };
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+class simulation_view<Simulation>::sentinel
+{
+};
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+class simulation_view<Simulation>::iterator
+{
+  simulation_view *view_;
+
+  bool
+  at_end() const;
+
+public:
+  using iterator_concept = std::input_iterator_tag;
+  using iterator_category = std::input_iterator_tag;
+  using value_type =
+      model_sample_t<typename Simulation::model_type, typename Simulation::float_type, typename Simulation::state_type>;
+  using difference_type = std::ptrdiff_t;
+
+  value_type
+  operator*() const;
+
+  iterator &
+  operator++();
+
+  void
+  operator++(int);
+
+  friend bool
+  operator==(iterator const &iterator, sentinel)
+  {
+    return iterator.at_end();
+  }
+
+  friend bool
+  operator==(sentinel sentinel, iterator const &iterator)
+  {
+    return iterator == sentinel;
+  }
+
+private:
+  explicit iterator(simulation_view *view);
+
+  friend class simulation_view;
+};
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+simulation_view<Simulation>::iterator::iterator(simulation_view *view)
+    : view_{view}
+{
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+bool
+simulation_view<Simulation>::iterator::at_end() const
+{
+  return view_->remaining_ == 0;
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+typename simulation_view<Simulation>::iterator::value_type
+simulation_view<Simulation>::iterator::operator*() const
+{
+  return view_->engine_.current_sample();
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+typename simulation_view<Simulation>::iterator &
+simulation_view<Simulation>::iterator::operator++()
+{
+  if (view_->remaining_ > 1uz)
+  {
+    view_->engine_.advance();
+    --view_->remaining_;
+  }
+  else
+  {
+    view_->remaining_ = 0;
+  }
+  return *this;
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+void
+simulation_view<Simulation>::iterator::operator++(int)
+{
+  ++*this;
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+simulation_view<Simulation>::simulation_view(Simulation simulation)
+    : engine_{detail::make_engine(std::move(simulation))}
+    , remaining_{engine_.sample_count()}
+{
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+simulation_view<Simulation>::simulation_view(simulation_view &&) = default;
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+simulation_view<Simulation> &
+simulation_view<Simulation>::operator=(simulation_view &&) = default;
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+typename simulation_view<Simulation>::iterator
+simulation_view<Simulation>::begin()
+{
+  return iterator{this};
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+typename simulation_view<Simulation>::sentinel
+simulation_view<Simulation>::end() const
+{
+  return {};
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+std::size_t
+simulation_view<Simulation>::size() const
+{
+  return remaining_;
+}
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+simulation_view<Simulation>
+simulate(Simulation simulation);
 
 
 template<typename Simulation>

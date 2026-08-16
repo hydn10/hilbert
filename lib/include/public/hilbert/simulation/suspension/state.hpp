@@ -23,44 +23,22 @@ public:
       Float sprung_displacement,
       Float unsprung_displacement,
       Float sprung_velocity,
-      Float unsprung_velocity)
-      : phase_{phase}
-      , sprung_displacement_{sprung_displacement}
-      , unsprung_displacement_{unsprung_displacement}
-      , sprung_velocity_{sprung_velocity}
-      , unsprung_velocity_{unsprung_velocity}
-  {
-  }
+      Float unsprung_velocity);
 
   Float
-  phase() const
-  {
-    return phase_;
-  }
+  phase() const;
 
   Float
-  sprung_displacement() const
-  {
-    return sprung_displacement_;
-  }
+  sprung_displacement() const;
 
   Float
-  unsprung_displacement() const
-  {
-    return unsprung_displacement_;
-  }
+  unsprung_displacement() const;
 
   Float
-  sprung_velocity() const
-  {
-    return sprung_velocity_;
-  }
+  sprung_velocity() const;
 
   Float
-  unsprung_velocity() const
-  {
-    return unsprung_velocity_;
-  }
+  unsprung_velocity() const;
 };
 
 
@@ -79,69 +57,175 @@ public:
       Float sprung_displacement_velocity,
       Float unsprung_displacement_velocity,
       Float sprung_acceleration,
-      Float unsprung_acceleration)
-      : phase_velocity_{phase_velocity}
-      , sprung_displacement_velocity_{sprung_displacement_velocity}
-      , unsprung_displacement_velocity_{unsprung_displacement_velocity}
-      , sprung_acceleration_{sprung_acceleration}
-      , unsprung_acceleration_{unsprung_acceleration}
-  {
-  }
+      Float unsprung_acceleration);
 
   Float
-  phase_velocity() const
-  {
-    return phase_velocity_;
-  }
+  phase_velocity() const;
 
   Float
-  sprung_displacement_velocity() const
-  {
-    return sprung_displacement_velocity_;
-  }
+  sprung_displacement_velocity() const;
 
   Float
-  unsprung_displacement_velocity() const
-  {
-    return unsprung_displacement_velocity_;
-  }
+  unsprung_displacement_velocity() const;
 
   Float
-  sprung_acceleration() const
-  {
-    return sprung_acceleration_;
-  }
+  sprung_acceleration() const;
 
   Float
-  unsprung_acceleration() const
-  {
-    return unsprung_acceleration_;
-  }
+  unsprung_acceleration() const;
 
   state_derivative
-  operator+(state_derivative const &other) const
-  {
-    return {
-        phase_velocity_ + other.phase_velocity_,
-        sprung_displacement_velocity_ + other.sprung_displacement_velocity_,
-        unsprung_displacement_velocity_ + other.unsprung_displacement_velocity_,
-        sprung_acceleration_ + other.sprung_acceleration_,
-        unsprung_acceleration_ + other.unsprung_acceleration_,
-    };
-  }
+  operator+(state_derivative const &other) const;
 
   state_derivative
-  operator*(Float scalar) const
-  {
-    return {
-        phase_velocity_ * scalar,
-        sprung_displacement_velocity_ * scalar,
-        unsprung_displacement_velocity_ * scalar,
-        sprung_acceleration_ * scalar,
-        unsprung_acceleration_ * scalar,
-    };
-  }
+  operator*(Float scalar) const;
 };
+
+
+template<std::floating_point Float>
+state<Float>
+operator+(state<Float> const &state, state_derivative<Float> const &delta);
+
+
+template<std::floating_point Float>
+state_derivative<Float>
+operator*(Float scalar, state_derivative<Float> const &delta);
+
+
+template<std::floating_point Float>
+state<Float>::state(
+    Float phase, Float sprung_displacement, Float unsprung_displacement, Float sprung_velocity, Float unsprung_velocity)
+    : phase_{phase}
+    , sprung_displacement_{sprung_displacement}
+    , unsprung_displacement_{unsprung_displacement}
+    , sprung_velocity_{sprung_velocity}
+    , unsprung_velocity_{unsprung_velocity}
+{
+}
+
+
+template<std::floating_point Float>
+Float
+state<Float>::phase() const
+{
+  return phase_;
+}
+
+
+template<std::floating_point Float>
+Float
+state<Float>::sprung_displacement() const
+{
+  return sprung_displacement_;
+}
+
+
+template<std::floating_point Float>
+Float
+state<Float>::unsprung_displacement() const
+{
+  return unsprung_displacement_;
+}
+
+
+template<std::floating_point Float>
+Float
+state<Float>::sprung_velocity() const
+{
+  return sprung_velocity_;
+}
+
+
+template<std::floating_point Float>
+Float
+state<Float>::unsprung_velocity() const
+{
+  return unsprung_velocity_;
+}
+
+
+template<std::floating_point Float>
+state_derivative<Float>::state_derivative(
+    Float phase_velocity,
+    Float sprung_displacement_velocity,
+    Float unsprung_displacement_velocity,
+    Float sprung_acceleration,
+    Float unsprung_acceleration)
+    : phase_velocity_{phase_velocity}
+    , sprung_displacement_velocity_{sprung_displacement_velocity}
+    , unsprung_displacement_velocity_{unsprung_displacement_velocity}
+    , sprung_acceleration_{sprung_acceleration}
+    , unsprung_acceleration_{unsprung_acceleration}
+{
+}
+
+
+template<std::floating_point Float>
+Float
+state_derivative<Float>::phase_velocity() const
+{
+  return phase_velocity_;
+}
+
+
+template<std::floating_point Float>
+Float
+state_derivative<Float>::sprung_displacement_velocity() const
+{
+  return sprung_displacement_velocity_;
+}
+
+
+template<std::floating_point Float>
+Float
+state_derivative<Float>::unsprung_displacement_velocity() const
+{
+  return unsprung_displacement_velocity_;
+}
+
+
+template<std::floating_point Float>
+Float
+state_derivative<Float>::sprung_acceleration() const
+{
+  return sprung_acceleration_;
+}
+
+
+template<std::floating_point Float>
+Float
+state_derivative<Float>::unsprung_acceleration() const
+{
+  return unsprung_acceleration_;
+}
+
+
+template<std::floating_point Float>
+state_derivative<Float>
+state_derivative<Float>::operator+(state_derivative const &other) const
+{
+  return {
+      phase_velocity_ + other.phase_velocity_,
+      sprung_displacement_velocity_ + other.sprung_displacement_velocity_,
+      unsprung_displacement_velocity_ + other.unsprung_displacement_velocity_,
+      sprung_acceleration_ + other.sprung_acceleration_,
+      unsprung_acceleration_ + other.unsprung_acceleration_,
+  };
+}
+
+
+template<std::floating_point Float>
+state_derivative<Float>
+state_derivative<Float>::operator*(Float scalar) const
+{
+  return {
+      phase_velocity_ * scalar,
+      sprung_displacement_velocity_ * scalar,
+      unsprung_displacement_velocity_ * scalar,
+      sprung_acceleration_ * scalar,
+      unsprung_acceleration_ * scalar,
+  };
+}
 
 
 template<std::floating_point Float>

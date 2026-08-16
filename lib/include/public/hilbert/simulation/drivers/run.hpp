@@ -15,6 +15,12 @@ namespace hilbert::simulation
 template<typename Simulation, typename SinkFactory>
 requires simulation_problem_for<Simulation>
 decltype(auto)
+run_simulation(Simulation simulation, SinkFactory &&sink_factory);
+
+
+template<typename Simulation, typename SinkFactory>
+requires simulation_problem_for<Simulation>
+decltype(auto)
 run_simulation(Simulation simulation, SinkFactory &&sink_factory)
 {
   auto engine = detail::make_engine(std::move(simulation));

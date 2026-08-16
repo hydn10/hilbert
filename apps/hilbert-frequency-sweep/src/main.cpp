@@ -75,7 +75,7 @@ print_usage(std::ostream &output)
   std::print(
       output,
       "\nRun independent 15-second constant-frequency suspension simulations and write phase results.\n"
-      "Defaults: 1 Hz through 25 Hz in 1 Hz steps; output defaults to stdout.\n");
+      "Defaults: 1 Hz through 25 Hz in 1 Hz steps. Output defaults to stdout.\n");
 }
 
 

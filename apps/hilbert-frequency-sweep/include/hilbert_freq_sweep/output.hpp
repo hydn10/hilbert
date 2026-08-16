@@ -15,6 +15,11 @@ namespace hilbert_freq_sweep
 
 template<std::floating_point Float>
 void
+write_frequency_sweep_results(std::ostream &output, std::span<frequency_sweep_result<Float> const> results);
+
+
+template<std::floating_point Float>
+void
 write_frequency_sweep_results(std::ostream &output, std::span<frequency_sweep_result<Float> const> results)
 {
   output << std::setprecision(std::numeric_limits<Float>::max_digits10);

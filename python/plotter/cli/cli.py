@@ -22,7 +22,7 @@ def egea_plot(
         Path | None,
         typer.Option(
             "--save",
-            help="Save both figures; the phase-frequency filename gets a '-phase-frequency' suffix.",
+            help="Save both figures. The phase-frequency filename gets a '-phase-frequency' suffix.",
         ),
     ] = None,
     show: Annotated[

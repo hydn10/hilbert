@@ -19,6 +19,15 @@ make_simulation(
     simulation_settings<Float> settings,
     parameters<Float> parameters,
     FrequencyProfile frequency_profile,
+    state<Float> initial_state);
+
+
+template<std::floating_point Float, ground_frequency::profile<Float> FrequencyProfile>
+auto
+make_simulation(
+    simulation_settings<Float> settings,
+    parameters<Float> parameters,
+    FrequencyProfile frequency_profile,
     state<Float> initial_state)
 {
   using state_type = state<Float>;

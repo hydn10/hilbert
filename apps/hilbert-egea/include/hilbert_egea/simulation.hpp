@@ -65,6 +65,12 @@ struct analysis_result
 template<hilbert::supported_float Float>
 analysis_result<Float>
 analyze_simulation(
+    hilbert::simulation::simulation_settings<Float> const &settings, simulation_data<Float> const &samples);
+
+
+template<hilbert::supported_float Float>
+analysis_result<Float>
+analyze_simulation(
     hilbert::simulation::simulation_settings<Float> const &settings, simulation_data<Float> const &samples)
 {
   if (settings.duration < hilbert_end_time<Float>)

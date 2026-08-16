@@ -14,17 +14,26 @@ class constant
   Float frequency_hz_;
 
 public:
-  explicit constant(Float frequency_hz)
-      : frequency_hz_{frequency_hz}
-  {
-  }
+  explicit constant(Float frequency_hz);
 
   constexpr Float
-  operator()([[maybe_unused]] Float time) const
-  {
-    return frequency_hz_;
-  }
+  operator()([[maybe_unused]] Float time) const;
 };
+
+
+template<std::floating_point Float>
+constant<Float>::constant(Float frequency_hz)
+    : frequency_hz_{frequency_hz}
+{
+}
+
+
+template<std::floating_point Float>
+constexpr Float
+constant<Float>::operator()([[maybe_unused]] Float time) const
+{
+  return frequency_hz_;
+}
 
 } // namespace hilbert::simulation::suspension::ground_frequencies
 

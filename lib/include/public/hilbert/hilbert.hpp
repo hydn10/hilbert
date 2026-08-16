@@ -42,6 +42,23 @@ calculate_inst_signal_data(std::span<Float const> data, Float sampling_rate);
 
 template<supported_float Float, typename Allocator>
 std::vector<std::complex<Float>>
+hilbert_transform(std::vector<Float, Allocator> const &input);
+
+
+template<supported_float Float, typename Allocator>
+signal_data<Float>
+calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float sampling_rate);
+
+
+extern template std::vector<std::complex<double>>
+hilbert_transform<double>(std::span<double const> input);
+
+extern template signal_data<double>
+calculate_inst_signal_data<double>(std::span<double const> data, double sampling_rate);
+
+
+template<supported_float Float, typename Allocator>
+std::vector<std::complex<Float>>
 hilbert_transform(std::vector<Float, Allocator> const &input)
 {
   return hilbert_transform<Float>(std::span<Float const>{input});
@@ -54,13 +71,6 @@ calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float samp
 {
   return calculate_inst_signal_data<Float>(std::span<Float const>{data}, sampling_rate);
 }
-
-
-extern template std::vector<std::complex<double>>
-hilbert_transform<double>(std::span<double const> input);
-
-extern template signal_data<double>
-calculate_inst_signal_data<double>(std::span<double const> data, double sampling_rate);
 
 
 template<std::floating_point Float>

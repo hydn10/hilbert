@@ -24,6 +24,16 @@ struct frequency_sweep_result
 };
 
 
+template<std::floating_point Float>
+Float
+estimate_frequency_sweep_phase_by_least_squares(frequency_sweep_simulation_data<Float> const &samples);
+
+
+template<std::floating_point Float>
+Float
+estimate_frequency_sweep_phase_by_hilbert_transform(frequency_sweep_simulation_data<Float> const &samples);
+
+
 // TODO: Replace this placeholder with the sinusoidal least-squares phase estimator.
 template<std::floating_point Float>
 Float

@@ -38,13 +38,7 @@ public:
   using model_type = Model;
   using integrator_type = Integrator;
 
-  simulation_problem(simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator)
-      : settings_{std::move(settings)}
-      , initial_state_{std::move(initial_state)}
-      , model_{std::move(model)}
-      , integrator_{std::move(integrator)}
-  {
-  }
+  simulation_problem(simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator);
 
 private:
   simulation_settings<Float> settings_;
@@ -66,6 +60,19 @@ struct detail::simulation_problem_traits<simulation_problem<Float, State, Model,
 
 template<typename Simulation>
 concept simulation_problem_for = detail::simulation_problem_traits<std::remove_cvref_t<Simulation>>::value;
+
+
+template<std::floating_point Float, typename State, typename Model, typename Integrator>
+requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
+             executable_state<State>
+simulation_problem<Float, State, Model, Integrator>::simulation_problem(
+    simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator)
+    : settings_{std::move(settings)}
+    , initial_state_{std::move(initial_state)}
+    , model_{std::move(model)}
+    , integrator_{std::move(integrator)}
+{
+}
 
 } // namespace hilbert::simulation
 
