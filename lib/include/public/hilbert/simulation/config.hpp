@@ -9,6 +9,13 @@ namespace hilbert::simulation
 {
 
 template<std::floating_point Float>
+struct simulation_settings
+{
+  Float time_step;
+  Float duration;
+};
+
+template<std::floating_point Float>
 struct suspension_parameters
 {
   Float sprung_mass;                    // kg

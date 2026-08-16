@@ -17,9 +17,11 @@ namespace hilbert::simulation
 template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
 class simulation_view : public std::ranges::view_interface<simulation_view<Float, FrequencyProfile>>
 {
-  using state_type = detail::simulation_state<Float, FrequencyProfile>;
+  using state_type = detail::suspension_state<Float>;
+  using model_type = detail::suspension_model<Float, FrequencyProfile>;
+  using engine_type = detail::simulation_engine<Float, state_type, model_type, detail::rk4>;
 
-  state_type state_;
+  engine_type engine_;
   size_t remaining_;
 
 public:
@@ -46,7 +48,7 @@ public:
     value_type
     operator*() const
     {
-      return detail::observe_simulation(view_->state_);
+      return view_->engine_.current_sample();
     }
 
     iterator &
@@ -54,7 +56,7 @@ public:
     {
       if (view_->remaining_ > 1uz)
       {
-        detail::advance_simulation(view_->state_);
+        view_->engine_.advance();
         --view_->remaining_;
       }
       else
@@ -64,18 +66,10 @@ public:
       return *this;
     }
 
-    iterator
+    void
     operator++(int)
     {
-      auto copy = *this;
       ++*this;
-      return copy;
-    }
-
-    friend bool
-    operator==(iterator const &left, iterator const &right)
-    {
-      return left.view_ == right.view_ && left.view_->remaining_ == right.view_->remaining_;
     }
 
     friend bool
@@ -99,9 +93,9 @@ public:
     friend class simulation_view;
   };
 
-  explicit simulation_view(detail::initialized_simulation<state_type> initialized)
-      : state_{std::move(initialized.state)}
-      , remaining_{initialized.sample_count}
+  explicit simulation_view(engine_type engine)
+      : engine_{std::move(engine)}
+      , remaining_{engine_.sample_count()}
   {
   }
 
@@ -136,9 +130,8 @@ template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
 simulation_view<Float, FrequencyProfile>
 simulate(config<Float> const &simulation_config, FrequencyProfile frequency_profile)
 {
-  auto initialized = detail::initialize_simulation(
-      simulation_config, std::move(frequency_profile), detail::suspension_state<Float>{0, 0, 0, 0, 0});
-  return simulation_view<Float, FrequencyProfile>{std::move(initialized)};
+  return simulation_view<Float, FrequencyProfile>{
+      detail::make_suspension_engine(simulation_config, std::move(frequency_profile))};
 }
 
 

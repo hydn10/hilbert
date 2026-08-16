@@ -14,123 +14,204 @@
 #include <limits>
 #include <numbers>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 
 namespace hilbert::simulation::detail
 {
 
-template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
-struct simulation_state
+template<typename Model, typename Float, typename State>
+concept physical_model_for =
+    std::floating_point<Float> && requires(Model const &model, Float time, State const &state) {
+      model.derivative(time, state);
+      model.observe(time, state);
+    };
+
+
+template<typename Model, typename Float, typename State>
+using model_delta_t = std::remove_cvref_t<decltype(std::declval<Model const &>().derivative(
+    std::declval<Float>(), std::declval<State const &>()))>;
+
+
+template<typename Model, typename Float, typename State>
+using model_sample_t = std::remove_cvref_t<decltype(std::declval<Model const &>().observe(
+    std::declval<Float>(), std::declval<State const &>()))>;
+
+
+template<typename Float, typename State, typename Delta>
+struct derivative_placeholder
 {
-  suspension_parameters<Float> simulation_parameters;
-  Float time_step;
-  FrequencyProfile frequency_profile;
-  suspension_state<Float> suspension;
-  size_t step_index = 0;
-  Float sample_time = 0;
+  Delta
+  operator()(Float, State const &) const;
 };
 
 
-template<typename State>
-struct initialized_simulation
+template<typename Integrator, typename Float, typename State, typename Delta>
+concept integrator_for = std::floating_point<Float> && requires(
+                                                           Integrator &integrator,
+                                                           Float time,
+                                                           State const &state,
+                                                           Float time_step,
+                                                           derivative_placeholder<Float, State, Delta> derivative) {
+  { integrator(time, state, derivative, time_step) } -> std::same_as<Delta>;
+};
+
+
+template<std::floating_point Float, typename State, typename Model, typename Integrator>
+requires physical_model_for<Model, Float, State> &&
+         state_delta_algebra<State, model_delta_t<Model, Float, State>, Float> &&
+         integrator_for<Integrator, Float, State, model_delta_t<Model, Float, State>>
+class simulation_engine
 {
-  State state;
-  size_t sample_count;
+  using delta_type = model_delta_t<Model, Float, State>;
+  using sample_type = model_sample_t<Model, Float, State>;
+
+  simulation_settings<Float> settings_;
+  State state_;
+  [[no_unique_address]]
+  Model model_;
+  [[no_unique_address]]
+  Integrator integrator_;
+  std::size_t step_index_ = 0;
+  std::size_t sample_count_;
+
+  [[nodiscard]]
+  Float
+  current_time() const noexcept
+  {
+    return static_cast<Float>(step_index_) * settings_.time_step;
+  }
+
+public:
+  simulation_engine(simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator)
+      : settings_{settings}
+      , state_{std::move(initial_state)}
+      , model_{std::move(model)}
+      , integrator_{std::move(integrator)}
+      , sample_count_{sample_count_for(settings)}
+  {
+  }
+
+  [[nodiscard]]
+  std::size_t
+  sample_count() const noexcept
+  {
+    return sample_count_;
+  }
+
+  [[nodiscard]]
+  sample_type
+  current_sample() const
+  {
+    return model_.observe(current_time(), state_);
+  }
+
+  void
+  advance()
+  {
+    auto const time = current_time();
+    auto derivative = [this](Float derivative_time, State const &current_state) -> delta_type
+    {
+      return model_.derivative(derivative_time, current_state);
+    };
+    auto const delta = integrator_(time, state_, derivative, settings_.time_step);
+    state_ = state_ + delta;
+    ++step_index_;
+  }
+
+private:
+  static std::size_t
+  sample_count_for(simulation_settings<Float> settings)
+  {
+    if (!std::isfinite(settings.time_step) || settings.time_step <= 0)
+    {
+      throw std::invalid_argument{"time step must be finite and positive"};
+    }
+    if (!std::isfinite(settings.duration) || settings.duration < 0)
+    {
+      throw std::invalid_argument{"duration must be finite and non-negative"};
+    }
+
+    auto const step_count_value = settings.duration / settings.time_step;
+    if (step_count_value >= static_cast<Float>(std::numeric_limits<std::size_t>::max()))
+    {
+      throw std::invalid_argument{"simulation sample count exceeds size_t"};
+    }
+
+    return static_cast<std::size_t>(step_count_value) + 1uz;
+  }
+};
+
+
+template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
+class suspension_model
+{
+  suspension_parameters<Float> parameters_;
+  [[no_unique_address]]
+  FrequencyProfile frequency_profile_;
+
+public:
+  suspension_model(suspension_parameters<Float> parameters, FrequencyProfile frequency_profile)
+      : parameters_{parameters}
+      , frequency_profile_{std::move(frequency_profile)}
+  {
+  }
+
+  suspension_derivative<Float>
+  derivative(Float time, suspension_state<Float> const &state) const
+  {
+    Float const phase_velocity = 2 * std::numbers::pi_v<Float> * static_cast<Float>(frequency_profile_(time));
+    Float const ground_displacement = parameters_.ground_amplitude * std::sin(state.phase());
+    Float const sprung_acceleration =
+        (-parameters_.suspension_damping_coefficient * (state.sprung_velocity() - state.unsprung_velocity()) -
+         parameters_.suspension_spring_constant * (state.sprung_displacement() - state.unsprung_displacement())) /
+        parameters_.sprung_mass;
+    Float const unsprung_acceleration =
+        (parameters_.suspension_damping_coefficient * (state.sprung_velocity() - state.unsprung_velocity()) +
+         parameters_.suspension_spring_constant * (state.sprung_displacement() - state.unsprung_displacement()) -
+         parameters_.tire_spring_constant * (state.unsprung_displacement() - ground_displacement)) /
+        parameters_.unsprung_mass;
+
+    return {
+        phase_velocity,
+        state.sprung_velocity(),
+        state.unsprung_velocity(),
+        sprung_acceleration,
+        unsprung_acceleration,
+    };
+  }
+
+  sample<Float>
+  observe(Float time, suspension_state<Float> const &state) const
+  {
+    auto const ground_displacement = parameters_.ground_amplitude * std::sin(state.phase());
+
+    return {
+        .time = time,
+        .sprung_displacement = state.sprung_displacement(),
+        .unsprung_displacement = state.unsprung_displacement(),
+        .ground_displacement = ground_displacement,
+        .tire_force = parameters_.tire_spring_constant * (state.unsprung_displacement() - ground_displacement),
+    };
+  }
 };
 
 
 template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
 auto
-initialize_simulation(
-    config<Float> const &simulation_config,
-    FrequencyProfile frequency_profile,
-    suspension_state<Float> initial_suspension_state)
+make_suspension_engine(config<Float> const &simulation_config, FrequencyProfile frequency_profile)
 {
-  if (!std::isfinite(simulation_config.time_step) || simulation_config.time_step <= 0)
-  {
-    throw std::invalid_argument{"time step must be finite and positive"};
-  }
-  if (!std::isfinite(simulation_config.duration) || simulation_config.duration < 0)
-  {
-    throw std::invalid_argument{"duration must be finite and non-negative"};
-  }
+  using state_type = suspension_state<Float>;
+  using model_type = suspension_model<Float, FrequencyProfile>;
+  using engine_type = simulation_engine<Float, state_type, model_type, rk4>;
 
-  auto const step_count_value = simulation_config.duration / simulation_config.time_step;
-  if (step_count_value >= static_cast<Float>(std::numeric_limits<size_t>::max()))
-  {
-    throw std::invalid_argument{"simulation sample count exceeds size_t"};
-  }
-
-  auto const step_count = static_cast<size_t>(step_count_value);
-  using state_type = simulation_state<Float, FrequencyProfile>;
-  return initialized_simulation<state_type>{
-      .state =
-          {
-              .simulation_parameters = simulation_config.parameters,
-              .time_step = simulation_config.time_step,
-              .frequency_profile = std::move(frequency_profile),
-              .suspension = std::move(initial_suspension_state),
-          },
-      .sample_count = step_count + 1uz,
+  return engine_type{
+      simulation_settings<Float>{simulation_config.time_step, simulation_config.duration},
+      state_type{0, 0, 0, 0, 0},
+      model_type{simulation_config.parameters, std::move(frequency_profile)},
+      rk4{},
   };
-}
-
-
-template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
-sample<Float>
-observe_simulation(simulation_state<Float, FrequencyProfile> const &state)
-{
-  auto const ground_displacement = state.simulation_parameters.ground_amplitude * std::sin(state.suspension.phase());
-
-  return {
-      .time = state.sample_time,
-      .sprung_displacement = state.suspension.sprung_displacement(),
-      .unsprung_displacement = state.suspension.unsprung_displacement(),
-      .ground_displacement = ground_displacement,
-      .tire_force = state.simulation_parameters.tire_spring_constant *
-                    (state.suspension.unsprung_displacement() - ground_displacement),
-  };
-}
-
-
-template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
-void
-advance_simulation(simulation_state<Float, FrequencyProfile> &state)
-{
-  auto const derivative = [&state](Float time, suspension_state<Float> const &current_state)
-  {
-    auto const &parameters = state.simulation_parameters;
-    Float const phase_velocity = 2 * std::numbers::pi_v<Float> * static_cast<Float>(state.frequency_profile(time));
-    Float const ground_displacement = parameters.ground_amplitude * std::sin(current_state.phase());
-    Float const sprung_acceleration =
-        (-parameters.suspension_damping_coefficient *
-             (current_state.sprung_velocity() - current_state.unsprung_velocity()) -
-         parameters.suspension_spring_constant *
-             (current_state.sprung_displacement() - current_state.unsprung_displacement())) /
-        parameters.sprung_mass;
-    Float const unsprung_acceleration =
-        (parameters.suspension_damping_coefficient *
-             (current_state.sprung_velocity() - current_state.unsprung_velocity()) +
-         parameters.suspension_spring_constant *
-             (current_state.sprung_displacement() - current_state.unsprung_displacement()) -
-         parameters.tire_spring_constant * (current_state.unsprung_displacement() - ground_displacement)) /
-        parameters.unsprung_mass;
-
-    return suspension_derivative<Float>{
-        phase_velocity,
-        current_state.sprung_velocity(),
-        current_state.unsprung_velocity(),
-        sprung_acceleration,
-        unsprung_acceleration,
-    };
-  };
-
-  auto const integration_time = static_cast<Float>(state.step_index) * state.time_step;
-  auto const delta = rk4_delta(integration_time, state.suspension, derivative, state.time_step);
-  state.suspension = state.suspension + delta;
-  state.sample_time = integration_time + state.time_step;
-  ++state.step_index;
 }
 
 } // namespace hilbert::simulation::detail

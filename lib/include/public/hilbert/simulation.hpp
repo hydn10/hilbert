@@ -25,15 +25,15 @@ template<std::floating_point Float, frequency::profile<Float> FrequencyProfile, 
 decltype(auto)
 run_simulation(config<Float> const &simulation_config, FrequencyProfile frequency_profile, SinkFactory &&sink_factory)
 {
-  auto initialized = detail::initialize_simulation(
-      simulation_config, std::move(frequency_profile), detail::suspension_state<Float>{0, 0, 0, 0, 0});
-  auto sink = std::invoke(std::forward<SinkFactory>(sink_factory), initialized.sample_count);
+  auto engine = detail::make_suspension_engine(simulation_config, std::move(frequency_profile));
+  auto const count = engine.sample_count();
+  auto sink = std::invoke(std::forward<SinkFactory>(sink_factory), count);
 
-  sink.push(detail::observe_simulation(initialized.state));
-  for (auto index = 1uz; index < initialized.sample_count; ++index)
+  sink.push(engine.current_sample());
+  for (auto index = 1uz; index < count; ++index)
   {
-    detail::advance_simulation(initialized.state);
-    sink.push(detail::observe_simulation(initialized.state));
+    engine.advance();
+    sink.push(engine.current_sample());
   }
 
   return std::move(sink).finish();
