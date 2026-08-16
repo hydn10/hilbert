@@ -1,22 +1,15 @@
-#ifndef HILBERT_SIMULATION_CONFIG_HPP
-#define HILBERT_SIMULATION_CONFIG_HPP
+#ifndef HILBERT_SIMULATION_SUSPENSION_PARAMETERS_HPP
+#define HILBERT_SIMULATION_SUSPENSION_PARAMETERS_HPP
 
 
 #include <concepts>
 
 
-namespace hilbert::simulation
+namespace hilbert::simulation::suspension
 {
 
 template<std::floating_point Float>
-struct simulation_settings
-{
-  Float time_step;
-  Float duration;
-};
-
-template<std::floating_point Float>
-struct suspension_parameters
+struct parameters
 {
   Float sprung_mass;                    // kg
   Float unsprung_mass;                  // kg
@@ -26,6 +19,6 @@ struct suspension_parameters
   Float ground_amplitude;               // m
 };
 
-} // namespace hilbert::simulation
+} // namespace hilbert::simulation::suspension
 
-#endif // HILBERT_SIMULATION_CONFIG_HPP
+#endif // HILBERT_SIMULATION_SUSPENSION_PARAMETERS_HPP

@@ -3,9 +3,9 @@
 
 
 #include <hilbert/hilbert.hpp>
-#include <hilbert/simulation/config.hpp>
-#include <hilbert/simulation/frequency/scheduled.hpp>
-#include <hilbert/simulation/sinks/soa_vector.hpp>
+#include <hilbert/simulation/core/settings.hpp>
+#include <hilbert/simulation/suspension/ground_frequencies/scheduled.hpp>
+#include <hilbert/simulation/suspension/sinks/soa_vector.hpp>
 
 #include <algorithm>
 #include <concepts>
@@ -20,7 +20,7 @@ namespace hilbertcli
 {
 
 template<std::floating_point Float>
-using frequency_profile = hilbert::simulation::frequency::scheduled<Float>;
+using frequency_profile = hilbert::simulation::suspension::ground_frequencies::scheduled<Float>;
 
 template<std::floating_point Float>
 inline constexpr Float measurement_start_time = frequency_profile<Float>::measurement::start_time;
@@ -47,7 +47,7 @@ struct time_interval
 
 
 template<std::floating_point Float>
-using simulation_data = typename hilbert::simulation::sinks::soa_vector_sink<Float>::simulation_data;
+using simulation_data = typename hilbert::simulation::suspension::sinks::soa_vector_sink<Float>::simulation_data;
 
 
 template<std::floating_point Float>

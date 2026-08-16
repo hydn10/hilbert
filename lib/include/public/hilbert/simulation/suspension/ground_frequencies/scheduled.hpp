@@ -1,11 +1,11 @@
-#ifndef HILBERT_SIMULATION_FREQUENCY_SCHEDULED_HPP
-#define HILBERT_SIMULATION_FREQUENCY_SCHEDULED_HPP
+#ifndef HILBERT_SIMULATION_SUSPENSION_GROUND_FREQUENCIES_SCHEDULED_HPP
+#define HILBERT_SIMULATION_SUSPENSION_GROUND_FREQUENCIES_SCHEDULED_HPP
 
 
 #include <concepts>
 
 
-namespace hilbert::simulation::frequency
+namespace hilbert::simulation::suspension::ground_frequencies
 {
 
 template<std::floating_point Float>
@@ -72,6 +72,6 @@ public:
   }
 };
 
-} // namespace hilbert::simulation::frequency
+} // namespace hilbert::simulation::suspension::ground_frequencies
 
-#endif // HILBERT_SIMULATION_FREQUENCY_SCHEDULED_HPP
+#endif // HILBERT_SIMULATION_SUSPENSION_GROUND_FREQUENCIES_SCHEDULED_HPP

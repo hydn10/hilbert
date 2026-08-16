@@ -14,17 +14,25 @@ target_sources(
             FILES
                 include/public/hilbert/hilbert.hpp
                 include/public/hilbert/simulation.hpp
-                include/public/hilbert/simulation/config.hpp
-                include/public/hilbert/simulation/detail/evolution.hpp
-                include/public/hilbert/simulation/detail/rk4.hpp
-                include/public/hilbert/simulation/detail/suspension_state.hpp
-                include/public/hilbert/simulation/frequency/constant.hpp
-                include/public/hilbert/simulation/frequency/profile.hpp
-                include/public/hilbert/simulation/frequency/scheduled.hpp
-                include/public/hilbert/simulation/sample.hpp
-                include/public/hilbert/simulation/sinks/soa_vector.hpp
-                include/public/hilbert/simulation/sinks/vector.hpp
-                include/public/hilbert/simulation/view.hpp
+                include/public/hilbert/simulation/generic.hpp
+                include/public/hilbert/simulation/core/concepts.hpp
+                include/public/hilbert/simulation/core/problem.hpp
+                include/public/hilbert/simulation/core/settings.hpp
+                include/public/hilbert/simulation/detail/engine.hpp
+                include/public/hilbert/simulation/drivers/run.hpp
+                include/public/hilbert/simulation/drivers/view.hpp
+                include/public/hilbert/simulation/integrators/rk4.hpp
+                include/public/hilbert/simulation/suspension.hpp
+                include/public/hilbert/simulation/suspension/factory.hpp
+                include/public/hilbert/simulation/suspension/frequency.hpp
+                include/public/hilbert/simulation/suspension/ground_frequencies/constant.hpp
+                include/public/hilbert/simulation/suspension/ground_frequencies/scheduled.hpp
+                include/public/hilbert/simulation/suspension/model.hpp
+                include/public/hilbert/simulation/suspension/parameters.hpp
+                include/public/hilbert/simulation/suspension/sample.hpp
+                include/public/hilbert/simulation/suspension/state.hpp
+                include/public/hilbert/simulation/suspension/sinks/soa_vector.hpp
+                include/public/hilbert/simulation/suspension/sinks/vector.hpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS

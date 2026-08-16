@@ -1,8 +1,8 @@
-#ifndef HILBERT_SIMULATION_SINKS_VECTOR_HPP
-#define HILBERT_SIMULATION_SINKS_VECTOR_HPP
+#ifndef HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_HPP
+#define HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_HPP
 
 
-#include <hilbert/simulation/sample.hpp>
+#include <hilbert/simulation/suspension/sample.hpp>
 
 #include <concepts>
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <vector>
 
 
-namespace hilbert::simulation::sinks
+namespace hilbert::simulation::suspension::sinks
 {
 
 template<std::floating_point Float>
@@ -84,6 +84,6 @@ struct vector_sink_factory
   }
 };
 
-} // namespace hilbert::simulation::sinks
+} // namespace hilbert::simulation::suspension::sinks
 
-#endif // HILBERT_SIMULATION_SINKS_VECTOR_HPP
+#endif // HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_HPP

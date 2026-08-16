@@ -1,15 +1,15 @@
-#ifndef HILBERT_SIMULATION_DETAIL_SUSPENSION_STATE_HPP
-#define HILBERT_SIMULATION_DETAIL_SUSPENSION_STATE_HPP
+#ifndef HILBERT_SIMULATION_SUSPENSION_STATE_HPP
+#define HILBERT_SIMULATION_SUSPENSION_STATE_HPP
 
 
 #include <concepts>
 
 
-namespace hilbert::simulation::detail
+namespace hilbert::simulation::suspension
 {
 
 template<std::floating_point Float>
-class suspension_state
+class state
 {
   Float phase_;
   Float sprung_displacement_;
@@ -18,7 +18,7 @@ class suspension_state
   Float unsprung_velocity_;
 
 public:
-  suspension_state(
+  state(
       Float phase,
       Float sprung_displacement,
       Float unsprung_displacement,
@@ -65,7 +65,7 @@ public:
 
 
 template<std::floating_point Float>
-class suspension_derivative
+class state_derivative
 {
   Float phase_velocity_;
   Float sprung_displacement_velocity_;
@@ -74,7 +74,7 @@ class suspension_derivative
   Float unsprung_acceleration_;
 
 public:
-  suspension_derivative(
+  state_derivative(
       Float phase_velocity,
       Float sprung_displacement_velocity,
       Float unsprung_displacement_velocity,
@@ -118,8 +118,8 @@ public:
     return unsprung_acceleration_;
   }
 
-  suspension_derivative
-  operator+(suspension_derivative const &other) const
+  state_derivative
+  operator+(state_derivative const &other) const
   {
     return {
         phase_velocity_ + other.phase_velocity_,
@@ -130,7 +130,7 @@ public:
     };
   }
 
-  suspension_derivative
+  state_derivative
   operator*(Float scalar) const
   {
     return {
@@ -145,8 +145,8 @@ public:
 
 
 template<std::floating_point Float>
-suspension_state<Float>
-operator+(suspension_state<Float> const &state, suspension_derivative<Float> const &delta)
+state<Float>
+operator+(state<Float> const &state, state_derivative<Float> const &delta)
 {
   return {
       state.phase() + delta.phase_velocity(),
@@ -159,12 +159,12 @@ operator+(suspension_state<Float> const &state, suspension_derivative<Float> con
 
 
 template<std::floating_point Float>
-suspension_derivative<Float>
-operator*(Float scalar, suspension_derivative<Float> const &delta)
+state_derivative<Float>
+operator*(Float scalar, state_derivative<Float> const &delta)
 {
   return delta * scalar;
 }
 
-} // namespace hilbert::simulation::detail
+} // namespace hilbert::simulation::suspension
 
-#endif // HILBERT_SIMULATION_DETAIL_SUSPENSION_STATE_HPP
+#endif // HILBERT_SIMULATION_SUSPENSION_STATE_HPP

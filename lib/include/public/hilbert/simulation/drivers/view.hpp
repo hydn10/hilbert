@@ -1,8 +1,9 @@
-#ifndef HILBERT_SIMULATION_VIEW_HPP
-#define HILBERT_SIMULATION_VIEW_HPP
+#ifndef HILBERT_SIMULATION_DRIVERS_VIEW_HPP
+#define HILBERT_SIMULATION_DRIVERS_VIEW_HPP
 
 
-#include <hilbert/simulation/detail/evolution.hpp>
+#include <hilbert/simulation/core/problem.hpp>
+#include <hilbert/simulation/detail/engine.hpp>
 
 #include <concepts>
 #include <cstddef>
@@ -14,16 +15,14 @@
 namespace hilbert::simulation
 {
 
-template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
-class simulation_view : public std::ranges::view_interface<simulation_view<Float, FrequencyProfile>>
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+class simulation_view : public std::ranges::view_interface<simulation_view<Simulation>>
 {
-  using state_type = detail::suspension_state<Float>;
-  using model_type = detail::suspension_model<Float, FrequencyProfile>;
-  using integrator_type = detail::rk4<Float, state_type, model_type>;
-  using engine_type = detail::simulation_engine<Float, state_type, model_type, integrator_type>;
+  using engine_type = detail::engine_for_t<Simulation>;
 
   engine_type engine_;
-  size_t remaining_;
+  std::size_t remaining_;
 
 public:
   class sentinel
@@ -43,7 +42,10 @@ public:
   public:
     using iterator_concept = std::input_iterator_tag;
     using iterator_category = std::input_iterator_tag;
-    using value_type = sample<Float>;
+    using value_type = model_sample_t<
+        typename Simulation::model_type,
+        typename Simulation::float_type,
+        typename Simulation::state_type>;
     using difference_type = std::ptrdiff_t;
 
     value_type
@@ -94,8 +96,8 @@ public:
     friend class simulation_view;
   };
 
-  explicit simulation_view(engine_type engine)
-      : engine_{std::move(engine)}
+  explicit simulation_view(Simulation simulation)
+      : engine_{detail::make_engine(std::move(simulation))}
       , remaining_{engine_.sample_count()}
   {
   }
@@ -119,7 +121,7 @@ public:
     return {};
   }
 
-  size_t
+  std::size_t
   size() const
   {
     return remaining_;
@@ -127,18 +129,14 @@ public:
 };
 
 
-template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
-simulation_view<Float, FrequencyProfile>
-simulate(
-    simulation_settings<Float> settings, suspension_parameters<Float> parameters, FrequencyProfile frequency_profile)
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
+simulation_view<Simulation>
+simulate(Simulation simulation)
 {
-  return simulation_view<Float, FrequencyProfile>{detail::make_suspension_engine(
-      std::move(settings),
-      std::move(parameters),
-      std::move(frequency_profile),
-      detail::suspension_state<Float>{0, 0, 0, 0, 0})};
+  return simulation_view<Simulation>{std::move(simulation)};
 }
 
 } // namespace hilbert::simulation
 
-#endif // HILBERT_SIMULATION_VIEW_HPP
+#endif // HILBERT_SIMULATION_DRIVERS_VIEW_HPP

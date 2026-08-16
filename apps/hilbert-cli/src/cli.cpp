@@ -4,9 +4,12 @@
 #include <hilbertcli/process/exit_status.hpp>
 #include <hilbertcli/simulation.hpp>
 
-#include <hilbert/simulation.hpp>
-#include <hilbert/simulation/config.hpp>
-#include <hilbert/simulation/sinks/soa_vector.hpp>
+#include <hilbert/simulation/core/settings.hpp>
+#include <hilbert/simulation/drivers/run.hpp>
+#include <hilbert/simulation/suspension/factory.hpp>
+#include <hilbert/simulation/suspension/parameters.hpp>
+#include <hilbert/simulation/suspension/sinks/soa_vector.hpp>
+#include <hilbert/simulation/suspension/state.hpp>
 
 #include <charconv>
 #include <cmath>
@@ -39,7 +42,7 @@ struct simulation_command
       .duration = 20.0,
   };
 
-  hilbert::simulation::suspension_parameters<double> parameters{
+  hilbert::simulation::suspension::parameters<double> parameters{
       .sprung_mass = 270,
       .unsprung_mass = 30,
       .suspension_spring_constant = 31000,
@@ -150,10 +153,12 @@ struct command_dispatcher
     auto const simulate_to = [&command](std::ostream &output)
     {
       auto samples = hilbert::simulation::run_simulation(
-          command.settings,
-          command.parameters,
-          frequency_profile<double>{},
-          hilbert::simulation::sinks::soa_vector_sink_factory<double>{});
+          hilbert::simulation::suspension::make_simulation(
+              command.settings,
+              command.parameters,
+              frequency_profile<double>{},
+              hilbert::simulation::suspension::state<double>{0, 0, 0, 0, 0}),
+          hilbert::simulation::suspension::sinks::soa_vector_sink_factory<double>{});
 
       auto const analysis = analyze_simulation(command.settings, samples);
       write_simulation_data(output, samples, analysis);
