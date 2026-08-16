@@ -1,8 +1,8 @@
-#ifndef HILBERTCLI_OUTPUT_HPP
-#define HILBERTCLI_OUTPUT_HPP
+#ifndef HILBERT_EGEA_OUTPUT_HPP
+#define HILBERT_EGEA_OUTPUT_HPP
 
 
-#include <hilbertcli/simulation.hpp>
+#include <hilbert_egea/simulation.hpp>
 
 #include <hilbert/hilbert.hpp>
 
@@ -12,7 +12,7 @@
 #include <ranges>
 
 
-namespace hilbertcli
+namespace hilbert_egea
 {
 
 template<hilbert::supported_float Float>
@@ -71,6 +71,6 @@ write_simulation_data(
   }
 }
 
-} // namespace hilbertcli
+} // namespace hilbert_egea
 
-#endif // HILBERTCLI_OUTPUT_HPP
+#endif // HILBERT_EGEA_OUTPUT_HPP

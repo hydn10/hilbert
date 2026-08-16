@@ -62,7 +62,8 @@
           };
 
           projectName = workspace.project.package.pname;
-          nativeAppName = "${projectName}-cli";
+          nativeAppName = "${projectName}-egea";
+          frequencySweepAppName = "${projectName}-frequency-sweep";
           pythonAppName = workspace.python.applicationScript;
         in
         {
@@ -70,6 +71,7 @@
             default = self.packages.${system}.${projectName};
             "${projectName}" = workspace.project.package;
             "${nativeAppName}" = workspace.project.packageWithApps;
+            "${frequencySweepAppName}" = workspace.project.packageWithApps;
             "${pythonAppName}" = workspace.python.application;
           };
 
@@ -79,13 +81,19 @@
             "${nativeAppName}" = {
               type = "app";
               program = "${workspace.project.packageWithApps}/bin/${nativeAppName}";
-              meta.description = "Run the Hilbert suspension simulation.";
+              meta.description = "Run the EGEA scheduled-frequency suspension experiment.";
+            };
+
+            "${frequencySweepAppName}" = {
+              type = "app";
+              program = "${workspace.project.packageWithApps}/bin/${frequencySweepAppName}";
+              meta.description = "Run the constant-frequency suspension sweep experiment.";
             };
 
             "${pythonAppName}" = {
               type = "app";
               program = "${workspace.python.application}/bin/${pythonAppName}";
-              meta.description = "Validate or plot Hilbert multi-table simulation data.";
+              meta.description = "Validate or plot Hilbert experiment data.";
             };
           };
 

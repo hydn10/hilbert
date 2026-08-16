@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-from .common import MeasurementPlotData
+from .egea_common import EgeaMeasurementPlotData
 
 
-def create_simulation_overview(plot_data: MeasurementPlotData) -> Figure:
+def create_egea_simulation_overview(plot_data: EgeaMeasurementPlotData) -> Figure:
     data = plot_data.simulation
     raw_samples = plot_data.raw_samples
     refined_samples = plot_data.refined_samples

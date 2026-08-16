@@ -20,16 +20,27 @@ upgrade:
 # Validate the Python application and its native multi-table text integration.
 validate preset=default-release-preset: (smoke preset default-output-dir)
 
-# Generate representative native data, validate it, and render both figures headlessly.
+# Generate representative EGEA and constant-frequency-sweep data, validate it, and render both workflows headlessly.
 smoke preset=default-release-preset output_dir=default-output-dir: (prepare-output output_dir)
-    just cpp simulate "{{ output_dir }}/simulation.txt" {{ preset }} 20
-    uv run --project python --locked plotter validate "{{ output_dir }}/simulation.txt"
-    uv run --project python --locked plotter execute "{{ output_dir }}/simulation.txt" --save "{{ output_dir }}/simulation.png" --no-show
+    just cpp simulate-egea "{{ output_dir }}/simulation-egea.txt" {{ preset }} 20
+    uv run --project python --locked plotter egea validate "{{ output_dir }}/simulation-egea.txt"
+    uv run --project python --locked plotter egea plot "{{ output_dir }}/simulation-egea.txt" --save "{{ output_dir }}/simulation-egea.png" --no-show
+    just cpp simulate-frequency-sweep "{{ output_dir }}/simulation-frequency-sweep.txt" {{ preset }} 1 5 1
+    uv run --project python --locked plotter frequency-sweep validate "{{ output_dir }}/simulation-frequency-sweep.txt"
+    uv run --project python --locked plotter frequency-sweep plot "{{ output_dir }}/simulation-frequency-sweep.txt" --save "{{ output_dir }}/simulation-frequency-sweep.png" --no-show
 
-# Validate a simulation data file without opening a plot.
-validate-data input:
-    uv run --project python --locked plotter validate "{{ input }}"
+# Validate EGEA simulation data without opening a plot.
+validate-egea input:
+    uv run --project python --locked plotter egea validate "{{ input }}"
 
-# Run the plotting CLI (usage: just py plot data.txt --save plot.png).
-plot input *args:
-    uv run --project python --locked plotter execute "{{ input }}" {{ args }}
+# Run the EGEA plotting CLI (usage: just py plot-egea data.txt --save plot.png).
+plot-egea input *args:
+    uv run --project python --locked plotter egea plot "{{ input }}" {{ args }}
+
+# Validate a constant-frequency sweep result file.
+validate-frequency-sweep input:
+    uv run --project python --locked plotter frequency-sweep validate "{{ input }}"
+
+# Plot a constant-frequency sweep result file.
+plot-frequency-sweep input *args:
+    uv run --project python --locked plotter frequency-sweep plot "{{ input }}" {{ args }}

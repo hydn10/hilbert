@@ -1,19 +1,16 @@
-set(target_name "${PROJECT_NAME}-cli")
+set(target_name "${PROJECT_NAME}-frequency-sweep")
 
 add_executable(${target_name})
 target_sources(
     ${target_name}
-    PRIVATE src/cli.cpp src/main.cpp
+    PRIVATE src/main.cpp
     PRIVATE
         FILE_SET private_headers
             TYPE HEADERS
             BASE_DIRS include
             FILES
-                include/hilbertcli/cli.hpp
-                include/hilbertcli/output.hpp
-                include/hilbertcli/process/exit_domain.hpp
-                include/hilbertcli/process/exit_status.hpp
-                include/hilbertcli/simulation.hpp
+                include/hilbert_freq_sweep/analysis.hpp
+                include/hilbert_freq_sweep/output.hpp
 )
 
 target_compile_features(${target_name} PRIVATE cxx_std_23)

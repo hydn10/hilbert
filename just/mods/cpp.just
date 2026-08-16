@@ -51,8 +51,15 @@ check-installed preset=default-release-preset: (fresh-build preset) (validate-bu
     ctest --test-dir "out/build/consumer-cmake/{{ preset }}" --output-on-failure --no-tests=error
 
 # Generate multi-table simulation data with the selected native build.
-simulate output="out/simulation.txt" preset=default-release-preset duration="20":
+simulate-egea output="out/simulation-egea.txt" preset=default-release-preset duration="20":
     cmake --preset {{ preset }}
-    cmake --build --preset {{ preset }} --target hilbert-cli
+    cmake --build --preset {{ preset }} --target hilbert-egea
     cmake -E make_directory "{{ parent_directory(output) }}"
-    out/build/{{ preset }}/apps/hilbert-cli/hilbert-cli{{ executable-suffix }} --duration {{ duration }} --output "{{ output }}"
+    out/build/{{ preset }}/apps/hilbert-egea/hilbert-egea{{ executable-suffix }} --duration {{ duration }} --output "{{ output }}"
+
+# Generate constant-frequency sweep results with the selected native build.
+simulate-frequency-sweep output="out/simulation-frequency-sweep.txt" preset=default-release-preset start_frequency="1" end_frequency="25" frequency_step="1":
+    cmake --preset {{ preset }}
+    cmake --build --preset {{ preset }} --target hilbert-frequency-sweep
+    cmake -E make_directory "{{ parent_directory(output) }}"
+    out/build/{{ preset }}/apps/hilbert-frequency-sweep/hilbert-frequency-sweep{{ executable-suffix }} --start-frequency {{ start_frequency }} --end-frequency {{ end_frequency }} --frequency-step {{ frequency_step }} --output "{{ output }}"

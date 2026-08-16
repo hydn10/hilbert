@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-from .common import MeasurementPlotData
+from .egea_common import EgeaMeasurementPlotData
 
 
-def create_phase_frequency_figure(plot_data: MeasurementPlotData) -> Figure:
+def create_egea_phase_frequency_figure(plot_data: EgeaMeasurementPlotData) -> Figure:
     figure, axis = plt.subplots(figsize=(10, 7), layout="constrained")
     figure.canvas.manager.set_window_title("Phase shift versus platform frequency")
 

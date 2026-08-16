@@ -1,5 +1,5 @@
-#ifndef HILBERTCLI_SIMULATION_HPP
-#define HILBERTCLI_SIMULATION_HPP
+#ifndef HILBERT_EGEA_SIMULATION_HPP
+#define HILBERT_EGEA_SIMULATION_HPP
 
 
 #include <hilbert/hilbert.hpp>
@@ -16,7 +16,7 @@
 #include <utility>
 
 
-namespace hilbertcli
+namespace hilbert_egea
 {
 
 template<std::floating_point Float>
@@ -100,6 +100,6 @@ analyze_simulation(
   };
 }
 
-} // namespace hilbertcli
+} // namespace hilbert_egea
 
-#endif // HILBERTCLI_SIMULATION_HPP
+#endif // HILBERT_EGEA_SIMULATION_HPP

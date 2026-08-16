@@ -26,7 +26,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/windows-runtime.cmake")
 set(HILBERT_BUILD_APPS_DEFAULT "${PROJECT_IS_TOP_LEVEL}")
 option(
     HILBERT_BUILD_APPS
-    "Build the simulation command-line application. Default: ${HILBERT_BUILD_APPS_DEFAULT}."
+    "Build the simulation experiment applications. Default: ${HILBERT_BUILD_APPS_DEFAULT}."
     "${HILBERT_BUILD_APPS_DEFAULT}"
 )
 

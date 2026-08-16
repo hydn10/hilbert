@@ -121,12 +121,16 @@ nix build
 ### Generate and plot data with Just
 
 ```bash
-just cpp simulate
-just py validate-data out/simulation.txt
-just py plot out/simulation.txt
-```
+# EGEA scheduled-frequency experiment
+just cpp simulate-egea
+just py validate-egea out/simulation-egea.txt
+just py plot-egea out/simulation-egea.txt
 
-The generated UTF-8 text file contains the simulation information.
+# Constant-frequency sweep experiment
+just cpp simulate-frequency-sweep
+just py validate-frequency-sweep out/simulation-frequency-sweep.txt
+just py plot-frequency-sweep out/simulation-frequency-sweep.txt --save out/simulation-frequency-sweep.png --no-show
+```
 
 ## License
 

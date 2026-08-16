@@ -1,1 +1,2 @@
-add_subdirectory(hilbert-cli)
+add_subdirectory(hilbert-egea)
+add_subdirectory(hilbert-frequency-sweep)

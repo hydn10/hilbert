@@ -1,8 +1,8 @@
-#include <hilbertcli/cli.hpp>
+#include <hilbert_egea/egea.hpp>
 
-#include <hilbertcli/output.hpp>
-#include <hilbertcli/process/exit_status.hpp>
-#include <hilbertcli/simulation.hpp>
+#include <hilbert_egea/output.hpp>
+#include <hilbert_egea/process/exit_status.hpp>
+#include <hilbert_egea/simulation.hpp>
 
 #include <hilbert/simulation/core/settings.hpp>
 #include <hilbert/simulation/drivers/run.hpp>
@@ -30,7 +30,7 @@
 #include <variant>
 
 
-namespace hilbertcli
+namespace hilbert_egea
 {
 namespace
 {
@@ -66,7 +66,7 @@ using command = std::variant<simulation_command, help_command>;
 void
 print_usage_synopsis(std::ostream &output)
 {
-  std::print(output, "Usage: hilbert-cli [--output PATH] [--duration SECONDS] [--time-step SECONDS]\n");
+  std::print(output, "Usage: hilbert-egea [--output PATH] [--duration SECONDS] [--time-step SECONDS]\n");
 }
 
 
@@ -189,8 +189,8 @@ struct command_dispatcher
 } // namespace
 
 
-cli_result
-run_cli(std::span<char const *const> arguments)
+egea_result
+run_egea(std::span<char const *const> arguments)
 try
 {
   auto const parsed_command = parse_command(arguments);
@@ -201,10 +201,10 @@ try
 }
 catch (std::exception const &error)
 {
-  std::println(std::cerr, "hilbert-cli: {}", error.what());
+  std::println(std::cerr, "hilbert-egea: {}", error.what());
   print_usage_synopsis(std::cerr);
 
-  return outcome::cli::error{};
+  return outcome::egea::error{};
 }
 
-} // namespace hilbertcli
+} // namespace hilbert_egea

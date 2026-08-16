@@ -2,12 +2,12 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..data import SimulationData
+from ..egea_data import EgeaData
 
 
 @dataclass(frozen=True)
-class MeasurementPlotData:
-    simulation: SimulationData
+class EgeaMeasurementPlotData:
+    simulation: EgeaData
     measurement_start_s: float
     measurement_end_s: float
     raw_samples: np.ndarray
@@ -18,7 +18,7 @@ class MeasurementPlotData:
     platform_frequency_hz: np.ndarray
 
 
-def positive_continuous_relative_phase(
+def positive_continuous_egea_relative_phase(
     first_phase: np.ndarray,
     second_phase: np.ndarray,
 ) -> np.ndarray:
@@ -37,7 +37,7 @@ def _interval_mask(time: np.ndarray, start_time: float, end_time: float) -> np.n
     return (time >= start_time) & (time < end_time)
 
 
-def prepare_measurement_plot_data(simulation: SimulationData) -> MeasurementPlotData:
+def prepare_egea_measurement_plot_data(simulation: EgeaData) -> EgeaMeasurementPlotData:
     measurement_start = simulation.intervals.measurement_start_s
     measurement_end = simulation.intervals.measurement_end_s
 
@@ -45,12 +45,12 @@ def prepare_measurement_plot_data(simulation: SimulationData) -> MeasurementPlot
     refined_samples = _interval_mask(
         simulation.refined["time_s"], measurement_start, measurement_end
     )
-    phase_shift = positive_continuous_relative_phase(
+    phase_shift = positive_continuous_egea_relative_phase(
         simulation.refined["platform_phase_rad"],
         simulation.refined["tire_force_phase_rad"],
     )[refined_samples]
 
-    return MeasurementPlotData(
+    return EgeaMeasurementPlotData(
         simulation=simulation,
         measurement_start_s=measurement_start,
         measurement_end_s=measurement_end,
