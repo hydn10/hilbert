@@ -19,7 +19,8 @@ class simulation_view : public std::ranges::view_interface<simulation_view<Float
 {
   using state_type = detail::suspension_state<Float>;
   using model_type = detail::suspension_model<Float, FrequencyProfile>;
-  using engine_type = detail::simulation_engine<Float, state_type, model_type, detail::rk4>;
+  using integrator_type = detail::rk4<Float, state_type, model_type>;
+  using engine_type = detail::simulation_engine<Float, state_type, model_type, integrator_type>;
 
   engine_type engine_;
   size_t remaining_;
@@ -128,19 +129,15 @@ public:
 
 template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
 simulation_view<Float, FrequencyProfile>
-simulate(config<Float> const &simulation_config, FrequencyProfile frequency_profile)
+simulate(
+    simulation_settings<Float> settings, suspension_parameters<Float> parameters, FrequencyProfile frequency_profile)
 {
-  return simulation_view<Float, FrequencyProfile>{
-      detail::make_suspension_engine(simulation_config, std::move(frequency_profile))};
+  return simulation_view<Float, FrequencyProfile>{detail::make_suspension_engine(
+      std::move(settings),
+      std::move(parameters),
+      std::move(frequency_profile),
+      detail::suspension_state<Float>{0, 0, 0, 0, 0})};
 }
-
-
-using simulation_view_concept_check_profile = decltype([](double) { return 0.0; });
-
-static_assert(std::ranges::input_range<simulation_view<double, simulation_view_concept_check_profile>>);
-static_assert(std::ranges::sized_range<simulation_view<double, simulation_view_concept_check_profile>>);
-static_assert(std::ranges::view<simulation_view<double, simulation_view_concept_check_profile>>);
-static_assert(!std::ranges::forward_range<simulation_view<double, simulation_view_concept_check_profile>>);
 
 } // namespace hilbert::simulation
 

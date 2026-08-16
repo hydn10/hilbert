@@ -64,9 +64,10 @@ struct analysis_result
 
 template<hilbert::supported_float Float>
 analysis_result<Float>
-analyze_simulation(hilbert::simulation::config<Float> const &config, simulation_data<Float> const &samples)
+analyze_simulation(
+    hilbert::simulation::simulation_settings<Float> const &settings, simulation_data<Float> const &samples)
 {
-  if (config.duration < hilbert_end_time<Float>)
+  if (settings.duration < hilbert_end_time<Float>)
   {
     throw std::invalid_argument{
         std::format("duration must cover the complete Hilbert interval ending at {} seconds", hilbert_end_time<Float>)};
@@ -85,7 +86,7 @@ analyze_simulation(hilbert::simulation::config<Float> const &config, simulation_
 
   auto const hilbert_platform = samples.ground_displacement_span().subspan(hilbert_offset, hilbert_size);
   auto const hilbert_tire_force = samples.tire_force_span().subspan(hilbert_offset, hilbert_size);
-  auto const sampling_rate = static_cast<Float>(1) / config.time_step;
+  auto const sampling_rate = static_cast<Float>(1) / settings.time_step;
   auto platform_signal = hilbert::calculate_inst_signal_data(hilbert_platform, sampling_rate);
   auto tire_force_signal = hilbert::calculate_inst_signal_data(hilbert_tire_force, sampling_rate);
 

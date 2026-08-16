@@ -19,34 +19,35 @@ concept state_delta_algebra =
     };
 
 
-template<typename Float, typename State, typename DerivativeFunction>
-concept derivative_function_for =
-    std::floating_point<Float> &&
-    requires(DerivativeFunction &derivative, Float time, State const &state) { derivative(time, state); };
-
-
-template<typename Float, typename State, typename DerivativeFunction>
-using derivative_result_t = std::remove_cvref_t<decltype(std::declval<DerivativeFunction &>()(
+template<typename Dynamics, typename Float, typename State>
+using dynamics_delta_t = std::remove_cvref_t<decltype(std::declval<Dynamics const &>().derivative(
     std::declval<Float>(), std::declval<State const &>()))>;
 
 
-struct rk4
+template<typename Dynamics, typename Float, typename State>
+concept dynamics_for =
+    std::floating_point<Float> && requires(Dynamics const &dynamics, Float time, State const &state) {
+      dynamics.derivative(time, state);
+    } && state_delta_algebra<State, dynamics_delta_t<Dynamics, Float, State>, Float>;
+
+
+template<std::floating_point Float, typename State, typename Dynamics>
+requires dynamics_for<Dynamics, Float, State>
+class rk4
 {
-  template<std::floating_point Float, typename State, typename DerivativeFunction>
-  requires derivative_function_for<Float, State, DerivativeFunction> &&
-           state_delta_algebra<State, derivative_result_t<Float, State, DerivativeFunction>, Float>
-  auto
-  operator()(Float time, State const &state, DerivativeFunction derivative, Float time_step) const
-      -> derivative_result_t<Float, State, DerivativeFunction>
+public:
+  using delta_type = dynamics_delta_t<Dynamics, Float, State>;
+
+  delta_type
+  operator()(Float time, State const &state, Dynamics const &dynamics, Float time_step) const
   {
-    using delta_type = derivative_result_t<Float, State, DerivativeFunction>;
     Float constexpr two = static_cast<Float>(2);
     Float constexpr six = static_cast<Float>(6);
 
-    auto const k1 = derivative(time, state);
-    auto const k2 = derivative(time + time_step / two, state + k1 * (time_step / two));
-    auto const k3 = derivative(time + time_step / two, state + k2 * (time_step / two));
-    auto const k4 = derivative(time + time_step, state + k3 * time_step);
+    auto const k1 = dynamics.derivative(time, state);
+    auto const k2 = dynamics.derivative(time + time_step / two, state + k1 * (time_step / two));
+    auto const k3 = dynamics.derivative(time + time_step / two, state + k2 * (time_step / two));
+    auto const k4 = dynamics.derivative(time + time_step, state + k3 * time_step);
 
     return (k1 + k2 * two + k3 * two + k4) * (time_step / six);
   }

@@ -34,15 +34,20 @@ namespace
 
 struct simulation_command
 {
-  hilbert::simulation::config<double> simulation{
-      .parameters = {
-          .sprung_mass = 270,
-          .unsprung_mass = 30,
-          .suspension_spring_constant = 31000,
-          .suspension_damping_coefficient = 350,
-          .tire_spring_constant = 196000,
-          .ground_amplitude = 0.003,
-      }};
+  hilbert::simulation::simulation_settings<double> settings{
+      .time_step = 0.0005,
+      .duration = 20.0,
+  };
+
+  hilbert::simulation::suspension_parameters<double> parameters{
+      .sprung_mass = 270,
+      .unsprung_mass = 30,
+      .suspension_spring_constant = 31000,
+      .suspension_damping_coefficient = 350,
+      .tire_spring_constant = 196000,
+      .ground_amplitude = 0.003,
+  };
+
   std::optional<std::filesystem::path> output_path;
 };
 
@@ -116,11 +121,11 @@ parse_command(std::span<char const *const> arguments)
     }
     else if (argument == "--duration")
     {
-      simulation.simulation.duration = parse_positive_double(value, argument);
+      simulation.settings.duration = parse_positive_double(value, argument);
     }
     else if (argument == "--time-step")
     {
-      simulation.simulation.time_step = parse_positive_double(value, argument);
+      simulation.settings.time_step = parse_positive_double(value, argument);
     }
     else
     {
@@ -128,7 +133,7 @@ parse_command(std::span<char const *const> arguments)
     }
   }
 
-  if (simulation.simulation.duration < simulation.simulation.time_step)
+  if (simulation.settings.duration < simulation.settings.time_step)
   {
     throw std::invalid_argument{"duration must be at least one time step"};
   }
@@ -145,11 +150,12 @@ struct command_dispatcher
     auto const simulate_to = [&command](std::ostream &output)
     {
       auto samples = hilbert::simulation::run_simulation(
-          command.simulation,
+          command.settings,
+          command.parameters,
           frequency_profile<double>{},
           hilbert::simulation::sinks::soa_vector_sink_factory<double>{});
 
-      auto const analysis = analyze_simulation(command.simulation, samples);
+      auto const analysis = analyze_simulation(command.settings, samples);
       write_simulation_data(output, samples, analysis);
     };
 

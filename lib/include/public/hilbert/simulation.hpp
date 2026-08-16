@@ -23,9 +23,17 @@ namespace hilbert::simulation
 
 template<std::floating_point Float, frequency::profile<Float> FrequencyProfile, typename SinkFactory>
 decltype(auto)
-run_simulation(config<Float> const &simulation_config, FrequencyProfile frequency_profile, SinkFactory &&sink_factory)
+run_simulation(
+    simulation_settings<Float> settings,
+    suspension_parameters<Float> parameters,
+    FrequencyProfile frequency_profile,
+    SinkFactory &&sink_factory)
 {
-  auto engine = detail::make_suspension_engine(simulation_config, std::move(frequency_profile));
+  auto engine = detail::make_suspension_engine(
+      std::move(settings),
+      std::move(parameters),
+      std::move(frequency_profile),
+      detail::suspension_state<Float>{0, 0, 0, 0, 0});
   auto const count = engine.sample_count();
   auto sink = std::invoke(std::forward<SinkFactory>(sink_factory), count);
 

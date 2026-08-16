@@ -23,15 +23,12 @@ namespace hilbert::simulation::detail
 
 template<typename Model, typename Float, typename State>
 concept physical_model_for =
-    std::floating_point<Float> && requires(Model const &model, Float time, State const &state) {
-      model.derivative(time, state);
-      model.observe(time, state);
-    };
+    dynamics_for<Model, Float, State> &&
+    requires(Model const &model, Float time, State const &state) { model.observe(time, state); };
 
 
 template<typename Model, typename Float, typename State>
-using model_delta_t = std::remove_cvref_t<decltype(std::declval<Model const &>().derivative(
-    std::declval<Float>(), std::declval<State const &>()))>;
+using model_delta_t = dynamics_delta_t<Model, Float, State>;
 
 
 template<typename Model, typename Float, typename State>
@@ -39,32 +36,19 @@ using model_sample_t = std::remove_cvref_t<decltype(std::declval<Model const &>(
     std::declval<Float>(), std::declval<State const &>()))>;
 
 
-template<typename Float, typename State, typename Delta>
-struct derivative_placeholder
-{
-  Delta
-  operator()(Float, State const &) const;
-};
-
-
-template<typename Integrator, typename Float, typename State, typename Delta>
-concept integrator_for = std::floating_point<Float> && requires(
-                                                           Integrator &integrator,
-                                                           Float time,
-                                                           State const &state,
-                                                           Float time_step,
-                                                           derivative_placeholder<Float, State, Delta> derivative) {
-  { integrator(time, state, derivative, time_step) } -> std::same_as<Delta>;
-};
+template<typename Integrator, typename Float, typename State, typename Dynamics>
+concept integrator_for =
+    dynamics_for<Dynamics, Float, State> &&
+    requires(Integrator &integrator, Float time, State const &state, Dynamics const &dynamics, Float time_step) {
+      { integrator(time, state, dynamics, time_step) } -> std::same_as<dynamics_delta_t<Dynamics, Float, State>>;
+    };
 
 
 template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> &&
-         state_delta_algebra<State, model_delta_t<Model, Float, State>, Float> &&
-         integrator_for<Integrator, Float, State, model_delta_t<Model, Float, State>>
+requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model>
 class simulation_engine
 {
-  using delta_type = model_delta_t<Model, Float, State>;
+  using delta_type = dynamics_delta_t<Model, Float, State>;
   using sample_type = model_sample_t<Model, Float, State>;
 
   simulation_settings<Float> settings_;
@@ -110,12 +94,7 @@ public:
   void
   advance()
   {
-    auto const time = current_time();
-    auto derivative = [this](Float derivative_time, State const &current_state) -> delta_type
-    {
-      return model_.derivative(derivative_time, current_state);
-    };
-    auto const delta = integrator_(time, state_, derivative, settings_.time_step);
+    auto const delta = integrator_(current_time(), state_, model_, settings_.time_step);
     state_ = state_ + delta;
     ++step_index_;
   }
@@ -200,17 +179,22 @@ public:
 
 template<std::floating_point Float, frequency::profile<Float> FrequencyProfile>
 auto
-make_suspension_engine(config<Float> const &simulation_config, FrequencyProfile frequency_profile)
+make_suspension_engine(
+    simulation_settings<Float> settings,
+    suspension_parameters<Float> parameters,
+    FrequencyProfile frequency_profile,
+    suspension_state<Float> initial_state)
 {
   using state_type = suspension_state<Float>;
   using model_type = suspension_model<Float, FrequencyProfile>;
-  using engine_type = simulation_engine<Float, state_type, model_type, rk4>;
+  using integrator_type = rk4<Float, state_type, model_type>;
+  using engine_type = simulation_engine<Float, state_type, model_type, integrator_type>;
 
   return engine_type{
-      simulation_settings<Float>{simulation_config.time_step, simulation_config.duration},
-      state_type{0, 0, 0, 0, 0},
-      model_type{simulation_config.parameters, std::move(frequency_profile)},
-      rk4{},
+      std::move(settings),
+      std::move(initial_state),
+      model_type{std::move(parameters), std::move(frequency_profile)},
+      integrator_type{},
   };
 }
 
