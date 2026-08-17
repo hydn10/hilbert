@@ -1,15 +1,9 @@
-#include <hilbert_egea/egea.hpp>
+#include <hilbert/egea/egea.hpp>
 
-#include <hilbert_egea/output.hpp>
-#include <hilbert_egea/process/exit_status.hpp>
-#include <hilbert_egea/simulation.hpp>
-
-#include <hilbert/simulation/core/settings.hpp>
-#include <hilbert/simulation/drivers/run.hpp>
-#include <hilbert/simulation/suspension/factory.hpp>
-#include <hilbert/simulation/suspension/parameters.hpp>
-#include <hilbert/simulation/suspension/sinks/soa_vector.hpp>
-#include <hilbert/simulation/suspension/state.hpp>
+#include <hilbert/app/process/exit_status.hpp>
+#include <hilbert/egea/output.hpp>
+#include <hilbert/egea/simulation.hpp>
+#include <hilbert/simulation.hpp>
 
 #include <charconv>
 #include <cmath>
@@ -30,7 +24,7 @@
 #include <variant>
 
 
-namespace hilbert_egea
+namespace hilbert::egea
 {
 namespace
 {
@@ -190,21 +184,21 @@ struct command_dispatcher
 
 
 egea_result
-run_egea(std::span<char const *const> arguments)
+run_cli(std::span<char const *const> arguments)
 try
 {
   auto const parsed_command = parse_command(arguments);
 
   std::visit(command_dispatcher{}, parsed_command);
 
-  return outcome::success{};
+  return hilbert::app::outcome::success{};
 }
 catch (std::exception const &error)
 {
   std::println(std::cerr, "hilbert-egea: {}", error.what());
   print_usage_synopsis(std::cerr);
 
-  return outcome::egea::error{};
+  return hilbert::app::outcome::application::error{};
 }
 
-} // namespace hilbert_egea
+} // namespace hilbert::egea

@@ -1,5 +1,5 @@
-#ifndef HILBERT_EGEA_PROCESS_EXIT_DOMAIN_HPP
-#define HILBERT_EGEA_PROCESS_EXIT_DOMAIN_HPP
+#ifndef HILBERT_APP_PROCESS_EXIT_DOMAIN_HPP
+#define HILBERT_APP_PROCESS_EXIT_DOMAIN_HPP
 
 
 #include <concepts>
@@ -7,7 +7,7 @@
 #include <variant>
 
 
-namespace hilbert_egea::process
+namespace hilbert::app::process
 {
 
 struct successful_exit_outcome
@@ -156,6 +156,6 @@ struct exit_domain
   }
 };
 
-} // namespace hilbert_egea::process
+} // namespace hilbert::app::process
 
-#endif // HILBERT_EGEA_PROCESS_EXIT_DOMAIN_HPP
+#endif // HILBERT_APP_PROCESS_EXIT_DOMAIN_HPP

@@ -2,8 +2,7 @@
 #define HILBERT_EGEA_OUTPUT_HPP
 
 
-#include <hilbert_egea/simulation.hpp>
-
+#include <hilbert/egea/simulation.hpp>
 #include <hilbert/hilbert.hpp>
 
 #include <iomanip>
@@ -12,7 +11,7 @@
 #include <ranges>
 
 
-namespace hilbert_egea
+namespace hilbert::egea
 {
 
 template<hilbert::supported_float Float>
@@ -77,6 +76,6 @@ write_simulation_data(
   }
 }
 
-} // namespace hilbert_egea
+} // namespace hilbert::egea
 
 #endif // HILBERT_EGEA_OUTPUT_HPP

@@ -1,2 +1,2 @@
-add_subdirectory(hilbert-egea)
-add_subdirectory(hilbert-frequency-sweep)
+add_subdirectory(egea)
+add_subdirectory(phase-scan)

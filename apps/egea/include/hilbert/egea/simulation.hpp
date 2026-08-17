@@ -3,9 +3,7 @@
 
 
 #include <hilbert/hilbert.hpp>
-#include <hilbert/simulation/core/settings.hpp>
-#include <hilbert/simulation/suspension/ground_frequencies/scheduled.hpp>
-#include <hilbert/simulation/suspension/sinks/soa_vector.hpp>
+#include <hilbert/simulation.hpp>
 
 #include <algorithm>
 #include <concepts>
@@ -16,7 +14,7 @@
 #include <utility>
 
 
-namespace hilbert_egea
+namespace hilbert::egea
 {
 
 template<std::floating_point Float>
@@ -106,6 +104,6 @@ analyze_simulation(
   };
 }
 
-} // namespace hilbert_egea
+} // namespace hilbert::egea
 
 #endif // HILBERT_EGEA_SIMULATION_HPP

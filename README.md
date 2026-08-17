@@ -126,10 +126,10 @@ just cpp simulate-egea
 just py validate-egea out/simulation-egea.txt
 just py plot-egea out/simulation-egea.txt
 
-# Constant-frequency sweep experiment
-just cpp simulate-frequency-sweep
-just py validate-frequency-sweep out/simulation-frequency-sweep.txt
-just py plot-frequency-sweep out/simulation-frequency-sweep.txt --save out/simulation-frequency-sweep.png --no-show
+# Constant-frequency phase scan experiment
+just cpp simulate-phase-scan
+just py validate-phase-scan out/simulation-phase-scan.txt
+just py plot-phase-scan out/simulation-phase-scan.txt --save out/simulation-phase-scan.png --no-show
 ```
 
 ## License

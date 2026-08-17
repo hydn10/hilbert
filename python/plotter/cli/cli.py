@@ -9,9 +9,9 @@ app = typer.Typer(no_args_is_help=True)
 egea_app = typer.Typer(
     no_args_is_help=True, help="Plot and validate EGEA scheduled-frequency output."
 )
-frequency_sweep_app = typer.Typer(
+phase_scan_app = typer.Typer(
     no_args_is_help=True,
-    help="Plot and validate constant-frequency sweep output.",
+    help="Plot and validate phase-scan output.",
 )
 
 
@@ -42,8 +42,8 @@ def egea_validate(
     typer.echo(cli_cmds.validate_egea(file_path))
 
 
-@frequency_sweep_app.command("plot")
-def frequency_sweep_plot(
+@phase_scan_app.command("plot")
+def phase_scan_plot(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
     save: Annotated[
         Path | None,
@@ -54,17 +54,17 @@ def frequency_sweep_plot(
         typer.Option("--show/--no-show", help="Open the interactive plot window."),
     ] = True,
 ) -> None:
-    """Plot both phase estimates from a constant-frequency sweep."""
-    cli_cmds.plot_frequency_sweep(file_path, save, show)
+    """Plot both phase estimates from a constant-frequency phase scan."""
+    cli_cmds.plot_phase_scan(file_path, save, show)
 
 
-@frequency_sweep_app.command("validate")
-def frequency_sweep_validate(
+@phase_scan_app.command("validate")
+def phase_scan_validate(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
 ) -> None:
-    """Validate the constant-frequency sweep results contract without opening a plot."""
-    typer.echo(cli_cmds.validate_frequency_sweep(file_path))
+    """Validate the phase-scan results contract without opening a plot."""
+    typer.echo(cli_cmds.validate_phase_scan(file_path))
 
 
 app.add_typer(egea_app, name="egea")
-app.add_typer(frequency_sweep_app, name="frequency-sweep")
+app.add_typer(phase_scan_app, name="phase-scan")

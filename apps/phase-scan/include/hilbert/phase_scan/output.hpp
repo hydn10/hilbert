@@ -1,8 +1,8 @@
-#ifndef HILBERT_FREQ_SWEEP_OUTPUT_HPP
-#define HILBERT_FREQ_SWEEP_OUTPUT_HPP
+#ifndef HILBERT_PHASE_SCAN_OUTPUT_HPP
+#define HILBERT_PHASE_SCAN_OUTPUT_HPP
 
 
-#include <hilbert_freq_sweep/analysis.hpp>
+#include <hilbert/phase_scan/analysis.hpp>
 
 #include <iomanip>
 #include <limits>
@@ -10,17 +10,17 @@
 #include <span>
 
 
-namespace hilbert_freq_sweep
+namespace hilbert::phase_scan
 {
 
 template<std::floating_point Float>
 void
-write_frequency_sweep_results(std::ostream &output, std::span<frequency_sweep_result<Float> const> results);
+write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results);
 
 
 template<std::floating_point Float>
 void
-write_frequency_sweep_results(std::ostream &output, std::span<frequency_sweep_result<Float> const> results)
+write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results)
 {
   output << std::setprecision(std::numeric_limits<Float>::max_digits10);
   output << "# table: results\n"
@@ -32,6 +32,6 @@ write_frequency_sweep_results(std::ostream &output, std::span<frequency_sweep_re
   }
 }
 
-} // namespace hilbert_freq_sweep
+} // namespace hilbert::phase_scan
 
-#endif // HILBERT_FREQ_SWEEP_OUTPUT_HPP
+#endif // HILBERT_PHASE_SCAN_OUTPUT_HPP

@@ -63,7 +63,7 @@
 
           projectName = workspace.project.package.pname;
           nativeAppName = "${projectName}-egea";
-          frequencySweepAppName = "${projectName}-frequency-sweep";
+          phaseScanAppName = "${projectName}-phase-scan";
           pythonAppName = workspace.python.applicationScript;
         in
         {
@@ -71,7 +71,7 @@
             default = self.packages.${system}.${projectName};
             "${projectName}" = workspace.project.package;
             "${nativeAppName}" = workspace.project.packageWithApps;
-            "${frequencySweepAppName}" = workspace.project.packageWithApps;
+            "${phaseScanAppName}" = workspace.project.packageWithApps;
             "${pythonAppName}" = workspace.python.application;
           };
 
@@ -84,10 +84,10 @@
               meta.description = "Run the EGEA scheduled-frequency suspension experiment.";
             };
 
-            "${frequencySweepAppName}" = {
+            "${phaseScanAppName}" = {
               type = "app";
-              program = "${workspace.project.packageWithApps}/bin/${frequencySweepAppName}";
-              meta.description = "Run the constant-frequency suspension sweep experiment.";
+              program = "${workspace.project.packageWithApps}/bin/${phaseScanAppName}";
+              meta.description = "Run the constant-frequency phase-scan experiment.";
             };
 
             "${pythonAppName}" = {

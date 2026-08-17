@@ -145,11 +145,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p out/ci
-          out/build/${{ matrix.preset }}/apps/hilbert-egea/hilbert-egea \
+          out/build/${{ matrix.preset }}/apps/egea/hilbert-egea \
             --duration 20 --output out/ci/simulation-egea.txt
-          out/build/${{ matrix.preset }}/apps/hilbert-frequency-sweep/hilbert-frequency-sweep \
+          out/build/${{ matrix.preset }}/apps/phase-scan/hilbert-phase-scan \
             --start-frequency 1 --end-frequency 5 --frequency-step 1 \
-            --output out/ci/simulation-frequency-sweep.txt
+            --output out/ci/simulation-phase-scan.txt
 
       - name: Upload representative experiment data
         if: matrix.produce-simulation
@@ -196,10 +196,10 @@ jobs:
           just py validate-egea out/ci/simulation-egea.txt
           just py plot-egea out/ci/simulation-egea.txt --save out/ci/simulation-egea.png --no-show
 
-      - name: Validate and render frequency-sweep data
+      - name: Validate and render phase-scan data
         run: |
-          just py validate-frequency-sweep out/ci/simulation-frequency-sweep.txt
-          just py plot-frequency-sweep out/ci/simulation-frequency-sweep.txt --save out/ci/simulation-frequency-sweep.png --no-show
+          just py validate-phase-scan out/ci/simulation-phase-scan.txt
+          just py plot-phase-scan out/ci/simulation-phase-scan.txt --save out/ci/simulation-phase-scan.png --no-show
 
   nix:
     name: Nix

@@ -18,15 +18,15 @@ def validate_egea(file_path: Path) -> str:
     )
 
 
-def plot_frequency_sweep(file_path: Path, save_path: Path | None, show: bool) -> None:
-    from plotter.services.frequency_sweep_plotting import plot_frequency_sweep
+def plot_phase_scan(file_path: Path, save_path: Path | None, show: bool) -> None:
+    from plotter.services.phase_scan_plotting import plot_phase_scan
 
-    plot_frequency_sweep(file_path, save_path=save_path, show=show)
+    plot_phase_scan(file_path, save_path=save_path, show=show)
 
 
-def validate_frequency_sweep(file_path: Path) -> str:
-    from plotter.services.frequency_sweep_data import load_frequency_sweep_data
+def validate_phase_scan(file_path: Path) -> str:
+    from plotter.services.phase_scan_data import load_phase_scan_data
 
-    data = load_frequency_sweep_data(file_path)
+    data = load_phase_scan_data(file_path)
     frequencies = data["frequency_hz"]
     return f"results: {data.data.size} rows from {frequencies[0]:g} Hz to {frequencies[-1]:g} Hz"

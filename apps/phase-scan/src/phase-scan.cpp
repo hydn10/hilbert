@@ -1,13 +1,9 @@
-#include <hilbert_freq_sweep/analysis.hpp>
-#include <hilbert_freq_sweep/output.hpp>
+#include <hilbert/phase_scan/phase_scan.hpp>
 
-#include <hilbert/simulation/core/settings.hpp>
-#include <hilbert/simulation/drivers/run.hpp>
-#include <hilbert/simulation/suspension/factory.hpp>
-#include <hilbert/simulation/suspension/ground_frequencies/constant.hpp>
-#include <hilbert/simulation/suspension/parameters.hpp>
-#include <hilbert/simulation/suspension/sinks/soa_vector.hpp>
-#include <hilbert/simulation/suspension/state.hpp>
+#include <hilbert/app/process/exit_status.hpp>
+#include <hilbert/phase_scan/analysis.hpp>
+#include <hilbert/phase_scan/output.hpp>
+#include <hilbert/simulation.hpp>
 
 #include <algorithm>
 #include <charconv>
@@ -32,19 +28,19 @@
 #include <vector>
 
 
-namespace hilbert_freq_sweep
+namespace hilbert::phase_scan
 {
 namespace
 {
 
-constexpr double default_start_frequency_hz = 1.0;
-constexpr double default_end_frequency_hz = 25.0;
+constexpr double default_start_frequency_hz = 6.0;
+constexpr double default_end_frequency_hz = 18.0;
 constexpr double default_frequency_step_hz = 1.0;
 constexpr double simulation_time_step_s = 0.0005;
-constexpr double simulation_duration_s = 15.0;
+constexpr double simulation_duration_s = 20.0;
 
 
-struct frequency_sweep_command
+struct phase_scan_command
 {
   double start_frequency_hz = default_start_frequency_hz;
   double end_frequency_hz = default_end_frequency_hz;
@@ -63,7 +59,7 @@ print_usage_synopsis(std::ostream &output)
 {
   std::print(
       output,
-      "Usage: hilbert-frequency-sweep [--output PATH] [--start-frequency HZ] [--end-frequency HZ] "
+      "Usage: hilbert-phase-scan [--output PATH] [--start-frequency HZ] [--end-frequency HZ] "
       "[--frequency-step HZ]\n");
 }
 
@@ -96,10 +92,10 @@ parse_positive_double(std::string_view value, std::string_view option)
 }
 
 
-std::variant<frequency_sweep_command, help_command>
+std::variant<phase_scan_command, help_command>
 parse_command(std::span<char const *const> arguments)
 {
-  frequency_sweep_command command;
+  phase_scan_command command;
 
   for (auto const &option_tokens : arguments | std::views::drop(1) | std::views::chunk(2))
   {
@@ -161,8 +157,8 @@ default_parameters()
 }
 
 
-frequency_sweep_result<double>
-simulate_frequency_sweep_point(double frequency_hz)
+phase_scan_result<double>
+simulate_phase_scan_point(double frequency_hz)
 {
   using namespace hilbert::simulation;
   using namespace hilbert::simulation::suspension;
@@ -182,16 +178,16 @@ simulate_frequency_sweep_point(double frequency_hz)
 
   return {
       .frequency_hz = frequency_hz,
-      .phase_fit_rad = estimate_frequency_sweep_phase_by_least_squares<double>(samples),
-      .phase_hilbert_rad = estimate_frequency_sweep_phase_by_hilbert_transform<double>(samples),
+      .phase_fit_rad = estimate_phase_scan_by_least_squares<double>(samples),
+      .phase_hilbert_rad = estimate_phase_scan_by_hilbert_transform<double>(samples),
   };
 }
 
 
-std::vector<frequency_sweep_result<double>>
-run_frequency_sweep(frequency_sweep_command const &command)
+std::vector<phase_scan_result<double>>
+run_phase_scan(phase_scan_command const &command)
 {
-  std::vector<frequency_sweep_result<double>> results;
+  std::vector<phase_scan_result<double>> results;
   auto const frequency_tolerance = 8 * std::numeric_limits<double>::epsilon() *
                                    std::max({1.0, std::abs(command.start_frequency_hz), command.end_frequency_hz});
 
@@ -202,7 +198,7 @@ run_frequency_sweep(frequency_sweep_command const &command)
     {
       break;
     }
-    results.emplace_back(simulate_frequency_sweep_point(frequency));
+    results.emplace_back(simulate_phase_scan_point(frequency));
   }
 
   return results;
@@ -210,12 +206,12 @@ run_frequency_sweep(frequency_sweep_command const &command)
 
 
 void
-run_frequency_sweep_command(frequency_sweep_command const &command)
+run_phase_scan_command(phase_scan_command const &command)
 {
-  auto results = run_frequency_sweep(command);
+  auto results = run_phase_scan(command);
   auto write_to = [&results](std::ostream &output)
   {
-    write_frequency_sweep_results(output, std::span<frequency_sweep_result<double> const>{results});
+    write_phase_scan_results(output, std::span<phase_scan_result<double> const>{results});
   };
 
   if (command.output_path)
@@ -234,53 +230,26 @@ run_frequency_sweep_command(frequency_sweep_command const &command)
 }
 
 } // namespace
-
-} // namespace hilbert_freq_sweep
-
-
-namespace
-{
-
-int
-execute_application(std::span<char const *const> arguments)
+hilbert::app::application_result
+run_cli(std::span<char const *const> arguments)
 try
 {
-  auto const command = hilbert_freq_sweep::parse_command(arguments);
-  if (auto const *const sweep = std::get_if<0>(&command))
+  auto const command = parse_command(arguments);
+  if (auto const *const scan = std::get_if<0>(&command))
   {
-    hilbert_freq_sweep::run_frequency_sweep_command(*sweep);
+    run_phase_scan_command(*scan);
   }
   else
   {
-    hilbert_freq_sweep::print_usage(std::cout);
+    print_usage(std::cout);
   }
-  return 0;
+  return hilbert::app::outcome::success{};
 }
 catch (std::exception const &error)
 {
-  std::println(std::cerr, "hilbert-frequency-sweep: {}", error.what());
-  hilbert_freq_sweep::print_usage_synopsis(std::cerr);
-  return 2;
+  std::println(std::cerr, "hilbert-phase-scan: {}", error.what());
+  print_usage_synopsis(std::cerr);
+  return hilbert::app::outcome::application::error{};
 }
 
-
-int
-run_application(std::span<char const *const> arguments) noexcept
-try
-{
-  return execute_application(arguments);
-}
-catch (...)
-{
-  return 1;
-}
-
-} // namespace
-
-
-int
-main(int argc, char const **argv)
-{
-  auto const arguments = std::span<char const *const>{argv, static_cast<size_t>(argc)};
-  return run_application(arguments);
-}
+} // namespace hilbert::phase_scan
