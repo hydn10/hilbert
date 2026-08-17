@@ -1,6 +1,7 @@
 #include <hilbert/phase_scan/phase_scan.hpp>
 
 #include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/cli/parse.hpp>
 #include <hilbert/app/cli/run.hpp>
 #include <hilbert/app/io/output_stream.hpp>
@@ -19,7 +20,6 @@
 #include <optional>
 #include <print>
 #include <span>
-#include <stdexcept>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -93,25 +93,25 @@ parse_command(std::span<char const *const> arguments)
     }
     else if (option == "--start-frequency")
     {
-      command.start_frequency_hz = hilbert::app::cli::parse_positive_double(value, option);
+      command.start_frequency_hz = hilbert::app::cli::require_positive_double(value, option);
     }
     else if (option == "--end-frequency")
     {
-      command.end_frequency_hz = hilbert::app::cli::parse_positive_double(value, option);
+      command.end_frequency_hz = hilbert::app::cli::require_positive_double(value, option);
     }
     else if (option == "--frequency-step")
     {
-      command.frequency_step_hz = hilbert::app::cli::parse_positive_double(value, option);
+      command.frequency_step_hz = hilbert::app::cli::require_positive_double(value, option);
     }
     else
     {
-      throw std::invalid_argument{std::format("unknown option: {}", option)};
+      throw hilbert::app::cli::error{std::format("unknown option: {}", option)};
     }
   }
 
   if (command.end_frequency_hz < command.start_frequency_hz)
   {
-    throw std::invalid_argument{"end frequency must not be lower than start frequency"};
+    throw hilbert::app::cli::error{"end frequency must not be lower than start frequency"};
   }
 
   return command;

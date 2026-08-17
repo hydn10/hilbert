@@ -34,7 +34,12 @@ struct success final : process::basic_success_outcome<0>
 namespace application
 {
 
-struct error final : process::basic_failure_outcome<failure_domain::application, 2>
+struct cli_error final : process::basic_failure_outcome<failure_domain::application, 2>
+{
+};
+
+
+struct error final : process::basic_failure_outcome<failure_domain::application, 3>
 {
 };
 
@@ -53,7 +58,8 @@ struct unhandled_exception final : process::basic_failure_outcome<failure_domain
 } // namespace outcome
 
 
-using application_failures = process::failure_group<failure_domain::application, outcome::application::error>;
+using application_failures =
+    process::failure_group<failure_domain::application, outcome::application::cli_error, outcome::application::error>;
 using critical_failures = process::failure_group<failure_domain::critical, outcome::critical::unhandled_exception>;
 
 struct process_exit_domain final : process::exit_domain<outcome::success, application_failures, critical_failures>

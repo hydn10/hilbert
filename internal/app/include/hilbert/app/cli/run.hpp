@@ -2,6 +2,7 @@
 #define HILBERT_APP_CLI_RUN_HPP
 
 
+#include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/process/exit_status.hpp>
 
 #include <exception>
@@ -34,10 +35,15 @@ try
   std::invoke(std::forward<RunCommand>(run_command));
   return outcome::success{};
 }
-catch (std::exception const &error)
+catch (error const &exception)
 {
-  std::println(error_output, "{}: {}", application_name, error.what());
+  std::println(error_output, "{}: {}", application_name, exception.what());
   std::invoke(std::forward<PrintUsageSynopsis>(print_usage_synopsis), error_output);
+  return outcome::application::cli_error{};
+}
+catch (std::exception const &exception)
+{
+  std::println(error_output, "{}: {}", application_name, exception.what());
   return outcome::application::error{};
 }
 

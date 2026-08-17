@@ -1,6 +1,7 @@
 #include <hilbert/egea/egea.hpp>
 
 #include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/cli/parse.hpp>
 #include <hilbert/app/cli/run.hpp>
 #include <hilbert/app/io/output_stream.hpp>
@@ -14,7 +15,6 @@
 #include <optional>
 #include <print>
 #include <span>
-#include <stdexcept>
 #include <string_view>
 #include <variant>
 
@@ -89,21 +89,26 @@ parse_command(std::span<char const *const> arguments)
     }
     else if (argument == "--duration")
     {
-      simulation.settings.duration = hilbert::app::cli::parse_positive_double(value, argument);
+      simulation.settings.duration = hilbert::app::cli::require_positive_double(value, argument);
     }
     else if (argument == "--time-step")
     {
-      simulation.settings.time_step = hilbert::app::cli::parse_positive_double(value, argument);
+      simulation.settings.time_step = hilbert::app::cli::require_positive_double(value, argument);
     }
     else
     {
-      throw std::invalid_argument{std::format("unknown option: {}", argument)};
+      throw hilbert::app::cli::error{std::format("unknown option: {}", argument)};
     }
   }
 
   if (simulation.settings.duration < simulation.settings.time_step)
   {
-    throw std::invalid_argument{"duration must be at least one time step"};
+    throw hilbert::app::cli::error{"duration must be at least one time step"};
+  }
+  if (simulation.settings.duration < hilbert_end_time<double>)
+  {
+    throw hilbert::app::cli::error{std::format(
+        "duration must cover the complete Hilbert interval ending at {} seconds", hilbert_end_time<double>)};
   }
 
   return simulation;

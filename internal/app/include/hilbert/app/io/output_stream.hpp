@@ -34,10 +34,21 @@ with_output_stream(
       throw std::runtime_error{"could not open output file: " + output_path->string()};
     }
     std::invoke(std::forward<WriteOutput>(write_output), output);
+    output.flush();
+    output.close();
+    if (!output)
+    {
+      throw std::runtime_error{"could not complete output file: " + output_path->string()};
+    }
   }
   else
   {
     std::invoke(std::forward<WriteOutput>(write_output), default_output);
+    default_output.flush();
+    if (!default_output)
+    {
+      throw std::runtime_error{"could not write output"};
+    }
   }
 }
 

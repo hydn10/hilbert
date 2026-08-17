@@ -1,8 +1,8 @@
 #include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/error.hpp>
 
 #include <format>
 #include <span>
-#include <stdexcept>
 #include <string_view>
 
 
@@ -36,7 +36,7 @@ argument_cursor::require_value(std::string_view option)
 {
   if (arguments_.empty())
   {
-    throw std::invalid_argument{std::format("missing value for {}", option)};
+    throw error{std::format("missing value for {}", option)};
   }
 
   return next();
