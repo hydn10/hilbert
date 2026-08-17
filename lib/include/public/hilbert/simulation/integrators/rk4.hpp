@@ -24,11 +24,11 @@ public:
 
 template<std::floating_point Float, typename State, typename Dynamics>
 requires dynamics_for<Dynamics, Float, State>
-typename rk4<Float, State, Dynamics>::delta_type
+rk4<Float, State, Dynamics>::delta_type
 rk4<Float, State, Dynamics>::operator()(Float time, State const &state, Dynamics const &dynamics, Float time_step) const
 {
-  Float constexpr two = static_cast<Float>(2);
-  Float constexpr six = static_cast<Float>(6);
+  auto constexpr two = static_cast<Float>(2);
+  auto constexpr six = static_cast<Float>(6);
 
   auto const k1 = dynamics.derivative(time, state);
   auto const k2 = dynamics.derivative(time + time_step / two, state + k1 * (time_step / two));

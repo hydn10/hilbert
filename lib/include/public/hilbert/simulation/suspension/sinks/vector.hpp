@@ -30,6 +30,7 @@ public:
   vector_sink(vector_sink &&) noexcept;
   vector_sink &
   operator=(vector_sink &&) noexcept;
+  ~vector_sink() = default;
 
   void
   push(sample<Float> data_point);
@@ -55,6 +56,7 @@ public:
   simulation_data(simulation_data &&) noexcept = default;
   simulation_data &
   operator=(simulation_data &&) noexcept = default;
+  ~simulation_data() = default;
 
   std::span<sample<Float> const>
   samples() const;
@@ -109,7 +111,7 @@ vector_sink<Float>::push(sample<Float> data_point)
 
 
 template<std::floating_point Float>
-typename vector_sink<Float>::simulation_data
+vector_sink<Float>::simulation_data
 vector_sink<Float>::finish() &&
 {
   return simulation_data{std::move(samples_)};

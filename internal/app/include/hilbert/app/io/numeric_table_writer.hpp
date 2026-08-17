@@ -5,6 +5,7 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <functional>
 #include <iomanip>
 #include <limits>
 #include <ostream>
@@ -21,11 +22,19 @@ class numeric_table_writer
   template<size_t ColumnCount>
   class table_rows;
 
-  std::ostream &output_;
+  std::reference_wrapper<std::ostream> output_;
   bool has_table_ = false;
 
 public:
   explicit numeric_table_writer(std::ostream &output) noexcept;
+
+  numeric_table_writer(numeric_table_writer const &) = delete;
+  numeric_table_writer &
+  operator=(numeric_table_writer const &) = delete;
+  numeric_table_writer(numeric_table_writer &&) = delete;
+  numeric_table_writer &
+  operator=(numeric_table_writer &&) = delete;
+  ~numeric_table_writer() = default;
 
   template<size_t ColumnCount, typename WriteRows>
   void
@@ -37,10 +46,18 @@ template<std::floating_point Float>
 template<size_t ColumnCount>
 class numeric_table_writer<Float>::table_rows
 {
-  std::ostream &output_;
+  std::reference_wrapper<std::ostream> output_;
 
 public:
   explicit table_rows(std::ostream &output) noexcept;
+
+  table_rows(table_rows const &) = delete;
+  table_rows &
+  operator=(table_rows const &) = delete;
+  table_rows(table_rows &&) = delete;
+  table_rows &
+  operator=(table_rows &&) = delete;
+  ~table_rows() = default;
 
   template<typename... Values>
   requires(sizeof...(Values) == ColumnCount)
@@ -65,8 +82,8 @@ void
 numeric_table_writer<Float>::table_rows<ColumnCount>::write(Values const &...values)
 {
   size_t column_index = 0uz;
-  ((output_ << (column_index++ == 0uz ? "" : ",") << values), ...);
-  output_ << '\n';
+  ((output_.get() << (column_index++ == 0uz ? "" : ",") << values), ...);
+  output_.get() << '\n';
 }
 
 
@@ -74,7 +91,7 @@ template<std::floating_point Float>
 numeric_table_writer<Float>::numeric_table_writer(std::ostream &output) noexcept
     : output_{output}
 {
-  output_ << std::setprecision(std::numeric_limits<Float>::max_digits10);
+  output_.get() << std::setprecision(std::numeric_limits<Float>::max_digits10);
 }
 
 
@@ -86,19 +103,21 @@ numeric_table_writer<Float>::table(
 {
   if (has_table_)
   {
-    output_ << '\n';
+    output_.get() << '\n';
   }
 
-  output_ << "# table: " << name << '\n';
-  for (size_t column_index = 0uz; column_index < ColumnCount; ++column_index)
+  output_.get() << "# table: " << name << '\n';
+  bool first_column = true;
+  for (auto const column : columns)
   {
-    if (column_index != 0uz)
+    if (!first_column)
     {
-      output_ << ',';
+      output_.get() << ',';
     }
-    output_ << columns[column_index];
+    output_.get() << column;
+    first_column = false;
   }
-  output_ << '\n';
+  output_.get() << '\n';
 
   table_rows<ColumnCount> rows{output_};
   std::forward<WriteRows>(write_rows)(rows);

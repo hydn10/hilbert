@@ -11,8 +11,7 @@ namespace hilbert::phase_scan
 {
 
 template<std::floating_point Float>
-using phase_scan_simulation_data =
-    typename hilbert::simulation::suspension::sinks::soa_vector_sink<Float>::simulation_data;
+using phase_scan_simulation_data = hilbert::simulation::suspension::sinks::soa_vector_sink<Float>::simulation_data;
 
 
 template<std::floating_point Float>

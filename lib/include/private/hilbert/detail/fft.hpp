@@ -5,6 +5,7 @@
 #include <hilbert/hilbert.hpp>
 
 #include <complex>
+#include <cstdint>
 #include <span>
 #include <vector>
 
@@ -12,7 +13,7 @@
 namespace hilbert::detail::fft
 {
 
-enum class sign
+enum class sign : std::uint8_t
 {
   forward,
   backward,

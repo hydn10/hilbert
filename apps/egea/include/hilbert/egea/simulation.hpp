@@ -45,7 +45,7 @@ struct time_interval
 
 
 template<std::floating_point Float>
-using simulation_data = typename hilbert::simulation::suspension::sinks::soa_vector_sink<Float>::simulation_data;
+using simulation_data = hilbert::simulation::suspension::sinks::soa_vector_sink<Float>::simulation_data;
 
 
 template<std::floating_point Float>

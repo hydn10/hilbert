@@ -126,18 +126,18 @@ struct exit_domain
       std::same_as<std::remove_cvref_t<Outcome>, Success> || (FailureGroups::template contains<Outcome> || ...);
 
   template<typename Domain>
-  using failure_group_for = typename find_failure_group<Domain, FailureGroups...>::type;
+  using failure_group_for = find_failure_group<Domain, FailureGroups...>::type;
 
   template<typename Domain>
-  using result_for = typename failure_group_for<Domain>::template result<Success>;
+  using result_for = failure_group_for<Domain>::template result<Success>;
 
   template<typename Domain>
-  using failures_for = typename failure_group_for<Domain>::failures;
+  using failures_for = failure_group_for<Domain>::failures;
 
   template<typename Outcome>
   requires(contains<Outcome>)
   static constexpr int
-  to_exit_code(Outcome) noexcept
+  to_exit_code([[maybe_unused]] Outcome outcome) noexcept
   {
     return std::remove_cvref_t<Outcome>::exit_code;
   }
@@ -145,7 +145,7 @@ struct exit_domain
   template<typename... Outcomes>
   requires(contains<Outcomes> && ...)
   static constexpr int
-  to_exit_code(std::variant<Outcomes...> const &result) noexcept
+  to_exit_code(std::variant<Outcomes...> const &result)
   {
     return std::visit(
         [](auto outcome) noexcept

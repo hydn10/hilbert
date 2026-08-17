@@ -102,12 +102,12 @@ write_simulation_data(
                   tire_force_frequency] :
             std::views::zip(
                 refined_time,
-                analysis.platform_signal.ampl,
-                analysis.platform_signal.phase,
-                analysis.platform_signal.freq,
-                analysis.tire_force_signal.ampl,
-                analysis.tire_force_signal.phase,
-                analysis.tire_force_signal.freq))
+                analysis.platform_signal.amplitude_span(),
+                analysis.platform_signal.phase_span(),
+                analysis.platform_signal.frequency_span(),
+                analysis.tire_force_signal.amplitude_span(),
+                analysis.tire_force_signal.phase_span(),
+                analysis.tire_force_signal.frequency_span()))
         {
           rows.write(
               time_value,

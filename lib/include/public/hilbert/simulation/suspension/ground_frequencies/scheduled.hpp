@@ -27,15 +27,15 @@ template<std::floating_point Float>
 constexpr Float
 scheduled<Float>::operator()(Float time) const
 {
-  Float constexpr summit_time = static_cast<Float>(1.5);
-  Float constexpr descent_time = static_cast<Float>(6);
-  Float constexpr test_end_time = static_cast<Float>(18.5);
+  auto constexpr summit_time = static_cast<Float>(1.5);
+  auto constexpr descent_time = static_cast<Float>(6);
+  auto constexpr test_end_time = static_cast<Float>(18.5);
 
-  Float constexpr start_frequency = static_cast<Float>(0);
-  Float constexpr summit_frequency = static_cast<Float>(25);
-  Float constexpr measurement_start_frequency = static_cast<Float>(18);
-  Float constexpr measurement_end_frequency = static_cast<Float>(6);
-  Float constexpr end_frequency = static_cast<Float>(0);
+  auto constexpr start_frequency = static_cast<Float>(0);
+  auto constexpr summit_frequency = static_cast<Float>(25);
+  auto constexpr measurement_start_frequency = static_cast<Float>(18);
+  auto constexpr measurement_end_frequency = static_cast<Float>(6);
+  auto constexpr end_frequency = static_cast<Float>(0);
 
   auto constexpr make_slope = [](Float begin_time, Float finish_time, Float initial_frequency, Float final_frequency)
   {

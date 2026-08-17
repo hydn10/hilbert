@@ -2,6 +2,7 @@
 #define HILBERT_SIMULATION_CORE_PROBLEM_HPP
 
 
+#include <hilbert/detail/attributes.hpp>
 #include <hilbert/simulation/core/concepts.hpp>
 #include <hilbert/simulation/core/settings.hpp>
 
@@ -42,9 +43,9 @@ class simulation_problem
   Float time_step_;
   std::size_t sample_count_;
   State initial_state_;
-  [[no_unique_address]]
+  HILBERT_NO_UNIQUE_ADDRESS
   Model model_;
-  [[no_unique_address]]
+  HILBERT_NO_UNIQUE_ADDRESS
   Integrator integrator_;
 
   static std::size_t

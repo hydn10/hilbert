@@ -77,11 +77,11 @@ test_instantaneous_data_for_sinusoid()
   }
 
   auto const data = hilbert::calculate_inst_signal_data(input, sampling_rate);
-  require(data.ampl.size() == sample_count, "amplitude result size mismatch");
-  require(data.phase.size() == sample_count, "phase result size mismatch");
-  require(data.freq.size() == sample_count, "frequency result size mismatch");
+  require(data.amplitude_span().size() == sample_count, "amplitude result size mismatch");
+  require(data.phase_span().size() == sample_count, "phase result size mismatch");
+  require(data.frequency_span().size() == sample_count, "frequency result size mismatch");
 
-  for (auto const &[sample_amplitude, sample_frequency] : std::views::zip(data.ampl, data.freq))
+  for (auto const &[sample_amplitude, sample_frequency] : std::views::zip(data.amplitude_span(), data.frequency_span()))
   {
     require(std::abs(sample_amplitude - amplitude) < tolerance<Float>, "sinusoid amplitude mismatch");
     require(std::abs(sample_frequency - frequency) < tolerance<Float>, "sinusoid frequency mismatch");
@@ -104,8 +104,8 @@ test_instantaneous_frequency_preserves_negative_phase_deltas()
   }
 
   auto const data = hilbert::calculate_inst_signal_data(input, sampling_rate);
-  auto const phase_pairs = data.phase | std::views::adjacent<2>;
-  auto const frequencies = data.freq | std::views::drop(1);
+  auto const phase_pairs = data.phase_span() | std::views::adjacent<2>;
+  auto const frequencies = data.frequency_span() | std::views::drop(1);
 
   bool found_negative_frequency = false;
   for (auto const &[phases, frequency] : std::views::zip(phase_pairs, frequencies))
@@ -173,6 +173,13 @@ test_preconditions()
         static_cast<void>(hilbert::calculate_inst_signal_data(valid, std::numeric_limits<Float>::quiet_NaN()));
       },
       "non-finite sampling rate accepted");
+  require_invalid_argument(
+      []
+      {
+        static_cast<void>(hilbert::signal_data<Float>{
+            std::vector<Float>{Float{1}}, std::vector<Float>{}, std::vector<Float>{Float{1}}});
+      },
+      "mismatched signal data channel lengths accepted");
 }
 
 

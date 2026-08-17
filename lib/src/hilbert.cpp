@@ -12,6 +12,7 @@
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 
@@ -141,32 +142,34 @@ calculate_inst_signal_data(std::span<Float const> data, Float sampling_rate)
   auto const num_samples = data.size();
   auto const analytic_signal = hilbert_transform(data);
 
-  signal_data<Float> res{num_samples};
+  std::vector<Float> amplitudes(num_samples);
+  std::vector<Float> phases(num_samples);
+  std::vector<Float> frequencies(num_samples);
 
-  for (auto [sample, amplitude, phase] : std::views::zip(analytic_signal, res.ampl, res.phase))
+  for (auto [sample, amplitude, phase] : std::views::zip(analytic_signal, amplitudes, phases))
   {
     amplitude = std::abs(sample);
     phase = std::arg(sample);
   }
 
-  auto const phase_pairs = res.phase | std::views::adjacent<2>;
-  auto const frequencies = res.freq | std::views::drop(1);
+  auto const phase_pairs = phases | std::views::adjacent<2>;
+  auto const frequency_tail = frequencies | std::views::drop(1);
 
-  for (auto [phases, frequency] : std::views::zip(phase_pairs, frequencies))
+  for (auto [phase_pair, frequency] : std::views::zip(phase_pairs, frequency_tail))
   {
     Float constexpr tau = 2 * std::numbers::pi_v<Float>;
 
-    auto const &[previous_phase, current_phase] = phases;
+    auto const &[previous_phase, current_phase] = phase_pair;
     Float const delta_phase = principal_phase_delta(previous_phase, current_phase);
     frequency = delta_phase * sampling_rate / tau;
   }
 
-  auto first_frequency = res.freq.begin();
+  auto first_frequency = frequencies.begin();
   auto second_frequency = first_frequency;
   ++second_frequency;
   *first_frequency = *second_frequency;
 
-  return res;
+  return signal_data<Float>{std::move(amplitudes), std::move(phases), std::move(frequencies)};
 }
 
 

@@ -33,9 +33,10 @@ public:
   simulation_view(simulation_view const &) = delete;
   simulation_view &
   operator=(simulation_view const &) = delete;
-  simulation_view(simulation_view &&);
+  simulation_view(simulation_view &&) noexcept;
   simulation_view &
-  operator=(simulation_view &&);
+  operator=(simulation_view &&) noexcept;
+  ~simulation_view() = default;
 
   iterator
   begin();
@@ -43,6 +44,7 @@ public:
   sentinel
   end() const;
 
+  [[nodiscard]]
   std::size_t
   size() const;
 };
@@ -61,6 +63,7 @@ class simulation_view<Simulation>::iterator
 {
   simulation_view *view_;
 
+  [[nodiscard]]
   bool
   at_end() const;
 
@@ -81,7 +84,7 @@ public:
   operator++(int);
 
   friend bool
-  operator==(iterator const &iterator, sentinel)
+  operator==(iterator const &iterator, [[maybe_unused]] sentinel sentinel)
   {
     return iterator.at_end();
   }
@@ -118,7 +121,7 @@ simulation_view<Simulation>::iterator::at_end() const
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
-typename simulation_view<Simulation>::iterator::value_type
+simulation_view<Simulation>::iterator::value_type
 simulation_view<Simulation>::iterator::operator*() const
 {
   return view_->engine_.current_sample();
@@ -127,7 +130,7 @@ simulation_view<Simulation>::iterator::operator*() const
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
-typename simulation_view<Simulation>::iterator &
+simulation_view<Simulation>::iterator &
 simulation_view<Simulation>::iterator::operator++()
 {
   if (view_->remaining_ > 1uz)
@@ -163,18 +166,18 @@ simulation_view<Simulation>::simulation_view(Simulation simulation)
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
-simulation_view<Simulation>::simulation_view(simulation_view &&) = default;
+simulation_view<Simulation>::simulation_view(simulation_view &&) noexcept = default;
 
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
 simulation_view<Simulation> &
-simulation_view<Simulation>::operator=(simulation_view &&) = default;
+simulation_view<Simulation>::operator=(simulation_view &&) noexcept = default;
 
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
-typename simulation_view<Simulation>::iterator
+simulation_view<Simulation>::iterator
 simulation_view<Simulation>::begin()
 {
   return iterator{this};
@@ -183,7 +186,7 @@ simulation_view<Simulation>::begin()
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
-typename simulation_view<Simulation>::sentinel
+simulation_view<Simulation>::sentinel
 simulation_view<Simulation>::end() const
 {
   return {};

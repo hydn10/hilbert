@@ -25,18 +25,23 @@ public:
       Float sprung_velocity,
       Float unsprung_velocity);
 
+  [[nodiscard]]
   Float
   phase() const;
 
+  [[nodiscard]]
   Float
   sprung_displacement() const;
 
+  [[nodiscard]]
   Float
   unsprung_displacement() const;
 
+  [[nodiscard]]
   Float
   sprung_velocity() const;
 
+  [[nodiscard]]
   Float
   unsprung_velocity() const;
 };
@@ -59,18 +64,23 @@ public:
       Float sprung_acceleration,
       Float unsprung_acceleration);
 
+  [[nodiscard]]
   Float
   phase_velocity() const;
 
+  [[nodiscard]]
   Float
   sprung_displacement_velocity() const;
 
+  [[nodiscard]]
   Float
   unsprung_displacement_velocity() const;
 
+  [[nodiscard]]
   Float
   sprung_acceleration() const;
 
+  [[nodiscard]]
   Float
   unsprung_acceleration() const;
 

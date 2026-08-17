@@ -34,6 +34,7 @@ public:
   soa_vector_sink(soa_vector_sink &&) noexcept;
   soa_vector_sink &
   operator=(soa_vector_sink &&) noexcept;
+  ~soa_vector_sink() = default;
 
   void
   push(sample<Float> data_point);
@@ -68,19 +69,25 @@ public:
   simulation_data(simulation_data &&) noexcept = default;
   simulation_data &
   operator=(simulation_data &&) noexcept = default;
+  ~simulation_data() = default;
 
+  [[nodiscard]]
   std::span<Float const>
   time_span() const;
 
+  [[nodiscard]]
   std::span<Float const>
   sprung_displacement_span() const;
 
+  [[nodiscard]]
   std::span<Float const>
   unsprung_displacement_span() const;
 
+  [[nodiscard]]
   std::span<Float const>
   ground_displacement_span() const;
 
+  [[nodiscard]]
   std::span<Float const>
   tire_force_span() const;
 };
@@ -183,7 +190,7 @@ soa_vector_sink<Float>::push(sample<Float> data_point)
 
 
 template<std::floating_point Float>
-typename soa_vector_sink<Float>::simulation_data
+soa_vector_sink<Float>::simulation_data
 soa_vector_sink<Float>::finish() &&
 {
   return simulation_data{

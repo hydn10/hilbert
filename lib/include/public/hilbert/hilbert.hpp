@@ -6,6 +6,8 @@
 #include <concepts>
 #include <cstddef>
 #include <span>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
 
@@ -17,13 +19,26 @@ concept supported_float = std::same_as<Float, double>;
 
 
 template<std::floating_point Float>
-struct signal_data
+class signal_data
 {
-  std::vector<Float> ampl;
-  std::vector<Float> phase;
-  std::vector<Float> freq;
+  std::vector<Float> amplitude_;
+  std::vector<Float> phase_;
+  std::vector<Float> frequency_;
 
-  explicit signal_data(size_t size);
+public:
+  signal_data(std::vector<Float> amplitude, std::vector<Float> phase, std::vector<Float> frequency);
+
+  [[nodiscard]]
+  std::span<Float const>
+  amplitude_span() const noexcept;
+
+  [[nodiscard]]
+  std::span<Float const>
+  phase_span() const noexcept;
+
+  [[nodiscard]]
+  std::span<Float const>
+  frequency_span() const noexcept;
 };
 
 
@@ -74,11 +89,39 @@ calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float samp
 
 
 template<std::floating_point Float>
-signal_data<Float>::signal_data(size_t size)
-    : ampl(size)
-    , phase(size)
-    , freq(size)
+signal_data<Float>::signal_data(std::vector<Float> amplitude, std::vector<Float> phase, std::vector<Float> frequency)
+    : amplitude_{std::move(amplitude)}
+    , phase_{std::move(phase)}
+    , frequency_{std::move(frequency)}
 {
+  if (amplitude_.size() != phase_.size() || amplitude_.size() != frequency_.size())
+  {
+    throw std::invalid_argument{"signal data channels must have equal lengths"};
+  }
+}
+
+
+template<std::floating_point Float>
+std::span<Float const>
+signal_data<Float>::amplitude_span() const noexcept
+{
+  return amplitude_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float const>
+signal_data<Float>::phase_span() const noexcept
+{
+  return phase_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float const>
+signal_data<Float>::frequency_span() const noexcept
+{
+  return frequency_;
 }
 
 } // namespace hilbert

@@ -2,6 +2,7 @@
 #define HILBERT_SIMULATION_DETAIL_ENGINE_HPP
 
 
+#include <hilbert/detail/attributes.hpp>
 #include <hilbert/simulation/core/problem.hpp>
 
 #include <concepts>
@@ -22,9 +23,9 @@ class simulation_engine
 
   Float time_step_;
   State state_;
-  [[no_unique_address]]
+  HILBERT_NO_UNIQUE_ADDRESS
   Model model_;
-  [[no_unique_address]]
+  HILBERT_NO_UNIQUE_ADDRESS
   Integrator integrator_;
   std::size_t step_index_ = 0;
   std::size_t sample_count_;
@@ -94,7 +95,7 @@ simulation_engine<Float, State, Model, Integrator>::sample_count() const noexcep
 template<std::floating_point Float, typename State, typename Model, typename Integrator>
 requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
          executable_state<State>
-typename simulation_engine<Float, State, Model, Integrator>::sample_type
+simulation_engine<Float, State, Model, Integrator>::sample_type
 simulation_engine<Float, State, Model, Integrator>::current_sample() const
 {
   return model_.observe(current_time(), state_);

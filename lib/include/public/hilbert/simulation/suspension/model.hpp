@@ -2,6 +2,7 @@
 #define HILBERT_SIMULATION_SUSPENSION_MODEL_HPP
 
 
+#include <hilbert/detail/attributes.hpp>
 #include <hilbert/simulation/suspension/frequency.hpp>
 #include <hilbert/simulation/suspension/parameters.hpp>
 #include <hilbert/simulation/suspension/sample.hpp>
@@ -20,15 +21,17 @@ template<std::floating_point Float, ground_frequency::profile<Float> FrequencyPr
 class model
 {
   parameters<Float> parameters_;
-  [[no_unique_address]]
+  HILBERT_NO_UNIQUE_ADDRESS
   FrequencyProfile frequency_profile_;
 
 public:
   model(parameters<Float> parameters, FrequencyProfile frequency_profile);
 
+  [[nodiscard]]
   state_derivative<Float>
   derivative(Float time, state<Float> const &state) const;
 
+  [[nodiscard]]
   sample<Float>
   observe(Float time, state<Float> const &state) const;
 };

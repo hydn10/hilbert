@@ -20,11 +20,13 @@ Checks: "*,
         -cert-dcl16-c,
 "
 WarningsAsErrors: ''
-HeaderFilterRegex: ''
+HeaderFilterRegex: '.*'
 FormatStyle:     file
 
 CheckOptions:
   - key: readability-identifier-length.IgnoredVariableNames
-    value: 'x|y|z|in|out|n'
+    value: '^(x|y|z|in|out|n|k[0-9]*)$'
   - key: readability-identifier-length.IgnoredParameterNames
-    value: 'x|y|z|in|out|n'
+    value: '^(x|y|z|in|out|n|k[0-9]*)$'
+  - key: cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove
+    value: 'true'
