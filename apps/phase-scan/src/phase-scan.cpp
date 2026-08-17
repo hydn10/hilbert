@@ -1,29 +1,26 @@
 #include <hilbert/phase_scan/phase_scan.hpp>
 
+#include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/parse.hpp>
+#include <hilbert/app/cli/run.hpp>
+#include <hilbert/app/io/output_stream.hpp>
 #include <hilbert/app/process/exit_status.hpp>
 #include <hilbert/phase_scan/analysis.hpp>
 #include <hilbert/phase_scan/output.hpp>
 #include <hilbert/simulation.hpp>
 
 #include <algorithm>
-#include <charconv>
 #include <cmath>
 #include <cstddef>
-#include <exception>
 #include <filesystem>
 #include <format>
-#include <fstream>
 #include <iostream>
 #include <limits>
-#include <memory>
 #include <optional>
 #include <print>
-#include <ranges>
 #include <span>
 #include <stdexcept>
-#include <string>
 #include <string_view>
-#include <system_error>
 #include <variant>
 #include <vector>
 
@@ -75,58 +72,36 @@ print_usage(std::ostream &output)
 }
 
 
-double
-parse_positive_double(std::string_view value, std::string_view option)
-{
-  double result{};
-  auto const *const value_begin = std::to_address(value.begin());
-  auto const *const value_end = std::to_address(value.end());
-  auto const [parsed_end, error] = std::from_chars(value_begin, value_end, result);
-
-  if (error != std::errc{} || parsed_end != value_end || !std::isfinite(result) || result <= 0)
-  {
-    throw std::invalid_argument{std::string{option} + " requires a finite, positive number"};
-  }
-
-  return result;
-}
-
-
 std::variant<phase_scan_command, help_command>
 parse_command(std::span<char const *const> arguments)
 {
   phase_scan_command command;
+  auto options = hilbert::app::cli::argument_cursor{arguments.subspan(1)};
 
-  for (auto const &option_tokens : arguments | std::views::drop(1) | std::views::chunk(2))
+  while (options)
   {
-    auto current_argument = option_tokens.begin();
-    std::string_view const option{*current_argument++};
+    auto const option = options.next();
     if (option == "--help" || option == "-h")
     {
       return help_command{};
     }
 
-    if (current_argument == option_tokens.end())
-    {
-      throw std::invalid_argument{std::format("missing value for {}", option)};
-    }
-
-    std::string_view const value{*current_argument++};
+    auto const value = options.require_value(option);
     if (option == "--output")
     {
       command.output_path.emplace(value.begin(), value.end());
     }
     else if (option == "--start-frequency")
     {
-      command.start_frequency_hz = parse_positive_double(value, option);
+      command.start_frequency_hz = hilbert::app::cli::parse_positive_double(value, option);
     }
     else if (option == "--end-frequency")
     {
-      command.end_frequency_hz = parse_positive_double(value, option);
+      command.end_frequency_hz = hilbert::app::cli::parse_positive_double(value, option);
     }
     else if (option == "--frequency-step")
     {
-      command.frequency_step_hz = parse_positive_double(value, option);
+      command.frequency_step_hz = hilbert::app::cli::parse_positive_double(value, option);
     }
     else
     {
@@ -214,42 +189,29 @@ run_phase_scan_command(phase_scan_command const &command)
     write_phase_scan_results(output, std::span<phase_scan_result<double> const>{results});
   };
 
-  if (command.output_path)
-  {
-    std::ofstream output{*command.output_path};
-    if (!output)
-    {
-      throw std::runtime_error{"could not open output file: " + command.output_path->string()};
-    }
-    write_to(output);
-  }
-  else
-  {
-    write_to(std::cout);
-  }
+  hilbert::app::io::with_output_stream(command.output_path, std::cout, write_to);
 }
 
 } // namespace
 hilbert::app::application_result
 run_cli(std::span<char const *const> arguments)
-try
 {
-  auto const command = parse_command(arguments);
-  if (auto const *const scan = std::get_if<0>(&command))
-  {
-    run_phase_scan_command(*scan);
-  }
-  else
-  {
-    print_usage(std::cout);
-  }
-  return hilbert::app::outcome::success{};
-}
-catch (std::exception const &error)
-{
-  std::println(std::cerr, "hilbert-phase-scan: {}", error.what());
-  print_usage_synopsis(std::cerr);
-  return hilbert::app::outcome::application::error{};
+  return hilbert::app::cli::run(
+      "hilbert-phase-scan",
+      std::cerr,
+      [&arguments]
+      {
+        auto const command = parse_command(arguments);
+        if (auto const *const scan = std::get_if<0>(&command))
+        {
+          run_phase_scan_command(*scan);
+        }
+        else
+        {
+          print_usage(std::cout);
+        }
+      },
+      print_usage_synopsis);
 }
 
 } // namespace hilbert::phase_scan

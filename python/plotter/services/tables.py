@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from typing import TextIO
 
 import numpy as np
@@ -115,3 +115,36 @@ def load_numeric_rows(
             raise ValueError(f"table {table_name!r} column {column!r} contains non-finite values")
 
     return data
+
+
+def load_numeric_tables(
+    source: TextIO,
+    schemas: Mapping[str, tuple[str, ...]],
+    *,
+    document_name: str,
+) -> dict[str, StructuredArray]:
+    """Load all finite numeric tables described by a document schema."""
+    loaded_tables: dict[str, StructuredArray] = {}
+
+    for table_name, header, rows in TableParser(source).tables():
+        if table_name not in schemas:
+            raise ValueError(f"unknown table {table_name!r}")
+        if table_name in loaded_tables:
+            raise ValueError(f"duplicate table {table_name!r}")
+
+        expected_header = schemas[table_name]
+        if header != expected_header:
+            raise ValueError(
+                f"table {table_name!r} header must be {','.join(expected_header)}; "
+                f"got {','.join(header)}"
+            )
+
+        loaded_tables[table_name] = load_numeric_rows(table_name, expected_header, rows)
+
+    missing_tables = [name for name in schemas if name not in loaded_tables]
+    if missing_tables:
+        if len(missing_tables) == 1:
+            raise ValueError(f"{document_name} is missing required table: {missing_tables[0]}")
+        raise ValueError(f"{document_name} is missing required tables: {', '.join(missing_tables)}")
+
+    return loaded_tables

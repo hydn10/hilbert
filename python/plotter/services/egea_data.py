@@ -1,11 +1,10 @@
-from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
 
-from .tables import StructuredArray, TableParser, load_numeric_rows
+from .tables import StructuredArray, load_numeric_tables
 
 INTERVAL_COLUMNS = (
     "measurement_start_s",
@@ -63,9 +62,7 @@ class EgeaData:
     refined: EgeaTimeSeriesData
 
 
-def _load_time_series_table(table_name: str, rows: Iterator[str]) -> EgeaTimeSeriesData:
-    columns = TABLE_SCHEMAS[table_name]
-    data = load_numeric_rows(table_name, columns, rows)
+def _load_time_series_table(table_name: str, data: StructuredArray) -> EgeaTimeSeriesData:
     if data.size < 2:
         raise ValueError(f"table {table_name!r} must contain at least two samples")
 
@@ -80,8 +77,7 @@ def _load_time_series_table(table_name: str, rows: Iterator[str]) -> EgeaTimeSer
     return EgeaTimeSeriesData(data=data, sampling_frequency_hz=1.0 / time_step)
 
 
-def _load_intervals(rows: Iterator[str]) -> EgeaIntervals:
-    data = load_numeric_rows("intervals", INTERVAL_COLUMNS, rows)
+def _load_intervals(data: StructuredArray) -> EgeaIntervals:
     if data.size != 1:
         raise ValueError("table 'intervals' must contain exactly one row")
 
@@ -108,36 +104,17 @@ def _load_intervals(rows: Iterator[str]) -> EgeaIntervals:
 def load_egea_data(file_path: str | Path) -> EgeaData:
     """Load and validate the EGEA multi-table simulation data contract."""
     path = Path(file_path)
-    loaded_tables: dict[str, EgeaTimeSeriesData] = {}
-    loaded_table_names: set[str] = set()
-    intervals: EgeaIntervals | None = None
 
     with path.open("r", encoding="utf-8", newline="") as source:
-        for table_name, header, rows in TableParser(source).tables():
-            if table_name not in TABLE_SCHEMAS:
-                raise ValueError(f"unknown table {table_name!r}")
-            if table_name in loaded_table_names:
-                raise ValueError(f"duplicate table {table_name!r}")
-            loaded_table_names.add(table_name)
+        loaded_tables = load_numeric_tables(source, TABLE_SCHEMAS, document_name="simulation data")
 
-            expected_header = TABLE_SCHEMAS[table_name]
-            if header != expected_header:
-                raise ValueError(
-                    f"table {table_name!r} header must be {','.join(expected_header)}; "
-                    f"got {','.join(header)}"
-                )
-            if table_name == "intervals":
-                intervals = _load_intervals(rows)
-            else:
-                loaded_tables[table_name] = _load_time_series_table(table_name, rows)
+    intervals = _load_intervals(loaded_tables["intervals"])
+    raw = _load_time_series_table("raw", loaded_tables["raw"])
+    refined = _load_time_series_table("refined", loaded_tables["refined"])
 
-    missing_tables = [name for name in TABLE_SCHEMAS if name not in loaded_table_names]
-    if missing_tables:
-        raise ValueError(f"simulation data is missing required tables: {', '.join(missing_tables)}")
-
-    assert intervals is not None
     for table_name in ("raw", "refined"):
-        time = loaded_tables[table_name]["time_s"]
+        time_series = raw if table_name == "raw" else refined
+        time = time_series["time_s"]
         measurement_samples = (time >= intervals.measurement_start_s) & (
             time < intervals.measurement_end_s
         )
@@ -146,7 +123,7 @@ def load_egea_data(file_path: str | Path) -> EgeaData:
                 f"table {table_name!r} must contain at least two samples in the measurement interval"
             )
 
-    refined_time = loaded_tables["refined"]["time_s"]
+    refined_time = refined["time_s"]
     if np.any(refined_time < intervals.hilbert_start_s) or np.any(
         refined_time >= intervals.hilbert_end_s
     ):
@@ -154,6 +131,6 @@ def load_egea_data(file_path: str | Path) -> EgeaData:
 
     return EgeaData(
         intervals=intervals,
-        raw=loaded_tables["raw"],
-        refined=loaded_tables["refined"],
+        raw=raw,
+        refined=refined,
     )

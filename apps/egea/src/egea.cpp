@@ -1,26 +1,21 @@
 #include <hilbert/egea/egea.hpp>
 
-#include <hilbert/app/process/exit_status.hpp>
+#include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/parse.hpp>
+#include <hilbert/app/cli/run.hpp>
+#include <hilbert/app/io/output_stream.hpp>
 #include <hilbert/egea/output.hpp>
 #include <hilbert/egea/simulation.hpp>
 #include <hilbert/simulation.hpp>
 
-#include <charconv>
-#include <cmath>
-#include <exception>
 #include <filesystem>
 #include <format>
-#include <fstream>
 #include <iostream>
-#include <memory>
 #include <optional>
 #include <print>
-#include <ranges>
 #include <span>
 #include <stdexcept>
-#include <string>
 #include <string_view>
-#include <system_error>
 #include <variant>
 
 
@@ -72,57 +67,33 @@ print_usage(std::ostream &output)
 }
 
 
-double
-parse_positive_double(std::string_view value, std::string_view option)
-{
-  double result{};
-
-  auto const *const value_begin = std::to_address(value.begin());
-  auto const *const value_end = std::to_address(value.end());
-
-  auto const [parsed_end, error] = std::from_chars(value_begin, value_end, result);
-
-  if (error != std::errc{} || parsed_end != value_end || !std::isfinite(result) || result <= 0)
-  {
-    throw std::invalid_argument{std::string{option} + " requires a finite, positive number"};
-  }
-
-  return result;
-}
-
-
 command
 parse_command(std::span<char const *const> arguments)
 {
   simulation_command simulation;
+  auto options = hilbert::app::cli::argument_cursor{arguments.subspan(1)};
 
-  for (auto const &option_tokens : arguments | std::views::drop(1) | std::views::chunk(2))
+  while (options)
   {
-    auto current_argument = option_tokens.begin();
-    std::string_view const argument{*current_argument++};
+    auto const argument = options.next();
 
     if (argument == "--help" || argument == "-h")
     {
       return help_command{};
     }
 
-    if (current_argument == option_tokens.end())
-    {
-      throw std::invalid_argument{std::format("missing value for {}", argument)};
-    }
-
-    std::string_view const value{*current_argument++};
+    auto const value = options.require_value(argument);
     if (argument == "--output")
     {
       simulation.output_path.emplace(value.begin(), value.end());
     }
     else if (argument == "--duration")
     {
-      simulation.settings.duration = parse_positive_double(value, argument);
+      simulation.settings.duration = hilbert::app::cli::parse_positive_double(value, argument);
     }
     else if (argument == "--time-step")
     {
-      simulation.settings.time_step = parse_positive_double(value, argument);
+      simulation.settings.time_step = hilbert::app::cli::parse_positive_double(value, argument);
     }
     else
     {
@@ -158,19 +129,7 @@ struct command_dispatcher
       write_simulation_data(output, samples, analysis);
     };
 
-    if (command.output_path)
-    {
-      std::ofstream output{*command.output_path};
-      if (!output)
-      {
-        throw std::runtime_error{"could not open output file: " + command.output_path->string()};
-      }
-      simulate_to(output);
-    }
-    else
-    {
-      simulate_to(std::cout);
-    }
+    hilbert::app::io::with_output_stream(command.output_path, std::cout, simulate_to);
   }
 
   void
@@ -185,20 +144,16 @@ struct command_dispatcher
 
 egea_result
 run_cli(std::span<char const *const> arguments)
-try
 {
-  auto const parsed_command = parse_command(arguments);
-
-  std::visit(command_dispatcher{}, parsed_command);
-
-  return hilbert::app::outcome::success{};
-}
-catch (std::exception const &error)
-{
-  std::println(std::cerr, "hilbert-egea: {}", error.what());
-  print_usage_synopsis(std::cerr);
-
-  return hilbert::app::outcome::application::error{};
+  return hilbert::app::cli::run(
+      "hilbert-egea",
+      std::cerr,
+      [&arguments]
+      {
+        auto const parsed_command = parse_command(arguments);
+        std::visit(command_dispatcher{}, parsed_command);
+      },
+      print_usage_synopsis);
 }
 
 } // namespace hilbert::egea

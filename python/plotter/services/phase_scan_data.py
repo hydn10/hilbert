@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
-from .tables import StructuredArray, TableParser, load_numeric_rows
+from .tables import StructuredArray, load_numeric_tables
 
 PHASE_SCAN_RESULT_COLUMNS = (
     "frequency_hz",
@@ -24,26 +24,14 @@ class PhaseScanData:
 def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
     """Load and validate the phase-scan results contract."""
     path = Path(file_path)
-    results: StructuredArray | None = None
-    loaded_table = False
 
     with path.open("r", encoding="utf-8", newline="") as source:
-        for table_name, header, rows in TableParser(source).tables():
-            if table_name != "results":
-                raise ValueError(f"unknown table {table_name!r}")
-            if loaded_table:
-                raise ValueError("duplicate table 'results'")
-            loaded_table = True
+        results = load_numeric_tables(
+            source,
+            {"results": PHASE_SCAN_RESULT_COLUMNS},
+            document_name="phase-scan data",
+        )["results"]
 
-            if header != PHASE_SCAN_RESULT_COLUMNS:
-                raise ValueError(
-                    f"table 'results' header must be {','.join(PHASE_SCAN_RESULT_COLUMNS)}; "
-                    f"got {','.join(header)}"
-                )
-            results = load_numeric_rows("results", PHASE_SCAN_RESULT_COLUMNS, rows)
-
-    if results is None:
-        raise ValueError("phase-scan data is missing required table: results")
     if results.size == 0:
         raise ValueError("table 'results' must contain at least one row")
 

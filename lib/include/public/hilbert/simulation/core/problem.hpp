@@ -39,15 +39,6 @@ requires physical_model_for<Model, Float, State> && integrator_for<Integrator, F
          executable_state<State>
 class simulation_problem
 {
-public:
-  using float_type = Float;
-  using state_type = State;
-  using model_type = Model;
-  using integrator_type = Integrator;
-
-  simulation_problem(simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator);
-
-private:
   Float time_step_;
   std::size_t sample_count_;
   State initial_state_;
@@ -60,6 +51,14 @@ private:
   sample_count_for(simulation_settings<Float> settings);
 
   friend class detail::simulation_engine<Float, State, Model, Integrator>;
+
+public:
+  using float_type = Float;
+  using state_type = State;
+  using model_type = Model;
+  using integrator_type = Integrator;
+
+  simulation_problem(simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator);
 };
 
 

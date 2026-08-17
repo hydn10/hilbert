@@ -17,10 +17,6 @@ namespace hilbert::simulation::suspension::sinks
 template<std::floating_point Float>
 class soa_vector_sink
 {
-public:
-  class simulation_data;
-
-private:
   std::vector<Float> time_data_;
   std::vector<Float> sprung_displacement_data_;
   std::vector<Float> unsprung_displacement_data_;
@@ -28,6 +24,8 @@ private:
   std::vector<Float> tire_force_data_;
 
 public:
+  class simulation_data;
+
   explicit soa_vector_sink(size_t sample_count);
 
   soa_vector_sink(soa_vector_sink const &) = delete;

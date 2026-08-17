@@ -2,12 +2,13 @@
 #define HILBERT_PHASE_SCAN_OUTPUT_HPP
 
 
+#include <hilbert/app/io/numeric_table_writer.hpp>
 #include <hilbert/phase_scan/analysis.hpp>
 
-#include <iomanip>
-#include <limits>
+#include <array>
 #include <ostream>
 #include <span>
+#include <string_view>
 
 
 namespace hilbert::phase_scan
@@ -22,14 +23,24 @@ template<std::floating_point Float>
 void
 write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results)
 {
-  output << std::setprecision(std::numeric_limits<Float>::max_digits10);
-  output << "# table: results\n"
-            "frequency_hz,phase_fit_rad,phase_hilbert_rad\n";
+  hilbert::app::io::numeric_table_writer<Float> document{output};
 
-  for (auto const &result : results)
-  {
-    output << result.frequency_hz << ',' << result.phase_fit_rad << ',' << result.phase_hilbert_rad << '\n';
-  }
+  constexpr std::array result_columns{
+      std::string_view{"frequency_hz"},
+      std::string_view{"phase_fit_rad"},
+      std::string_view{"phase_hilbert_rad"},
+  };
+
+  document.table(
+      "results",
+      result_columns,
+      [&](auto &rows)
+      {
+        for (auto const &result : results)
+        {
+          rows.write(result.frequency_hz, result.phase_fit_rad, result.phase_hilbert_rad);
+        }
+      });
 }
 
 } // namespace hilbert::phase_scan

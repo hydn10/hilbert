@@ -17,13 +17,11 @@ namespace hilbert::simulation::suspension::sinks
 template<std::floating_point Float>
 class vector_sink
 {
-public:
-  class simulation_data;
-
-private:
   std::vector<sample<Float>> samples_;
 
 public:
+  class simulation_data;
+
   explicit vector_sink(size_t sample_count);
 
   vector_sink(vector_sink const &) = delete;
