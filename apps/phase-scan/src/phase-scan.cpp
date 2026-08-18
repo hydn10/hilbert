@@ -33,8 +33,17 @@ namespace
 constexpr double default_start_frequency_hz = 6.0;
 constexpr double default_end_frequency_hz = 18.0;
 constexpr double default_frequency_step_hz = 1.0;
+
 constexpr double simulation_time_step_s = 0.0005;
 constexpr double simulation_duration_s = 20.0;
+
+constexpr double measurement_start_s = 10.0;
+constexpr double measurement_end_s = 15.0;
+
+constexpr auto measurement_window = hilbert::analysis::time_window<double>{
+    .begin = measurement_start_s,
+    .end = measurement_end_s,
+};
 
 
 struct phase_scan_command
@@ -42,6 +51,7 @@ struct phase_scan_command
   double start_frequency_hz = default_start_frequency_hz;
   double end_frequency_hz = default_end_frequency_hz;
   double frequency_step_hz = default_frequency_step_hz;
+
   std::optional<std::filesystem::path> output_path;
 };
 
@@ -67,8 +77,12 @@ print_usage(std::ostream &output)
   print_usage_synopsis(output);
   std::print(
       output,
-      "\nRun independent 15-second constant-frequency suspension simulations and write phase results.\n"
-      "Defaults: 1 Hz through 25 Hz in 1 Hz steps. Output defaults to stdout.\n");
+      "\nRun independent {}-second constant-frequency suspension simulations and write phase results.\n"
+      "Defaults: {} Hz through {} Hz in {} Hz steps. Output defaults to stdout.\n",
+      simulation_duration_s,
+      default_start_frequency_hz,
+      default_end_frequency_hz,
+      default_frequency_step_hz);
 }
 
 
@@ -153,8 +167,8 @@ simulate_phase_scan_point(double frequency_hz)
 
   return {
       .frequency_hz = frequency_hz,
-      .phase_fit_rad = estimate_phase_scan_by_least_squares<double>(samples),
-      .phase_hilbert_rad = estimate_phase_scan_by_hilbert_transform<double>(samples),
+      .phase_fit_rad = estimate_phase_scan_by_least_squares<double>(samples, frequency_hz, measurement_window),
+      .phase_hilbert_rad = estimate_phase_scan_by_hilbert_transform<double>(samples, measurement_window),
   };
 }
 
@@ -183,7 +197,8 @@ run_phase_scan(phase_scan_command const &command)
 void
 run_phase_scan_command(phase_scan_command const &command)
 {
-  auto results = run_phase_scan(command);
+  auto const results = run_phase_scan(command);
+
   auto write_to = [&results](std::ostream &output)
   {
     write_phase_scan_results(output, std::span<phase_scan_result<double> const>{results});
@@ -191,6 +206,22 @@ run_phase_scan_command(phase_scan_command const &command)
 
   hilbert::app::io::with_output_stream(command.output_path, std::cout, write_to);
 }
+
+
+struct command_dispatcher
+{
+  void
+  operator()(phase_scan_command const &command) const
+  {
+    run_phase_scan_command(command);
+  }
+
+  void
+  operator()([[maybe_unused]] help_command const &help) const
+  {
+    print_usage(std::cout);
+  }
+};
 
 } // namespace
 hilbert::app::application_result
@@ -201,15 +232,8 @@ run_cli(std::span<char const *const> arguments)
       std::cerr,
       [&arguments]
       {
-        auto const command = parse_command(arguments);
-        if (auto const *const scan = std::get_if<0>(&command))
-        {
-          run_phase_scan_command(*scan);
-        }
-        else
-        {
-          print_usage(std::cout);
-        }
+        auto const parsed_command = parse_command(arguments);
+        std::visit(command_dispatcher{}, parsed_command);
       },
       print_usage_synopsis);
 }
