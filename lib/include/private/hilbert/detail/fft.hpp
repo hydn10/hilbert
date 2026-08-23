@@ -2,7 +2,7 @@
 #define HILBERT_DETAIL_FFT_HPP
 
 
-#include <hilbert/hilbert.hpp>
+#include <hilbert/core/supported_float.hpp>
 
 #include <complex>
 #include <cstdint>

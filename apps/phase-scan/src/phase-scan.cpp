@@ -1,14 +1,23 @@
 #include <hilbert/phase_scan/phase_scan.hpp>
 
+#include <hilbert/analysis/least_squares/observation.hpp>
+#include <hilbert/analysis/sampling/sample_window.hpp>
+#include <hilbert/analysis/sinusoidal/basis.hpp>
+#include <hilbert/analysis/sinusoidal/frequency.hpp>
 #include <hilbert/app/cli/arguments.hpp>
 #include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/cli/parse.hpp>
 #include <hilbert/app/cli/run.hpp>
 #include <hilbert/app/io/output_stream.hpp>
 #include <hilbert/app/process/exit_status.hpp>
-#include <hilbert/phase_scan/analysis.hpp>
+#include <hilbert/phase_scan/estimators/hilbert.hpp>
+#include <hilbert/phase_scan/estimators/least_squares.hpp>
 #include <hilbert/phase_scan/output.hpp>
+#include <hilbert/phase_scan/record.hpp>
+#include <hilbert/phase_scan/result.hpp>
 #include <hilbert/simulation.hpp>
+#include <hilbert/simulation/sinks/adapters.hpp>
+#include <hilbert/simulation/sinks/normal_equations.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -21,6 +30,7 @@
 #include <print>
 #include <span>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -39,11 +49,6 @@ constexpr double simulation_duration_s = 20.0;
 
 constexpr double measurement_start_s = 10.0;
 constexpr double measurement_end_s = 15.0;
-
-constexpr auto measurement_window = hilbert::analysis::time_window<double>{
-    .begin = measurement_start_s,
-    .end = measurement_end_s,
-};
 
 
 struct phase_scan_command
@@ -156,19 +161,39 @@ simulate_phase_scan_point(double frequency_hz)
       .time_step = simulation_time_step_s,
       .duration = simulation_duration_s,
   };
+  auto const measurement_window = hilbert::analysis::time_window{measurement_start_s, measurement_end_s};
+  auto const frequency = hilbert::analysis::frequency_hz{frequency_hz};
 
-  auto const samples = run_simulation(
+  auto const basis = hilbert::analysis::make_sinusoidal_basis(frequency);
+  auto const make_fit_observation = [](suspension::sample<double> sample)
+  {
+    return hilbert::analysis::make_observation(sample.time, sample.ground_displacement, sample.tire_force);
+  };
+  auto const predicate = [measurement_window](suspension::sample<double> const &sample)
+  {
+    return sample.time >= measurement_window.begin() && sample.time < measurement_window.end();
+  };
+
+  auto const fit_sink_factory = hilbert::simulation::sinks::make_filtered_sink_factory(
+      hilbert::simulation::sinks::make_normal_equations_sink_factory<double, 2uz>(basis, make_fit_observation),
+      predicate);
+  auto const sink_factory = hilbert::simulation::sinks::make_tee_sink_factory(
+      suspension::sinks::soa_vector_sink_factory<double>{}, fit_sink_factory);
+
+  auto const [samples, products] = run_simulation(
       suspension::make_simulation(
-          settings,
-          default_parameters(),
-          ground_frequencies::constant<double>{frequency_hz},
-          state<double>{0, 0, 0, 0, 0}),
-      suspension::sinks::soa_vector_sink_factory<double>{});
+          settings, default_parameters(), ground_frequencies::constant{frequency_hz}, state<double>{0, 0, 0, 0, 0}),
+      sink_factory);
+
+  auto const record = phase_scan_record_view{samples, measurement_window};
+
+  auto const least_squares = estimate_phase_scan_by_least_squares(products);
+  auto const hilbert_estimate = estimate_phase_scan_by_hilbert_transform(record);
 
   return {
       .frequency_hz = frequency_hz,
-      .phase_fit_rad = estimate_phase_scan_by_least_squares<double>(samples, frequency_hz, measurement_window),
-      .phase_hilbert_rad = estimate_phase_scan_by_hilbert_transform<double>(samples, measurement_window),
+      .phase_fit_rad = least_squares.phase().radians(),
+      .phase_hilbert_rad = hilbert_estimate.phase().radians(),
   };
 }
 
@@ -180,13 +205,17 @@ run_phase_scan(phase_scan_command const &command)
   auto const frequency_tolerance = 8 * std::numeric_limits<double>::epsilon() *
                                    std::max({1.0, std::abs(command.start_frequency_hz), command.end_frequency_hz});
 
+  // TODO: ranges?
   for (size_t index = 0uz;; ++index)
   {
     auto const frequency = command.start_frequency_hz + command.frequency_step_hz * static_cast<double>(index);
+
+    // TODO: why?
     if (frequency > command.end_frequency_hz + frequency_tolerance)
     {
       break;
     }
+
     results.emplace_back(simulate_phase_scan_point(frequency));
   }
 
@@ -204,7 +233,7 @@ run_phase_scan_command(phase_scan_command const &command)
     write_phase_scan_results(output, std::span<phase_scan_result<double> const>{results});
   };
 
-  hilbert::app::io::with_output_stream(command.output_path, std::cout, write_to);
+  hilbert::app::io::with_output_stream(command.output_path, std::cout, std::move(write_to));
 }
 
 
@@ -224,6 +253,8 @@ struct command_dispatcher
 };
 
 } // namespace
+
+
 hilbert::app::application_result
 run_cli(std::span<char const *const> arguments)
 {

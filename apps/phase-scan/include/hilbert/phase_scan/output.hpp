@@ -3,7 +3,7 @@
 
 
 #include <hilbert/app/io/numeric_table_writer.hpp>
-#include <hilbert/phase_scan/analysis.hpp>
+#include <hilbert/phase_scan/result.hpp>
 
 #include <array>
 #include <ostream>

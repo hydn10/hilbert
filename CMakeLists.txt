@@ -38,9 +38,9 @@ option(
 )
 
 add_subdirectory(lib)
-add_subdirectory(internal)
 
 if(HILBERT_BUILD_APPS)
+    add_subdirectory(internal)
     add_subdirectory(apps)
 endif()
 

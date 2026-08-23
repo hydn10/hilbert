@@ -1,5 +1,5 @@
 #include <hilbert/detail/fft.hpp>
-#include <hilbert/hilbert.hpp>
+#include <hilbert/core/supported_float.hpp>
 
 #include <fftw3.h>
 

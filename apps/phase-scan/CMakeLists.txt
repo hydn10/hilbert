@@ -9,15 +9,18 @@ target_sources(
             TYPE HEADERS
             BASE_DIRS include
             FILES
-                include/hilbert/phase_scan/phase_scan.hpp
-                include/hilbert/phase_scan/analysis.hpp
+                include/hilbert/phase_scan/estimators/hilbert.hpp
+                include/hilbert/phase_scan/estimators/least_squares.hpp
                 include/hilbert/phase_scan/output.hpp
+                include/hilbert/phase_scan/phase_scan.hpp
+                include/hilbert/phase_scan/record.hpp
+                include/hilbert/phase_scan/result.hpp
 )
 
 target_compile_features(${target_name} PRIVATE cxx_std_23)
 target_link_libraries(
     ${target_name}
-    PRIVATE "${PROJECT_NAME}::${PROJECT_NAME}" "${PROJECT_NAME}::analysis" "${PROJECT_NAME}::app"
+    PRIVATE "${PROJECT_NAME}::${PROJECT_NAME}" "${PROJECT_NAME}::app"
 )
 set_target_properties(${target_name} PROPERTIES VERIFY_PRIVATE_HEADER_SETS ON)
 

@@ -2,6 +2,7 @@
 #define HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_HPP
 
 
+#include <hilbert/simulation/core/input_count.hpp>
 #include <hilbert/simulation/suspension/sample.hpp>
 
 #include <concepts>
@@ -96,8 +97,9 @@ public:
 template<std::floating_point Float>
 struct soa_vector_sink_factory
 {
+  template<hilbert::simulation::input_count_descriptor Count>
   soa_vector_sink<Float>
-  operator()(size_t sample_count) const;
+  operator()(Count count) const;
 };
 
 
@@ -204,10 +206,11 @@ soa_vector_sink<Float>::finish() &&
 
 
 template<std::floating_point Float>
+template<hilbert::simulation::input_count_descriptor Count>
 soa_vector_sink<Float>
-soa_vector_sink_factory<Float>::operator()(size_t sample_count) const
+soa_vector_sink_factory<Float>::operator()(Count count) const
 {
-  return soa_vector_sink<Float>{sample_count};
+  return soa_vector_sink<Float>{hilbert::simulation::reservation_hint(count)};
 }
 
 } // namespace hilbert::simulation::suspension::sinks
