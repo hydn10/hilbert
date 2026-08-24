@@ -2,7 +2,7 @@
 #define HILBERT_ANALYSIS_SINUSOIDAL_BASIS_HPP
 
 
-#include <hilbert/analysis/least_squares/basis3.hpp>
+#include <hilbert/analysis/least_squares/basis.hpp>
 #include <hilbert/analysis/sinusoidal/frequency.hpp>
 #include <hilbert/core/supported_float.hpp>
 
@@ -59,7 +59,7 @@ make_sinusoidal_basis(frequency_hz<Float> const &frequency)
 {
   auto const angular_frequency = frequency.angular_frequency();
 
-  return basis3{
+  return basis{
       cosine_basis_function<Float>{angular_frequency},
       sine_basis_function<Float>{angular_frequency},
       constant_one,

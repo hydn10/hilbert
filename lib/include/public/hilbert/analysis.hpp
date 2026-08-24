@@ -3,12 +3,12 @@
 
 
 // IWYU pragma: begin_exports
-#include <hilbert/analysis/least_squares/basis3.hpp>            // IWYU pragma: export
+#include <hilbert/analysis/least_squares/basis.hpp>             // IWYU pragma: export
 #include <hilbert/analysis/least_squares/basis_value.hpp>       // IWYU pragma: export
 #include <hilbert/analysis/least_squares/normal_equations3.hpp> // IWYU pragma: export
 #include <hilbert/analysis/least_squares/observation.hpp>       // IWYU pragma: export
 #include <hilbert/analysis/least_squares/observation_count.hpp> // IWYU pragma: export
-#include <hilbert/analysis/least_squares/products3.hpp>         // IWYU pragma: export
+#include <hilbert/analysis/least_squares/products.hpp>          // IWYU pragma: export
 #include <hilbert/analysis/phase/circular_mean.hpp>             // IWYU pragma: export
 #include <hilbert/analysis/phase/mean_resultant_length.hpp>     // IWYU pragma: export
 #include <hilbert/analysis/phase/principal_phase.hpp>           // IWYU pragma: export

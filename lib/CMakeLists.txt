@@ -13,12 +13,14 @@ target_sources(
             BASE_DIRS include/public
             FILES
                 include/public/hilbert/analysis.hpp
+                include/public/hilbert/analysis/least_squares/basis.hpp
                 include/public/hilbert/analysis/least_squares/basis3.hpp
                 include/public/hilbert/analysis/least_squares/basis_value.hpp
                 include/public/hilbert/analysis/least_squares/detail/discrete_reduction.hpp
                 include/public/hilbert/analysis/least_squares/normal_equations3.hpp
                 include/public/hilbert/analysis/least_squares/observation.hpp
                 include/public/hilbert/analysis/least_squares/observation_count.hpp
+                include/public/hilbert/analysis/least_squares/products.hpp
                 include/public/hilbert/analysis/least_squares/products3.hpp
                 include/public/hilbert/analysis/phase/circular_mean.hpp
                 include/public/hilbert/analysis/phase/mean_resultant_length.hpp
@@ -36,7 +38,9 @@ target_sources(
                 include/public/hilbert/hilbert.hpp
                 include/public/hilbert/math.hpp
                 include/public/hilbert/math/linear_algebra/cholesky3.hpp
+                include/public/hilbert/math/linear_algebra/symmetric_matrix.hpp
                 include/public/hilbert/math/linear_algebra/symmetric_matrix3.hpp
+                include/public/hilbert/math/linear_algebra/vector.hpp
                 include/public/hilbert/math/linear_algebra/vector3.hpp
                 include/public/hilbert/simulation.hpp
                 include/public/hilbert/simulation/generic.hpp

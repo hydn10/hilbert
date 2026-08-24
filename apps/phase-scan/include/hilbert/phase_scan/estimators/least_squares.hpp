@@ -2,7 +2,7 @@
 #define HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_HPP
 
 
-#include <hilbert/analysis/least_squares/products3.hpp>
+#include <hilbert/analysis/least_squares/products.hpp>
 #include <hilbert/analysis/phase/principal_phase.hpp>
 #include <hilbert/analysis/sinusoidal/fit.hpp>
 #include <hilbert/core/supported_float.hpp>
@@ -54,7 +54,7 @@ public:
 
 template<hilbert::supported_float Float>
 phase_scan_least_squares_estimate<Float>
-estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products3<Float, 2uz> const &products)
+estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products<Float, 3uz, 2uz> const &products)
 {
   auto const factor = hilbert::math::cholesky_decompose(products.gram());
 

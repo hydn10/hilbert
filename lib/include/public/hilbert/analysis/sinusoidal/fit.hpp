@@ -4,7 +4,7 @@
 
 #include <hilbert/analysis/phase/principal_phase.hpp>
 #include <hilbert/core/supported_float.hpp>
-#include <hilbert/math/linear_algebra/vector3.hpp>
+#include <hilbert/math/linear_algebra/vector.hpp>
 
 #include <cmath>
 #include <complex>
@@ -28,11 +28,11 @@ class sinusoidal_fit
 
 public:
   static sinusoidal_fit
-  from_coefficients(math::vector3<Float> coefficients)
+  from_coefficients(math::vector<Float, 3uz> coefficients)
   {
-    auto const cosine = coefficients.first();
-    auto const sine = coefficients.second();
-    auto const offset = coefficients.third();
+    auto const cosine = math::get<0>(coefficients);
+    auto const sine = math::get<1>(coefficients);
+    auto const offset = math::get<2>(coefficients);
     if (!std::isfinite(cosine) || !std::isfinite(sine) || !std::isfinite(offset))
     {
       throw std::invalid_argument{"sinusoidal coefficients must be finite"};
