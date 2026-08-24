@@ -20,6 +20,7 @@
 #include <hilbert/analysis/sinusoidal/basis.hpp>                // IWYU pragma: export
 #include <hilbert/analysis/sinusoidal/fit.hpp>                  // IWYU pragma: export
 #include <hilbert/analysis/sinusoidal/frequency.hpp>            // IWYU pragma: export
+#include <hilbert/analysis/sinusoidal/signature.hpp>            // IWYU pragma: export
 // IWYU pragma: end_exports
 
 

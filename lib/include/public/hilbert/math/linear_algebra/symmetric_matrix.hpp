@@ -3,6 +3,7 @@
 
 
 #include <hilbert/core/supported_float.hpp>
+#include <hilbert/math/linear_algebra/signature.hpp>
 
 #include <array>
 #include <concepts>
@@ -13,55 +14,37 @@
 namespace hilbert::math
 {
 
-template<supported_float Float, std::size_t Size>
-class symmetric_matrix;
+namespace detail
+{
 
+template<std::size_t Row, std::size_t Column>
+consteval std::size_t
+symmetric_matrix_index() noexcept
+{
+  if constexpr (Row >= Column)
+  {
+    return Row * (Row + 1uz) / 2uz + Column;
+  }
+  else
+  {
+    return Column * (Column + 1uz) / 2uz + Row;
+  }
+}
 
-template<std::size_t Row, std::size_t Column, supported_float Float, std::size_t Size>
-requires(Row < Size) && (Column < Size)
-constexpr Float const &
-get(symmetric_matrix<Float, Size> const &matrix) noexcept;
+} // namespace detail
 
-
-template<std::size_t Row, std::size_t Column, supported_float Float, std::size_t Size>
-requires(Row < Size) && (Column < Size)
-constexpr Float &
-get(symmetric_matrix<Float, Size> &matrix) noexcept;
-
-
-template<supported_float Float, std::size_t Size>
+template<supported_float Float, coordinate_signature RowSignature, coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>>
 class symmetric_matrix
 {
 public:
-  static constexpr std::size_t size = Size;
-  static constexpr std::size_t lower_triangle_size = Size * (Size + 1uz) / 2uz;
+  using row_signature = RowSignature;
+  using column_signature = ColumnSignature;
+  static constexpr std::size_t size = ColumnSignature::size;
+  static constexpr std::size_t lower_triangle_size = size * (size + 1uz) / 2uz;
 
 private:
   std::array<Float, lower_triangle_size> lower_triangle_{};
-
-  template<std::size_t Row, std::size_t Column, supported_float OtherFloat, std::size_t OtherSize>
-  requires(Row < OtherSize) && (Column < OtherSize)
-  friend constexpr OtherFloat const &
-  get(symmetric_matrix<OtherFloat, OtherSize> const &matrix) noexcept;
-
-  template<std::size_t Row, std::size_t Column, supported_float OtherFloat, std::size_t OtherSize>
-  requires(Row < OtherSize) && (Column < OtherSize)
-  friend constexpr OtherFloat &
-  get(symmetric_matrix<OtherFloat, OtherSize> &matrix) noexcept;
-
-  template<std::size_t Row, std::size_t Column>
-  static constexpr std::size_t
-  lower_triangle_index() noexcept
-  {
-    if constexpr (Row >= Column)
-    {
-      return Row * (Row + 1uz) / 2uz + Column;
-    }
-    else
-    {
-      return Column * (Column + 1uz) / 2uz + Row;
-    }
-  }
 
   explicit constexpr symmetric_matrix(std::array<Float, lower_triangle_size> lower_triangle) noexcept
       : lower_triangle_{lower_triangle}
@@ -82,26 +65,44 @@ public:
   {
     return symmetric_matrix{std::array<Float, lower_triangle_size>{static_cast<Float>(values)...}};
   }
+
+  [[nodiscard]]
+  constexpr std::array<Float, lower_triangle_size> const &
+  values() const noexcept
+  {
+    return lower_triangle_;
+  }
+
+  [[nodiscard]]
+  constexpr std::array<Float, lower_triangle_size> &
+  values() noexcept
+  {
+    return lower_triangle_;
+  }
 };
 
 
-template<std::size_t Row, std::size_t Column, supported_float Float, std::size_t Size>
-requires(Row < Size) && (Column < Size)
+template<std::size_t Row, std::size_t Column, supported_float Float, coordinate_signature RowSignature,
+         coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
+         (Column < ColumnSignature::size)
 [[nodiscard]]
 constexpr Float const &
-get(symmetric_matrix<Float, Size> const &matrix) noexcept
+get(symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexcept
 {
-  return matrix.lower_triangle_.at(matrix.template lower_triangle_index<Row, Column>());
+  return std::get<detail::symmetric_matrix_index<Row, Column>()>(matrix.values());
 }
 
 
-template<std::size_t Row, std::size_t Column, supported_float Float, std::size_t Size>
-requires(Row < Size) && (Column < Size)
+template<std::size_t Row, std::size_t Column, supported_float Float, coordinate_signature RowSignature,
+         coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
+         (Column < ColumnSignature::size)
 [[nodiscard]]
 constexpr Float &
-get(symmetric_matrix<Float, Size> &matrix) noexcept
+get(symmetric_matrix<Float, RowSignature, ColumnSignature> &matrix) noexcept
 {
-  return matrix.lower_triangle_.at(matrix.template lower_triangle_index<Row, Column>());
+  return std::get<detail::symmetric_matrix_index<Row, Column>()>(matrix.values());
 }
 
 } // namespace hilbert::math

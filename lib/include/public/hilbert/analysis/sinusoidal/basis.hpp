@@ -4,6 +4,7 @@
 
 #include <hilbert/analysis/least_squares/basis.hpp>
 #include <hilbert/analysis/sinusoidal/frequency.hpp>
+#include <hilbert/analysis/sinusoidal/signature.hpp>
 #include <hilbert/core/supported_float.hpp>
 
 #include <cmath>
@@ -18,6 +19,8 @@ class cosine_basis_function
   Float angular_frequency_;
 
 public:
+  using tag_type = cosine_term;
+
   explicit constexpr cosine_basis_function(Float angular_frequency) noexcept
       : angular_frequency_{angular_frequency}
   {
@@ -38,6 +41,8 @@ class sine_basis_function
   Float angular_frequency_;
 
 public:
+  using tag_type = sine_term;
+
   explicit constexpr sine_basis_function(Float angular_frequency) noexcept
       : angular_frequency_{angular_frequency}
   {
@@ -52,6 +57,21 @@ public:
 };
 
 
+class constant_basis_function
+{
+public:
+  using tag_type = constant_term;
+
+  template<supported_float Float>
+  [[nodiscard]]
+  constexpr one_t
+  operator()([[maybe_unused]] Float time) const noexcept
+  {
+    return {};
+  }
+};
+
+
 template<supported_float Float>
 [[nodiscard]]
 auto
@@ -62,7 +82,7 @@ make_sinusoidal_basis(frequency_hz<Float> const &frequency)
   return basis{
       cosine_basis_function<Float>{angular_frequency},
       sine_basis_function<Float>{angular_frequency},
-      constant_one,
+      constant_basis_function{},
   };
 }
 

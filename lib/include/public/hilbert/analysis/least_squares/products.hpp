@@ -13,23 +13,27 @@
 namespace hilbert::analysis
 {
 
-template<supported_float Float, std::size_t BasisSize, std::size_t ResponseCount>
+template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount>
 class least_squares_products
 {
-  math::symmetric_matrix<Float, BasisSize> gram_;
-  std::array<math::vector<Float, BasisSize>, ResponseCount> projections_;
+  math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> gram_;
+  std::array<math::vector<Float, math::dual_signature_t<Signature>>, ResponseCount> projections_;
 
 public:
+  using signature_type = Signature;
+  using projection_type = math::vector<Float, math::dual_signature_t<Signature>>;
+  using gram_type = math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature>;
+
   least_squares_products(
-      math::symmetric_matrix<Float, BasisSize> gram,
-      std::array<math::vector<Float, BasisSize>, ResponseCount> projections) noexcept
+      gram_type gram,
+      std::array<projection_type, ResponseCount> projections) noexcept
       : gram_{gram}
       , projections_{projections}
   {
   }
 
   [[nodiscard]]
-  math::symmetric_matrix<Float, BasisSize> const &
+  gram_type const &
   gram() const noexcept
   {
     return gram_;
@@ -38,14 +42,14 @@ public:
   template<std::size_t Index>
   requires(Index < ResponseCount)
   [[nodiscard]]
-  math::vector<Float, BasisSize> const &
+  projection_type const &
   projection() const noexcept
   {
     return std::get<Index>(projections_);
   }
 
   [[nodiscard]]
-  std::array<math::vector<Float, BasisSize>, ResponseCount> const &
+  std::array<projection_type, ResponseCount> const &
   projections() const noexcept
   {
     return projections_;

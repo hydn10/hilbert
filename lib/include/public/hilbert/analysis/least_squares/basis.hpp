@@ -4,6 +4,7 @@
 
 #include <hilbert/analysis/least_squares/basis_value.hpp>
 #include <hilbert/core/supported_float.hpp>
+#include <hilbert/math/linear_algebra/signature.hpp>
 
 #include <concepts>
 #include <cstddef>
@@ -85,7 +86,12 @@ get(basis_row<Values...> &row) noexcept
 }
 
 
+template<typename Function>
+concept basis_function = requires { typename std::remove_cvref_t<Function>::tag_type; };
+
+
 template<class... Functions>
+requires(basis_function<Functions> && ...)
 class basis
 {
   std::tuple<Functions...> functions_;
@@ -101,6 +107,7 @@ class basis
 
 public:
   static constexpr std::size_t size = sizeof...(Functions);
+  using signature_type = math::signature<typename std::remove_cvref_t<Functions>::tag_type...>;
 
   explicit constexpr basis(Functions... functions)
       : functions_{std::move(functions)...}

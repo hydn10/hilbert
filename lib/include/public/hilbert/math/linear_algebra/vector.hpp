@@ -3,6 +3,7 @@
 
 
 #include <hilbert/core/supported_float.hpp>
+#include <hilbert/math/linear_algebra/signature.hpp>
 
 #include <array>
 #include <concepts>
@@ -14,63 +15,38 @@
 namespace hilbert::math
 {
 
-template<supported_float Float, std::size_t Size>
-class vector;
-
-
-template<std::size_t Index, supported_float Float, std::size_t Size>
-requires(Index < Size)
-constexpr Float const &
-get(vector<Float, Size> const &value) noexcept;
-
-
-template<std::size_t Index, supported_float Float, std::size_t Size>
-requires(Index < Size)
-constexpr Float &
-get(vector<Float, Size> &value) noexcept;
-
-
-template<supported_float Float, std::size_t Size>
+template<supported_float Float, coordinate_signature Signature>
 class vector
 {
-  std::array<Float, Size> values_{};
-
-  template<std::size_t Index, supported_float OtherFloat, std::size_t OtherSize>
-  requires(Index < OtherSize)
-  friend constexpr OtherFloat const &
-  get(vector<OtherFloat, OtherSize> const &value) noexcept;
-
-  template<std::size_t Index, supported_float OtherFloat, std::size_t OtherSize>
-  requires(Index < OtherSize)
-  friend constexpr OtherFloat &
-  get(vector<OtherFloat, OtherSize> &value) noexcept;
+  std::array<Float, Signature::size> values_{};
 
 public:
-  static constexpr std::size_t size = Size;
+  using signature_type = Signature;
+  static constexpr std::size_t size = Signature::size;
 
   constexpr vector() noexcept = default;
 
-  explicit constexpr vector(std::array<Float, Size> values) noexcept
+  explicit constexpr vector(std::array<Float, size> values) noexcept
       : values_{values}
   {
   }
 
   template<typename... Values>
-  requires(sizeof...(Values) == Size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+  requires(sizeof...(Values) == size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
   explicit constexpr vector(Values &&...values) noexcept
       : values_{static_cast<Float>(std::forward<Values>(values))...}
   {
   }
 
   [[nodiscard]]
-  constexpr std::array<Float, Size> const &
+  constexpr std::array<Float, size> const &
   values() const noexcept
   {
     return values_;
   }
 
   [[nodiscard]]
-  constexpr std::array<Float, Size> &
+  constexpr std::array<Float, size> &
   values() noexcept
   {
     return values_;
@@ -78,23 +54,43 @@ public:
 };
 
 
-template<std::size_t Index, supported_float Float, std::size_t Size>
-requires(Index < Size)
+template<std::size_t Index, supported_float Float, coordinate_signature Signature>
+requires(Index < Signature::size)
 [[nodiscard]]
 constexpr Float const &
-get(vector<Float, Size> const &value) noexcept
+get(vector<Float, Signature> const &value) noexcept
 {
-  return value.values_.at(Index);
+  return std::get<Index>(value.values());
 }
 
 
-template<std::size_t Index, supported_float Float, std::size_t Size>
-requires(Index < Size)
+template<std::size_t Index, supported_float Float, coordinate_signature Signature>
+requires(Index < Signature::size)
 [[nodiscard]]
 constexpr Float &
-get(vector<Float, Size> &value) noexcept
+get(vector<Float, Signature> &value) noexcept
 {
-  return value.values_.at(Index);
+  return std::get<Index>(value.values());
+}
+
+
+template<typename Tag, supported_float Float, coordinate_signature Signature>
+requires(Signature::template contains<Tag>())
+[[nodiscard]]
+constexpr Float const &
+get(vector<Float, Signature> const &value) noexcept
+{
+  return std::get<Signature::template index<Tag>()>(value.values());
+}
+
+
+template<typename Tag, supported_float Float, coordinate_signature Signature>
+requires(Signature::template contains<Tag>())
+[[nodiscard]]
+constexpr Float &
+get(vector<Float, Signature> &value) noexcept
+{
+  return std::get<Signature::template index<Tag>()>(value.values());
 }
 
 } // namespace hilbert::math

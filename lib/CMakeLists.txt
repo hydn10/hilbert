@@ -33,11 +33,13 @@ target_sources(
                 include/public/hilbert/analysis/sinusoidal/basis.hpp
                 include/public/hilbert/analysis/sinusoidal/fit.hpp
                 include/public/hilbert/analysis/sinusoidal/frequency.hpp
+                include/public/hilbert/analysis/sinusoidal/signature.hpp
                 include/public/hilbert/core/supported_float.hpp
                 include/public/hilbert/detail/attributes.hpp
                 include/public/hilbert/hilbert.hpp
                 include/public/hilbert/math.hpp
                 include/public/hilbert/math/linear_algebra/cholesky3.hpp
+                include/public/hilbert/math/linear_algebra/signature.hpp
                 include/public/hilbert/math/linear_algebra/symmetric_matrix.hpp
                 include/public/hilbert/math/linear_algebra/symmetric_matrix3.hpp
                 include/public/hilbert/math/linear_algebra/vector.hpp

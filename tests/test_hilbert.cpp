@@ -17,6 +17,9 @@
 namespace
 {
 
+using reordered_sinusoidal_signature =
+    hilbert::math::signature<hilbert::analysis::sine_term, hilbert::analysis::cosine_term, hilbert::analysis::constant_term>;
+
 template<std::floating_point Float>
 Float constexpr tolerance = std::same_as<Float, float> ? Float{1e-3} : Float{1e-10};
 
@@ -185,12 +188,26 @@ test_preconditions()
 
 template<hilbert::supported_float Float>
 void
+test_tagged_sinusoidal_coefficients_ignore_order()
+{
+  auto const coefficients = hilbert::math::vector<Float, reordered_sinusoidal_signature>{Float{2}, Float{3}, Float{4}};
+  auto const fit = hilbert::analysis::sinusoidal_fit<Float>::from_coefficients(coefficients);
+
+  require(fit.cosine_coefficient() == Float{3}, "tagged cosine coefficient used the positional index");
+  require(fit.sine_coefficient() == Float{2}, "tagged sine coefficient used the positional index");
+  require(fit.dc_offset() == Float{4}, "tagged constant coefficient used the positional index");
+}
+
+
+template<hilbert::supported_float Float>
+void
 test_precision()
 {
   test_cosine_analytic_signal<Float>();
   test_instantaneous_data_for_sinusoid<Float>();
   test_instantaneous_frequency_preserves_negative_phase_deltas<Float>();
   test_preconditions<Float>();
+  test_tagged_sinusoidal_coefficients_ignore_order<Float>();
 }
 
 

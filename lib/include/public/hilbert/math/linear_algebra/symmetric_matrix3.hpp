@@ -8,8 +8,9 @@
 namespace hilbert::math
 {
 
-template<supported_float Float>
-using symmetric_matrix3 = symmetric_matrix<Float, 3uz>;
+template<supported_float Float, coordinate_signature Signature>
+requires(Signature::size == 3uz)
+using symmetric_matrix3 = symmetric_matrix<Float, dual_signature_t<Signature>, Signature>;
 
 } // namespace hilbert::math
 

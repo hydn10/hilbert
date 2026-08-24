@@ -8,8 +8,9 @@
 namespace hilbert::analysis
 {
 
-template<supported_float Float, std::size_t ResponseCount>
-using least_squares_products3 = least_squares_products<Float, 3uz, ResponseCount>;
+template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount>
+requires(Signature::size == 3uz)
+using least_squares_products3 = least_squares_products<Float, Signature, ResponseCount>;
 
 } // namespace hilbert::analysis
 

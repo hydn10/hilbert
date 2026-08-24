@@ -99,7 +99,7 @@ public:
   }
 
   [[nodiscard]]
-  least_squares_products<Float, 3uz, ResponseCount>
+  least_squares_products<Float, typename Basis::signature_type, ResponseCount>
   finish() &&
   {
     if (domain_.size() < 3uz)
@@ -107,7 +107,8 @@ public:
       throw std::invalid_argument{"least-squares fit requires at least three samples"};
     }
 
-    auto const gram = math::symmetric_matrix<Float, 3uz>::from_lower_triangle(
+    auto const gram = math::symmetric_matrix<Float, math::dual_signature_t<typename Basis::signature_type>,
+                                               typename Basis::signature_type>::from_lower_triangle(
         detail::resolve_reduction<Float>(m00_.finish(), domain_),
         detail::resolve_reduction<Float>(m10_.finish(), domain_),
         detail::resolve_reduction<Float>(m11_.finish(), domain_),
@@ -115,12 +116,12 @@ public:
         detail::resolve_reduction<Float>(m21_.finish(), domain_),
         detail::resolve_reduction<Float>(m22_.finish(), domain_));
 
-    std::array<math::vector<Float, 3uz>, ResponseCount> projections;
+    std::array<math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>, ResponseCount> projections;
     for (
         auto &&[projection, first_projection, second_projection, third_projection] :
         std::views::zip(projections, first_projections_, second_projections_, third_projections_))
     {
-      projection = math::vector<Float, 3uz>{
+      projection = math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>{
           detail::resolve_reduction<Float>(first_projection.finish(), domain_),
           detail::resolve_reduction<Float>(second_projection.finish(), domain_),
           detail::resolve_reduction<Float>(third_projection.finish(), domain_),
