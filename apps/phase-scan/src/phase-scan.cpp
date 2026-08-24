@@ -13,7 +13,7 @@
 #include <hilbert/phase_scan/estimators/hilbert.hpp>
 #include <hilbert/phase_scan/estimators/least_squares.hpp>
 #include <hilbert/phase_scan/output.hpp>
-#include <hilbert/phase_scan/record.hpp>
+
 #include <hilbert/phase_scan/result.hpp>
 #include <hilbert/simulation.hpp>
 #include <hilbert/simulation/sinks/adapters.hpp>
@@ -185,10 +185,11 @@ simulate_phase_scan_point(double frequency_hz)
           settings, default_parameters(), ground_frequencies::constant{frequency_hz}, state<double>{0, 0, 0, 0, 0}),
       sink_factory);
 
-  auto const record = phase_scan_record_view{samples, measurement_window};
+  auto const measurement = hilbert::analysis::select_sample_range(samples.time_span(), measurement_window);
 
   auto const least_squares = estimate_phase_scan_by_least_squares(products);
-  auto const hilbert_estimate = estimate_phase_scan_by_hilbert_transform(record);
+  auto const hilbert_estimate = estimate_phase_scan_by_hilbert_transform(
+      samples.ground_displacement_span(), samples.tire_force_span(), measurement);
 
   return {
       .frequency_hz = frequency_hz,

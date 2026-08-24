@@ -13,7 +13,6 @@ target_sources(
                 include/hilbert/phase_scan/estimators/least_squares.hpp
                 include/hilbert/phase_scan/output.hpp
                 include/hilbert/phase_scan/phase_scan.hpp
-                include/hilbert/phase_scan/record.hpp
                 include/hilbert/phase_scan/result.hpp
 )
 
