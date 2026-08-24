@@ -5,7 +5,6 @@
 #include <hilbert/analysis/least_squares/products.hpp>
 #include <hilbert/analysis/phase/principal_phase.hpp>
 #include <hilbert/analysis/sinusoidal/fit.hpp>
-#include <hilbert/analysis/sinusoidal/signature.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/cholesky3.hpp>
 

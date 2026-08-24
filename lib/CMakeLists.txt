@@ -33,7 +33,6 @@ target_sources(
                 include/public/hilbert/analysis/sinusoidal/basis.hpp
                 include/public/hilbert/analysis/sinusoidal/fit.hpp
                 include/public/hilbert/analysis/sinusoidal/frequency.hpp
-                include/public/hilbert/analysis/sinusoidal/signature.hpp
                 include/public/hilbert/core/supported_float.hpp
                 include/public/hilbert/detail/attributes.hpp
                 include/public/hilbert/hilbert.hpp

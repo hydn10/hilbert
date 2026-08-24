@@ -3,7 +3,7 @@
 
 
 #include <hilbert/analysis/phase/principal_phase.hpp>
-#include <hilbert/analysis/sinusoidal/signature.hpp>
+#include <hilbert/analysis/sinusoidal/basis.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/vector.hpp>
 

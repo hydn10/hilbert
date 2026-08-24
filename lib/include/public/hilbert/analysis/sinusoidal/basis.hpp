@@ -4,8 +4,8 @@
 
 #include <hilbert/analysis/least_squares/basis.hpp>
 #include <hilbert/analysis/sinusoidal/frequency.hpp>
-#include <hilbert/analysis/sinusoidal/signature.hpp>
 #include <hilbert/core/supported_float.hpp>
+#include <hilbert/math/linear_algebra/signature.hpp>
 
 #include <cmath>
 
@@ -13,63 +13,81 @@
 namespace hilbert::analysis
 {
 
-template<supported_float Float>
-class cosine_basis_function
+struct cosine_term
 {
-  Float angular_frequency_;
-
-public:
-  using tag_type = cosine_term;
-
-  explicit constexpr cosine_basis_function(Float angular_frequency) noexcept
-      : angular_frequency_{angular_frequency}
-  {
-  }
-
-  [[nodiscard]]
-  Float
-  operator()(Float time) const noexcept
-  {
-    return std::cos(angular_frequency_ * time);
-  }
-};
-
-
-template<supported_float Float>
-class sine_basis_function
-{
-  Float angular_frequency_;
-
-public:
-  using tag_type = sine_term;
-
-  explicit constexpr sine_basis_function(Float angular_frequency) noexcept
-      : angular_frequency_{angular_frequency}
-  {
-  }
-
-  [[nodiscard]]
-  Float
-  operator()(Float time) const noexcept
-  {
-    return std::sin(angular_frequency_ * time);
-  }
-};
-
-
-class constant_basis_function
-{
-public:
-  using tag_type = constant_term;
-
   template<supported_float Float>
-  [[nodiscard]]
-  constexpr one_t
-  operator()([[maybe_unused]] Float time) const noexcept
+  class basis_function
   {
-    return {};
-  }
+    Float angular_frequency_;
+
+  public:
+    using tag_type = cosine_term;
+
+    explicit constexpr basis_function(Float angular_frequency) noexcept
+        : angular_frequency_{angular_frequency}
+    {
+    }
+
+    [[nodiscard]]
+    Float
+    operator()(Float time) const noexcept
+    {
+      return std::cos(angular_frequency_ * time);
+    }
+  };
 };
+
+
+struct sine_term
+{
+  template<supported_float Float>
+  class basis_function
+  {
+    Float angular_frequency_;
+
+  public:
+    using tag_type = sine_term;
+
+    explicit constexpr basis_function(Float angular_frequency) noexcept
+        : angular_frequency_{angular_frequency}
+    {
+    }
+
+    [[nodiscard]]
+    Float
+    operator()(Float time) const noexcept
+    {
+      return std::sin(angular_frequency_ * time);
+    }
+  };
+};
+
+
+struct constant_term
+{
+  class basis_function
+  {
+  public:
+    using tag_type = constant_term;
+
+    template<supported_float Float>
+    [[nodiscard]]
+    constexpr one_t
+    operator()([[maybe_unused]] Float time) const noexcept
+    {
+      return {};
+    }
+  };
+};
+
+
+using sinusoidal_signature = math::signature<cosine_term, sine_term, constant_term>;
+
+
+template<typename Signature>
+concept sinusoidal_coordinate_signature =
+    math::signature_type<Signature> && (Signature::size == 3uz) && math::contains_tag_v<Signature, cosine_term> &&
+    math::contains_tag_v<Signature, sine_term> && math::contains_tag_v<Signature, constant_term>;
 
 
 template<supported_float Float>
@@ -80,9 +98,9 @@ make_sinusoidal_basis(frequency_hz<Float> const &frequency)
   auto const angular_frequency = frequency.angular_frequency();
 
   return basis{
-      cosine_basis_function<Float>{angular_frequency},
-      sine_basis_function<Float>{angular_frequency},
-      constant_basis_function{},
+      cosine_term::basis_function<Float>{angular_frequency},
+      sine_term::basis_function<Float>{angular_frequency},
+      constant_term::basis_function{},
   };
 }
 

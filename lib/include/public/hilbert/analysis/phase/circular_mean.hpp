@@ -31,7 +31,7 @@ public:
     {
       throw std::invalid_argument{"circular mean received a zero vector"};
     }
-    
+
     sum_ += value / magnitude;
     ++count_;
   }
