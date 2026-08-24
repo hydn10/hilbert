@@ -23,33 +23,58 @@ class phase_scan_least_squares_estimate
 
 public:
   phase_scan_least_squares_estimate(
-      hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force)
-      : ground_{std::move(ground)}
-      , tire_force_{std::move(tire_force)}
-  {
-  }
+      hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force);
 
   [[nodiscard]]
   hilbert::analysis::principal_phase<Float>
-  phase() const
-  {
-    return hilbert::analysis::relative_phase(ground_, tire_force_);
-  }
+  phase() const;
 
   [[nodiscard]]
   hilbert::analysis::sinusoidal_fit<Float> const &
-  ground_fit() const noexcept
-  {
-    return ground_;
-  }
+  ground_fit() const noexcept;
 
   [[nodiscard]]
   hilbert::analysis::sinusoidal_fit<Float> const &
-  tire_force_fit() const noexcept
-  {
-    return tire_force_;
-  }
+  tire_force_fit() const noexcept;
 };
+
+
+template<hilbert::supported_float Float, hilbert::analysis::sinusoidal_coordinate_signature Signature>
+phase_scan_least_squares_estimate<Float>
+estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products<Float, Signature, 2uz> const &products);
+
+
+template<hilbert::supported_float Float>
+phase_scan_least_squares_estimate<Float>::phase_scan_least_squares_estimate(
+    hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force)
+    : ground_{std::move(ground)}
+    , tire_force_{std::move(tire_force)}
+{
+}
+
+
+template<hilbert::supported_float Float>
+hilbert::analysis::principal_phase<Float>
+phase_scan_least_squares_estimate<Float>::phase() const
+{
+  return hilbert::analysis::relative_phase(ground_, tire_force_);
+}
+
+
+template<hilbert::supported_float Float>
+hilbert::analysis::sinusoidal_fit<Float> const &
+phase_scan_least_squares_estimate<Float>::ground_fit() const noexcept
+{
+  return ground_;
+}
+
+
+template<hilbert::supported_float Float>
+hilbert::analysis::sinusoidal_fit<Float> const &
+phase_scan_least_squares_estimate<Float>::tire_force_fit() const noexcept
+{
+  return tire_force_;
+}
 
 
 template<hilbert::supported_float Float, hilbert::analysis::sinusoidal_coordinate_signature Signature>

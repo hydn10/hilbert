@@ -23,41 +23,51 @@ class circular_mean
 
 public:
   void
-  add_relative_vector(std::complex<Float> value)
-  {
-    auto const magnitude = std::abs(value);
-
-    if (magnitude == 0)
-    {
-      throw std::invalid_argument{"circular mean received a zero vector"};
-    }
-
-    sum_ += value / magnitude;
-    ++count_;
-  }
+  add_relative_vector(std::complex<Float> value);
 
   [[nodiscard]]
   relative_phase_estimate<Float>
-  finish() const
-  {
-    if (count_ == 0uz)
-    {
-      throw std::invalid_argument{"circular mean requires at least one vector"};
-    }
-
-    auto const magnitude = std::abs(sum_);
-    if (!std::isfinite(magnitude) || magnitude == 0)
-    {
-      throw std::invalid_argument{"circular mean has no defined direction"};
-    }
-
-    auto const resultant = std::min(static_cast<Float>(1), magnitude / static_cast<Float>(count_));
-    return {
-        principal_phase<Float>{std::arg(sum_)},
-        mean_resultant_length<Float>{resultant},
-    };
-  }
+  finish() const;
 };
+
+
+template<supported_float Float>
+void
+circular_mean<Float>::add_relative_vector(std::complex<Float> value)
+{
+  auto const magnitude = std::abs(value);
+
+  if (magnitude == 0)
+  {
+    throw std::invalid_argument{"circular mean received a zero vector"};
+  }
+
+  sum_ += value / magnitude;
+  ++count_;
+}
+
+
+template<supported_float Float>
+relative_phase_estimate<Float>
+circular_mean<Float>::finish() const
+{
+  if (count_ == 0uz)
+  {
+    throw std::invalid_argument{"circular mean requires at least one vector"};
+  }
+
+  auto const magnitude = std::abs(sum_);
+  if (!std::isfinite(magnitude) || magnitude == 0)
+  {
+    throw std::invalid_argument{"circular mean has no defined direction"};
+  }
+
+  auto const resultant = std::min(static_cast<Float>(1), magnitude / static_cast<Float>(count_));
+  return {
+      principal_phase<Float>{std::arg(sum_)},
+      mean_resultant_length<Float>{resultant},
+  };
+}
 
 } // namespace hilbert::analysis
 

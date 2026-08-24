@@ -23,31 +23,52 @@ public:
   using float_type = Float;
   static constexpr std::size_t response_count = ResponseCount;
 
-  least_squares_observation(Float argument, std::array<Float, ResponseCount> responses) noexcept
-      : argument_{argument}
-      , responses_{responses}
-  {
-  }
+  least_squares_observation(Float argument, std::array<Float, ResponseCount> responses) noexcept;
 
   [[nodiscard]]
   Float
-  argument() const noexcept
-  {
-    return argument_;
-  }
+  argument() const noexcept;
 
   [[nodiscard]]
   std::array<Float, ResponseCount> const &
-  responses() const noexcept
-  {
-    return responses_;
-  }
+  responses() const noexcept;
 };
 
 
 template<supported_float Float, typename... Responses>
 requires(sizeof...(Responses) > 0uz) && (std::same_as<std::remove_cvref_t<Responses>, Float> && ...)
 [[nodiscard]]
+auto
+make_observation(Float argument, Responses... responses) noexcept;
+
+
+template<supported_float Float, std::size_t ResponseCount>
+least_squares_observation<Float, ResponseCount>::least_squares_observation(
+    Float argument, std::array<Float, ResponseCount> responses) noexcept
+    : argument_{argument}
+    , responses_{responses}
+{
+}
+
+
+template<supported_float Float, std::size_t ResponseCount>
+Float
+least_squares_observation<Float, ResponseCount>::argument() const noexcept
+{
+  return argument_;
+}
+
+
+template<supported_float Float, std::size_t ResponseCount>
+std::array<Float, ResponseCount> const &
+least_squares_observation<Float, ResponseCount>::responses() const noexcept
+{
+  return responses_;
+}
+
+
+template<supported_float Float, typename... Responses>
+requires(sizeof...(Responses) > 0uz) && (std::same_as<std::remove_cvref_t<Responses>, Float> && ...)
 auto
 make_observation(Float argument, Responses... responses) noexcept
 {

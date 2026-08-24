@@ -24,39 +24,90 @@ public:
   using signature_type = Signature;
   static constexpr std::size_t size = Signature::size;
 
-  constexpr vector() noexcept = default;
+  constexpr vector() noexcept;
 
-  explicit constexpr vector(std::array<Float, size> values) noexcept
-      : values_{values}
-  {
-  }
+  explicit constexpr vector(std::array<Float, size> values) noexcept;
 
   template<typename... Values>
-  requires(sizeof...(Values) == size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
-  explicit constexpr vector(Values &&...values) noexcept
-      : values_{static_cast<Float>(std::forward<Values>(values))...}
-  {
-  }
+  requires(sizeof...(Values) == Signature::size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+  explicit constexpr vector(Values &&...values) noexcept;
 
   [[nodiscard]]
   constexpr std::array<Float, size> const &
-  values() const noexcept
-  {
-    return values_;
-  }
+  values() const noexcept;
 
   [[nodiscard]]
   constexpr std::array<Float, size> &
-  values() noexcept
-  {
-    return values_;
-  }
+  values() noexcept;
 };
 
 
 template<std::size_t Index, supported_float Float, coordinate_signature Signature>
 requires(Index < Signature::size)
 [[nodiscard]]
+constexpr Float const &
+get(vector<Float, Signature> const &value) noexcept;
+
+
+template<std::size_t Index, supported_float Float, coordinate_signature Signature>
+requires(Index < Signature::size)
+[[nodiscard]]
+constexpr Float &
+get(vector<Float, Signature> &value) noexcept;
+
+
+template<typename Tag, supported_float Float, coordinate_signature Signature>
+requires(Signature::template contains<Tag>())
+[[nodiscard]]
+constexpr Float const &
+get(vector<Float, Signature> const &value) noexcept;
+
+
+template<typename Tag, supported_float Float, coordinate_signature Signature>
+requires(Signature::template contains<Tag>())
+[[nodiscard]]
+constexpr Float &
+get(vector<Float, Signature> &value) noexcept;
+
+
+template<supported_float Float, coordinate_signature Signature>
+constexpr vector<Float, Signature>::vector() noexcept = default;
+
+
+template<supported_float Float, coordinate_signature Signature>
+constexpr vector<Float, Signature>::vector(std::array<Float, size> values) noexcept
+    : values_{values}
+{
+}
+
+
+template<supported_float Float, coordinate_signature Signature>
+template<typename... Values>
+requires(sizeof...(Values) == Signature::size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+constexpr vector<Float, Signature>::vector(Values &&...values) noexcept
+    : values_{static_cast<Float>(std::forward<Values>(values))...}
+{
+}
+
+
+template<supported_float Float, coordinate_signature Signature>
+constexpr std::array<Float, vector<Float, Signature>::size> const &
+vector<Float, Signature>::values() const noexcept
+{
+  return values_;
+}
+
+
+template<supported_float Float, coordinate_signature Signature>
+constexpr std::array<Float, vector<Float, Signature>::size> &
+vector<Float, Signature>::values() noexcept
+{
+  return values_;
+}
+
+
+template<std::size_t Index, supported_float Float, coordinate_signature Signature>
+requires(Index < Signature::size)
 constexpr Float const &
 get(vector<Float, Signature> const &value) noexcept
 {
@@ -66,7 +117,6 @@ get(vector<Float, Signature> const &value) noexcept
 
 template<std::size_t Index, supported_float Float, coordinate_signature Signature>
 requires(Index < Signature::size)
-[[nodiscard]]
 constexpr Float &
 get(vector<Float, Signature> &value) noexcept
 {
@@ -76,7 +126,6 @@ get(vector<Float, Signature> &value) noexcept
 
 template<typename Tag, supported_float Float, coordinate_signature Signature>
 requires(Signature::template contains<Tag>())
-[[nodiscard]]
 constexpr Float const &
 get(vector<Float, Signature> const &value) noexcept
 {
@@ -86,7 +135,6 @@ get(vector<Float, Signature> const &value) noexcept
 
 template<typename Tag, supported_float Float, coordinate_signature Signature>
 requires(Signature::template contains<Tag>())
-[[nodiscard]]
 constexpr Float &
 get(vector<Float, Signature> &value) noexcept
 {

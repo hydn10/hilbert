@@ -18,29 +18,43 @@ class frequency_hz
   Float value_;
 
 public:
-  explicit frequency_hz(Float value)
-      : value_{value}
-  {
-    if (!std::isfinite(value_) || value_ <= 0)
-    {
-      throw std::invalid_argument{"frequency must be finite and positive"};
-    }
-  }
+  explicit frequency_hz(Float value);
 
   [[nodiscard]]
   Float
-  value() const noexcept
-  {
-    return value_;
-  }
+  value() const noexcept;
 
   [[nodiscard]]
   Float
-  angular_frequency() const noexcept
-  {
-    return static_cast<Float>(2) * std::numbers::pi_v<Float> * value_;
-  }
+  angular_frequency() const noexcept;
 };
+
+
+template<supported_float Float>
+frequency_hz<Float>::frequency_hz(Float value)
+    : value_{value}
+{
+  if (!std::isfinite(value_) || value_ <= 0)
+  {
+    throw std::invalid_argument{"frequency must be finite and positive"};
+  }
+}
+
+
+template<supported_float Float>
+Float
+frequency_hz<Float>::value() const noexcept
+{
+  return value_;
+}
+
+
+template<supported_float Float>
+Float
+frequency_hz<Float>::angular_frequency() const noexcept
+{
+  return static_cast<Float>(2) * std::numbers::pi_v<Float> * value_;
+}
 
 } // namespace hilbert::analysis
 

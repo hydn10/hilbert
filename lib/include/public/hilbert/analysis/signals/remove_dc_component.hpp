@@ -15,6 +15,11 @@ namespace hilbert::analysis
 
 template<supported_float Float>
 std::vector<Float>
+remove_dc_component(std::span<Float const> signal);
+
+
+template<supported_float Float>
+std::vector<Float>
 remove_dc_component(std::span<Float const> signal)
 {
   if (signal.empty())

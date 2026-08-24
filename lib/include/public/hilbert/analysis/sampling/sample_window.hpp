@@ -21,29 +21,15 @@ class time_window
   Float end_;
 
 public:
-  time_window(Float begin, Float end)
-      : begin_{begin}
-      , end_{end}
-  {
-    if (!std::isfinite(begin_) || !std::isfinite(end_) || begin_ >= end_)
-    {
-      throw std::invalid_argument{"time window must have finite, increasing bounds"};
-    }
-  }
+  time_window(Float begin, Float end);
 
   [[nodiscard]]
   Float
-  begin() const noexcept
-  {
-    return begin_;
-  }
+  begin() const noexcept;
 
   [[nodiscard]]
   Float
-  end() const noexcept
-  {
-    return end_;
-  }
+  end() const noexcept;
 };
 
 
@@ -53,12 +39,7 @@ class sample_range
   std::size_t end_;
   std::size_t record_size_;
 
-  sample_range(std::size_t begin, std::size_t end, std::size_t record_size) noexcept
-      : begin_{begin}
-      , end_{end}
-      , record_size_{record_size}
-  {
-  }
+  sample_range(std::size_t begin, std::size_t end, std::size_t record_size) noexcept;
 
   template<supported_float Float>
   friend sample_range
@@ -67,37 +48,90 @@ class sample_range
 public:
   [[nodiscard]]
   std::size_t
-  begin() const noexcept
-  {
-    return begin_;
-  }
+  begin() const noexcept;
 
   [[nodiscard]]
   std::size_t
-  end() const noexcept
-  {
-    return end_;
-  }
+  end() const noexcept;
 
   [[nodiscard]]
   std::size_t
-  size() const noexcept
-  {
-    return end_ - begin_;
-  }
+  size() const noexcept;
 
   template<typename T>
   [[nodiscard]]
   std::span<T>
-  slice(std::span<T> values) const
-  {
-    if (values.size() != record_size_)
-    {
-      throw std::invalid_argument{"sample range does not match record length"};
-    }
-    return values.subspan(begin_, size());
-  }
+  slice(std::span<T> values) const;
 };
+
+
+template<supported_float Float>
+time_window<Float>::time_window(Float begin, Float end)
+    : begin_{begin}
+    , end_{end}
+{
+  if (!std::isfinite(begin_) || !std::isfinite(end_) || begin_ >= end_)
+  {
+    throw std::invalid_argument{"time window must have finite, increasing bounds"};
+  }
+}
+
+
+template<supported_float Float>
+Float
+time_window<Float>::begin() const noexcept
+{
+  return begin_;
+}
+
+
+template<supported_float Float>
+Float
+time_window<Float>::end() const noexcept
+{
+  return end_;
+}
+
+
+inline sample_range::sample_range(std::size_t begin, std::size_t end, std::size_t record_size) noexcept
+    : begin_{begin}
+    , end_{end}
+    , record_size_{record_size}
+{
+}
+
+
+inline std::size_t
+sample_range::begin() const noexcept
+{
+  return begin_;
+}
+
+
+inline std::size_t
+sample_range::end() const noexcept
+{
+  return end_;
+}
+
+
+inline std::size_t
+sample_range::size() const noexcept
+{
+  return end_ - begin_;
+}
+
+
+template<typename T>
+std::span<T>
+sample_range::slice(std::span<T> values) const
+{
+  if (values.size() != record_size_)
+  {
+    throw std::invalid_argument{"sample range does not match record length"};
+  }
+  return values.subspan(begin_, size());
+}
 
 
 // Precondition: time contains finite values sorted in nondecreasing order.

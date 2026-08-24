@@ -20,14 +20,19 @@ hilbert_transform(std::span<Float const> input);
 
 template<supported_float Float, typename Allocator>
 std::vector<std::complex<Float>>
-hilbert_transform(std::vector<Float, Allocator> const &input)
-{
-  return hilbert_transform<Float>(std::span<Float const>{input});
-}
+hilbert_transform(std::vector<Float, Allocator> const &input);
 
 
 extern template std::vector<std::complex<double>>
 hilbert_transform<double>(std::span<double const> input);
+
+
+template<supported_float Float, typename Allocator>
+std::vector<std::complex<Float>>
+hilbert_transform(std::vector<Float, Allocator> const &input)
+{
+  return hilbert_transform<Float>(std::span<Float const>{input});
+}
 
 } // namespace hilbert
 

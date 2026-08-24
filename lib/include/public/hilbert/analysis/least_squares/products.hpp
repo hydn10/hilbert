@@ -24,35 +24,57 @@ public:
   using projection_type = math::vector<Float, math::dual_signature_t<Signature>>;
   using gram_type = math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature>;
 
-  least_squares_products(gram_type gram, std::array<projection_type, ResponseCount> projections) noexcept
-      : gram_{gram}
-      , projections_{projections}
-  {
-  }
+  least_squares_products(gram_type gram, std::array<projection_type, ResponseCount> projections) noexcept;
 
   [[nodiscard]]
   gram_type const &
-  gram() const noexcept
-  {
-    return gram_;
-  }
+  gram() const noexcept;
 
   template<std::size_t Index>
   requires(Index < ResponseCount)
   [[nodiscard]]
   projection_type const &
-  projection() const noexcept
-  {
-    return std::get<Index>(projections_);
-  }
+  projection() const noexcept;
 
   [[nodiscard]]
   std::array<projection_type, ResponseCount> const &
-  projections() const noexcept
-  {
-    return projections_;
-  }
+  projections() const noexcept;
 };
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount>
+least_squares_products<Float, Signature, ResponseCount>::least_squares_products(
+    gram_type gram, std::array<projection_type, ResponseCount> projections) noexcept
+    : gram_{gram}
+    , projections_{projections}
+{
+}
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount>
+least_squares_products<Float, Signature, ResponseCount>::gram_type const &
+least_squares_products<Float, Signature, ResponseCount>::gram() const noexcept
+{
+  return gram_;
+}
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount>
+template<std::size_t Index>
+requires(Index < ResponseCount)
+least_squares_products<Float, Signature, ResponseCount>::projection_type const &
+least_squares_products<Float, Signature, ResponseCount>::projection() const noexcept
+{
+  return std::get<Index>(projections_);
+}
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount>
+std::array<typename least_squares_products<Float, Signature, ResponseCount>::projection_type, ResponseCount> const &
+least_squares_products<Float, Signature, ResponseCount>::projections() const noexcept
+{
+  return projections_;
+}
 
 } // namespace hilbert::analysis
 

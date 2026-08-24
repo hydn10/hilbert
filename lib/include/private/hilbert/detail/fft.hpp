@@ -31,4 +31,4 @@ transform(std::span<std::complex<Float> const> input, sign direction);
 
 } // namespace hilbert::detail::fft
 
-#endif
+#endif // HILBERT_DETAIL_FFT_HPP

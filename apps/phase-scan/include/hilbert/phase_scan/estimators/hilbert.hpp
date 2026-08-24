@@ -20,6 +20,12 @@ namespace hilbert::phase_scan
 template<hilbert::supported_float Float>
 hilbert::analysis::relative_phase_estimate<Float>
 estimate_phase_scan_by_hilbert_transform(
+    std::span<Float const> ground, std::span<Float const> force, hilbert::analysis::sample_range const &measurement);
+
+
+template<hilbert::supported_float Float>
+hilbert::analysis::relative_phase_estimate<Float>
+estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> ground, std::span<Float const> force, hilbert::analysis::sample_range const &measurement)
 {
   auto const centered_ground = hilbert::analysis::remove_dc_component(ground);

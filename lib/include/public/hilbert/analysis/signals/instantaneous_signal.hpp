@@ -21,37 +21,19 @@ class signal_data
   std::vector<Float> frequency_;
 
 public:
-  signal_data(std::vector<Float> amplitude, std::vector<Float> phase, std::vector<Float> frequency)
-      : amplitude_{std::move(amplitude)}
-      , phase_{std::move(phase)}
-      , frequency_{std::move(frequency)}
-  {
-    if (amplitude_.size() != phase_.size() || amplitude_.size() != frequency_.size())
-    {
-      throw std::invalid_argument{"signal data channels must have equal lengths"};
-    }
-  }
+  signal_data(std::vector<Float> amplitude, std::vector<Float> phase, std::vector<Float> frequency);
 
   [[nodiscard]]
   std::span<Float const>
-  amplitude_span() const noexcept
-  {
-    return amplitude_;
-  }
+  amplitude_span() const noexcept;
 
   [[nodiscard]]
   std::span<Float const>
-  phase_span() const noexcept
-  {
-    return phase_;
-  }
+  phase_span() const noexcept;
 
   [[nodiscard]]
   std::span<Float const>
-  frequency_span() const noexcept
-  {
-    return frequency_;
-  }
+  frequency_span() const noexcept;
 };
 
 
@@ -63,14 +45,56 @@ calculate_inst_signal_data(std::span<Float const> data, Float sampling_rate);
 
 template<supported_float Float, typename Allocator>
 signal_data<Float>
-calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float sampling_rate)
-{
-  return calculate_inst_signal_data<Float>(std::span<Float const>{data}, sampling_rate);
-}
+calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float sampling_rate);
 
 
 extern template signal_data<double>
 calculate_inst_signal_data<double>(std::span<double const> data, double sampling_rate);
+
+
+template<supported_float Float>
+signal_data<Float>::signal_data(std::vector<Float> amplitude, std::vector<Float> phase, std::vector<Float> frequency)
+    : amplitude_{std::move(amplitude)}
+    , phase_{std::move(phase)}
+    , frequency_{std::move(frequency)}
+{
+  if (amplitude_.size() != phase_.size() || amplitude_.size() != frequency_.size())
+  {
+    throw std::invalid_argument{"signal data channels must have equal lengths"};
+  }
+}
+
+
+template<supported_float Float>
+std::span<Float const>
+signal_data<Float>::amplitude_span() const noexcept
+{
+  return amplitude_;
+}
+
+
+template<supported_float Float>
+std::span<Float const>
+signal_data<Float>::phase_span() const noexcept
+{
+  return phase_;
+}
+
+
+template<supported_float Float>
+std::span<Float const>
+signal_data<Float>::frequency_span() const noexcept
+{
+  return frequency_;
+}
+
+
+template<supported_float Float, typename Allocator>
+signal_data<Float>
+calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float sampling_rate)
+{
+  return calculate_inst_signal_data<Float>(std::span<Float const>{data}, sampling_rate);
+}
 
 } // namespace hilbert
 

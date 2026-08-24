@@ -18,23 +18,32 @@ class principal_phase
   Float radians_;
 
 public:
-  explicit principal_phase(Float radians)
-      : radians_{radians}
-  {
-    auto constexpr pi_value = std::numbers::pi_v<Float>;
-    if (!std::isfinite(radians_) || radians_ < -pi_value || radians_ > pi_value)
-    {
-      throw std::invalid_argument{"phase must be a finite principal angle"};
-    }
-  }
+  explicit principal_phase(Float radians);
 
   [[nodiscard]]
   Float
-  radians() const noexcept
-  {
-    return radians_;
-  }
+  radians() const noexcept;
 };
+
+
+template<supported_float Float>
+principal_phase<Float>::principal_phase(Float radians)
+    : radians_{radians}
+{
+  auto constexpr pi_value = std::numbers::pi_v<Float>;
+  if (!std::isfinite(radians_) || radians_ < -pi_value || radians_ > pi_value)
+  {
+    throw std::invalid_argument{"phase must be a finite principal angle"};
+  }
+}
+
+
+template<supported_float Float>
+Float
+principal_phase<Float>::radians() const noexcept
+{
+  return radians_;
+}
 
 } // namespace hilbert::analysis
 

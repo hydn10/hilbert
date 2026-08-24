@@ -108,6 +108,14 @@ struct groups_have_disjoint_exit_codes<First, Rest...>
 
 
 template<typename Success, typename... FailureGroups>
+struct exit_domain;
+
+
+template<typename Success, typename Outcome, typename... FailureGroups>
+concept exit_domain_contains = exit_domain<Success, FailureGroups...>::template contains<Outcome>;
+
+
+template<typename Success, typename... FailureGroups>
 struct exit_domain
 {
   static_assert(std::derived_from<Success, successful_exit_outcome>, "an exit domain must declare one success outcome");
@@ -135,26 +143,40 @@ struct exit_domain
   using failures_for = failure_group_for<Domain>::failures;
 
   template<typename Outcome>
-  requires(contains<Outcome>)
+  requires(exit_domain_contains<Success, Outcome, FailureGroups...>)
   static constexpr int
-  to_exit_code([[maybe_unused]] Outcome outcome) noexcept
-  {
-    return std::remove_cvref_t<Outcome>::exit_code;
-  }
+  to_exit_code([[maybe_unused]] Outcome outcome) noexcept;
 
   template<typename... Outcomes>
-  requires(contains<Outcomes> && ...)
+  requires(exit_domain_contains<Success, Outcomes, FailureGroups...> && ...)
   static constexpr int
-  to_exit_code(std::variant<Outcomes...> const &result)
-  {
-    return std::visit(
-        [](auto outcome) noexcept
-        {
-          return exit_domain::to_exit_code(outcome);
-        },
-        result);
-  }
+  to_exit_code(std::variant<Outcomes...> const &result);
 };
+
+
+template<typename Success, typename... FailureGroups>
+template<typename Outcome>
+requires(exit_domain_contains<Success, Outcome, FailureGroups...>)
+constexpr int
+exit_domain<Success, FailureGroups...>::to_exit_code([[maybe_unused]] Outcome outcome) noexcept
+{
+  return std::remove_cvref_t<Outcome>::exit_code;
+}
+
+
+template<typename Success, typename... FailureGroups>
+template<typename... Outcomes>
+requires(exit_domain_contains<Success, Outcomes, FailureGroups...> && ...)
+constexpr int
+exit_domain<Success, FailureGroups...>::to_exit_code(std::variant<Outcomes...> const &result)
+{
+  return std::visit(
+      [](auto outcome) noexcept
+      {
+        return exit_domain<Success, FailureGroups...>::to_exit_code(outcome);
+      },
+      result);
+}
 
 } // namespace hilbert::app::process
 

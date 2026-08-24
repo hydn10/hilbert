@@ -54,72 +54,85 @@ public:
   using float_type = Float;
   static constexpr std::size_t response_count = ResponseCount;
 
-  normal_equations_reducer3(Basis basis, Domain domain)
-      : basis_{std::move(basis)}
-      , domain_{std::move(domain)}
-  {
-  }
+  normal_equations_reducer3(Basis basis, Domain domain);
 
   void
-  accumulate(least_squares_observation<Float, ResponseCount> const &observation)
-  {
-    auto const row = basis_.template row_at<Float>(observation.argument());
-
-    detail::observe_product(m00_, get<0>(row), get<0>(row));
-    detail::observe_product(m10_, get<1>(row), get<0>(row));
-    detail::observe_product(m11_, get<1>(row), get<1>(row));
-    detail::observe_product(m20_, get<2>(row), get<0>(row));
-    detail::observe_product(m21_, get<2>(row), get<1>(row));
-    detail::observe_product(m22_, get<2>(row), get<2>(row));
-
-    for (
-        auto &&[first_projection, second_projection, third_projection, response] :
-        std::views::zip(first_projections_, second_projections_, third_projections_, observation.responses()))
-    {
-      detail::observe_product(first_projection, get<0>(row), response);
-      detail::observe_product(second_projection, get<1>(row), response);
-      detail::observe_product(third_projection, get<2>(row), response);
-    }
-
-    detail::observe_domain(domain_);
-  }
+  accumulate(least_squares_observation<Float, ResponseCount> const &observation);
 
   [[nodiscard]]
   least_squares_products<Float, typename Basis::signature_type, ResponseCount>
-  finish() &&
-  {
-    if (domain_.size() < 3uz)
-    {
-      throw std::invalid_argument{"least-squares fit requires at least three samples"};
-    }
-
-    auto const gram = math::symmetric_matrix<
-        Float,
-        math::dual_signature_t<typename Basis::signature_type>,
-        typename Basis::signature_type>::
-        from_lower_triangle(
-            detail::resolve_reduction<Float>(m00_.finish(), domain_),
-            detail::resolve_reduction<Float>(m10_.finish(), domain_),
-            detail::resolve_reduction<Float>(m11_.finish(), domain_),
-            detail::resolve_reduction<Float>(m20_.finish(), domain_),
-            detail::resolve_reduction<Float>(m21_.finish(), domain_),
-            detail::resolve_reduction<Float>(m22_.finish(), domain_));
-
-    std::array<math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>, ResponseCount> projections;
-    for (
-        auto &&[projection, first_projection, second_projection, third_projection] :
-        std::views::zip(projections, first_projections_, second_projections_, third_projections_))
-    {
-      projection = math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>{
-          detail::resolve_reduction<Float>(first_projection.finish(), domain_),
-          detail::resolve_reduction<Float>(second_projection.finish(), domain_),
-          detail::resolve_reduction<Float>(third_projection.finish(), domain_),
-      };
-    }
-
-    return {gram, projections};
-  }
+  finish() &&;
 };
+
+
+template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::normal_equations_reducer3(Basis basis, Domain domain)
+    : basis_{std::move(basis)}
+    , domain_{std::move(domain)}
+{
+}
+
+
+template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+void
+normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::accumulate(
+    least_squares_observation<Float, ResponseCount> const &observation)
+{
+  auto const row = basis_.template row_at<Float>(observation.argument());
+
+  detail::observe_product(m00_, get<0>(row), get<0>(row));
+  detail::observe_product(m10_, get<1>(row), get<0>(row));
+  detail::observe_product(m11_, get<1>(row), get<1>(row));
+  detail::observe_product(m20_, get<2>(row), get<0>(row));
+  detail::observe_product(m21_, get<2>(row), get<1>(row));
+  detail::observe_product(m22_, get<2>(row), get<2>(row));
+
+  for (
+      auto &&[first_projection, second_projection, third_projection, response] :
+      std::views::zip(first_projections_, second_projections_, third_projections_, observation.responses()))
+  {
+    detail::observe_product(first_projection, get<0>(row), response);
+    detail::observe_product(second_projection, get<1>(row), response);
+    detail::observe_product(third_projection, get<2>(row), response);
+  }
+
+  detail::observe_domain(domain_);
+}
+
+
+template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+least_squares_products<Float, typename Basis::signature_type, ResponseCount>
+normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::finish() &&
+{
+  if (domain_.size() < 3uz)
+  {
+    throw std::invalid_argument{"least-squares fit requires at least three samples"};
+  }
+
+  auto const gram = math::
+      symmetric_matrix<Float, math::dual_signature_t<typename Basis::signature_type>, typename Basis::signature_type>::
+          from_lower_triangle(
+              detail::resolve_reduction<Float>(m00_.finish(), domain_),
+              detail::resolve_reduction<Float>(m10_.finish(), domain_),
+              detail::resolve_reduction<Float>(m11_.finish(), domain_),
+              detail::resolve_reduction<Float>(m20_.finish(), domain_),
+              detail::resolve_reduction<Float>(m21_.finish(), domain_),
+              detail::resolve_reduction<Float>(m22_.finish(), domain_));
+
+  std::array<math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>, ResponseCount> projections;
+  for (
+      auto &&[projection, first_projection, second_projection, third_projection] :
+      std::views::zip(projections, first_projections_, second_projections_, third_projections_))
+  {
+    projection = math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>{
+        detail::resolve_reduction<Float>(first_projection.finish(), domain_),
+        detail::resolve_reduction<Float>(second_projection.finish(), domain_),
+        detail::resolve_reduction<Float>(third_projection.finish(), domain_),
+    };
+  }
+
+  return {gram, projections};
+}
 
 
 template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
@@ -129,6 +142,28 @@ using normal_equations_reducer = normal_equations_reducer3<Float, Basis, Respons
 template<supported_float Float, std::size_t ResponseCount, typename Basis>
 [[nodiscard]]
 auto
+make_normal_equations_reducer(Basis basis, exact_observation_count count);
+
+
+template<supported_float Float, std::size_t ResponseCount, typename Basis>
+[[nodiscard]]
+auto
+make_normal_equations_reducer(Basis basis, [[maybe_unused]] count_observations_t count);
+
+
+template<supported_float Float, typename Basis, std::ranges::input_range Observations>
+requires requires(std::ranges::range_value_t<Observations> const &observation) {
+  std::remove_cvref_t<std::ranges::range_value_t<Observations>>::response_count;
+  observation.argument();
+  observation.responses();
+}
+[[nodiscard]]
+auto
+form_normal_equations(Basis basis, Observations &&observations);
+
+
+template<supported_float Float, std::size_t ResponseCount, typename Basis>
+auto
 make_normal_equations_reducer(Basis basis, exact_observation_count count)
 {
   return normal_equations_reducer3<Float, Basis, ResponseCount, detail::known_sample_domain>{
@@ -137,7 +172,6 @@ make_normal_equations_reducer(Basis basis, exact_observation_count count)
 
 
 template<supported_float Float, std::size_t ResponseCount, typename Basis>
-[[nodiscard]]
 auto
 make_normal_equations_reducer(Basis basis, [[maybe_unused]] count_observations_t count)
 {
@@ -152,7 +186,6 @@ requires requires(std::ranges::range_value_t<Observations> const &observation) {
   observation.argument();
   observation.responses();
 }
-[[nodiscard]]
 auto
 form_normal_equations(Basis basis, Observations &&observations)
 {

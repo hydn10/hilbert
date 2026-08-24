@@ -17,22 +17,31 @@ class mean_resultant_length
   Float value_;
 
 public:
-  explicit mean_resultant_length(Float value)
-      : value_{value}
-  {
-    if (!std::isfinite(value_) || value_ < 0 || value_ > 1)
-    {
-      throw std::invalid_argument{"mean resultant length must be in [0, 1]"};
-    }
-  }
+  explicit mean_resultant_length(Float value);
 
   [[nodiscard]]
   Float
-  value() const noexcept
-  {
-    return value_;
-  }
+  value() const noexcept;
 };
+
+
+template<supported_float Float>
+mean_resultant_length<Float>::mean_resultant_length(Float value)
+    : value_{value}
+{
+  if (!std::isfinite(value_) || value_ < 0 || value_ > 1)
+  {
+    throw std::invalid_argument{"mean resultant length must be in [0, 1]"};
+  }
+}
+
+
+template<supported_float Float>
+Float
+mean_resultant_length<Float>::value() const noexcept
+{
+  return value_;
+}
 
 } // namespace hilbert::analysis
 

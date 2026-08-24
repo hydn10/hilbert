@@ -19,17 +19,7 @@ namespace detail
 
 template<std::size_t Row, std::size_t Column>
 consteval std::size_t
-symmetric_matrix_index() noexcept
-{
-  if constexpr (Row >= Column)
-  {
-    return Row * (Row + 1uz) / 2uz + Column;
-  }
-  else
-  {
-    return Column * (Column + 1uz) / 2uz + Row;
-  }
-}
+symmetric_matrix_index() noexcept;
 
 } // namespace detail
 
@@ -46,39 +36,25 @@ public:
 private:
   std::array<Float, lower_triangle_size> lower_triangle_{};
 
-  explicit constexpr symmetric_matrix(std::array<Float, lower_triangle_size> lower_triangle) noexcept
-      : lower_triangle_{lower_triangle}
-  {
-  }
+  explicit constexpr symmetric_matrix(std::array<Float, lower_triangle_size> lower_triangle) noexcept;
 
 public:
   static constexpr symmetric_matrix
-  from_lower_triangle(std::array<Float, lower_triangle_size> lower_triangle) noexcept
-  {
-    return symmetric_matrix{lower_triangle};
-  }
+  from_lower_triangle(std::array<Float, lower_triangle_size> lower_triangle) noexcept;
 
   template<typename... Values>
-  requires(sizeof...(Values) == lower_triangle_size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+  requires(sizeof...(Values) == ColumnSignature::size * (ColumnSignature::size + 1uz) / 2uz) &&
+          (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
   static constexpr symmetric_matrix
-  from_lower_triangle(Values... values) noexcept
-  {
-    return symmetric_matrix{std::array<Float, lower_triangle_size>{static_cast<Float>(values)...}};
-  }
+  from_lower_triangle(Values... values) noexcept;
 
   [[nodiscard]]
   constexpr std::array<Float, lower_triangle_size> const &
-  values() const noexcept
-  {
-    return lower_triangle_;
-  }
+  values() const noexcept;
 
   [[nodiscard]]
   constexpr std::array<Float, lower_triangle_size> &
-  values() noexcept
-  {
-    return lower_triangle_;
-  }
+  values() noexcept;
 };
 
 
@@ -91,6 +67,100 @@ template<
 requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
          (Column < ColumnSignature::size)
 [[nodiscard]]
+constexpr Float const &
+get(symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexcept;
+
+
+template<
+    std::size_t Row,
+    std::size_t Column,
+    supported_float Float,
+    coordinate_signature RowSignature,
+    coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
+         (Column < ColumnSignature::size)
+[[nodiscard]]
+constexpr Float &
+get(symmetric_matrix<Float, RowSignature, ColumnSignature> &matrix) noexcept;
+
+
+namespace detail
+{
+
+template<std::size_t Row, std::size_t Column>
+consteval std::size_t
+symmetric_matrix_index() noexcept
+{
+  if constexpr (Row >= Column)
+  {
+    return Row * (Row + 1uz) / 2uz + Column;
+  }
+  else
+  {
+    return Column * (Column + 1uz) / 2uz + Row;
+  }
+}
+
+} // namespace detail
+
+
+template<supported_float Float, coordinate_signature RowSignature, coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>>
+constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>::symmetric_matrix(
+    std::array<Float, lower_triangle_size> lower_triangle) noexcept
+    : lower_triangle_{lower_triangle}
+{
+}
+
+
+template<supported_float Float, coordinate_signature RowSignature, coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>>
+constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>
+symmetric_matrix<Float, RowSignature, ColumnSignature>::from_lower_triangle(
+    std::array<Float, lower_triangle_size> lower_triangle) noexcept
+{
+  return symmetric_matrix{lower_triangle};
+}
+
+
+template<supported_float Float, coordinate_signature RowSignature, coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>>
+template<typename... Values>
+requires(sizeof...(Values) == ColumnSignature::size * (ColumnSignature::size + 1uz) / 2uz) &&
+        (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>
+symmetric_matrix<Float, RowSignature, ColumnSignature>::from_lower_triangle(Values... values) noexcept
+{
+  return symmetric_matrix{std::array<Float, lower_triangle_size>{static_cast<Float>(values)...}};
+}
+
+
+template<supported_float Float, coordinate_signature RowSignature, coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>>
+constexpr std::array<Float, symmetric_matrix<Float, RowSignature, ColumnSignature>::lower_triangle_size> const &
+symmetric_matrix<Float, RowSignature, ColumnSignature>::values() const noexcept
+{
+  return lower_triangle_;
+}
+
+
+template<supported_float Float, coordinate_signature RowSignature, coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>>
+constexpr std::array<Float, symmetric_matrix<Float, RowSignature, ColumnSignature>::lower_triangle_size> &
+symmetric_matrix<Float, RowSignature, ColumnSignature>::values() noexcept
+{
+  return lower_triangle_;
+}
+
+
+template<
+    std::size_t Row,
+    std::size_t Column,
+    supported_float Float,
+    coordinate_signature RowSignature,
+    coordinate_signature ColumnSignature>
+requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
+         (Column < ColumnSignature::size)
 constexpr Float const &
 get(symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexcept
 {
@@ -106,7 +176,6 @@ template<
     coordinate_signature ColumnSignature>
 requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
          (Column < ColumnSignature::size)
-[[nodiscard]]
 constexpr Float &
 get(symmetric_matrix<Float, RowSignature, ColumnSignature> &matrix) noexcept
 {

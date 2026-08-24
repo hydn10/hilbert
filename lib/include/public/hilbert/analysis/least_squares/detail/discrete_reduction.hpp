@@ -21,17 +21,11 @@ class known_sample_domain
   std::size_t size_;
 
 public:
-  explicit constexpr known_sample_domain(std::size_t size) noexcept
-      : size_{size}
-  {
-  }
+  explicit constexpr known_sample_domain(std::size_t size) noexcept;
 
   [[nodiscard]]
   constexpr std::size_t
-  size() const noexcept
-  {
-    return size_;
-  }
+  size() const noexcept;
 };
 
 
@@ -41,18 +35,131 @@ class counted_sample_domain
 
 public:
   void
-  observe() noexcept
-  {
-    ++count_;
-  }
+  observe() noexcept;
 
   [[nodiscard]]
   std::size_t
-  size() const noexcept
-  {
-    return count_;
-  }
+  size() const noexcept;
 };
+
+
+template<typename Domain>
+void
+observe_domain(Domain &domain) noexcept;
+
+
+template<supported_float Float>
+class numeric_discrete_sum
+{
+  Float value_{};
+
+public:
+  void
+  add(Float value) noexcept;
+
+  [[nodiscard]]
+  Float
+  finish() const noexcept;
+};
+
+
+template<supported_float Float, typename Left, typename Right>
+class inner_product_term
+{
+  numeric_discrete_sum<Float> sum_;
+
+public:
+  void
+  observe(Left const &left, Right const &right) noexcept;
+
+  [[nodiscard]]
+  Float
+  finish() const noexcept;
+};
+
+
+template<supported_float Float>
+class inner_product_term<Float, one_t, Float>
+{
+  numeric_discrete_sum<Float> sum_;
+
+public:
+  void
+  observe(Float value) noexcept;
+
+  [[nodiscard]]
+  Float
+  finish() const noexcept;
+};
+
+
+template<supported_float Float>
+class inner_product_term<Float, Float, one_t>
+{
+  numeric_discrete_sum<Float> sum_;
+
+public:
+  void
+  observe(Float value) noexcept;
+
+  [[nodiscard]]
+  Float
+  finish() const noexcept;
+};
+
+
+template<supported_float Float>
+class inner_product_term<Float, one_t, one_t>
+{
+public:
+  [[nodiscard]]
+  discrete_domain_measure
+  finish() const noexcept;
+};
+
+
+template<typename Term, typename Left, typename Right>
+void
+observe_product(Term &term, Left const &left, Right const &right) noexcept;
+
+
+template<supported_float Float, typename Domain>
+[[nodiscard]]
+Float
+resolve_reduction(Float value, [[maybe_unused]] Domain const &domain) noexcept;
+
+
+template<supported_float Float, typename Domain>
+[[nodiscard]]
+Float
+resolve_reduction([[maybe_unused]] discrete_domain_measure measure, Domain const &domain) noexcept;
+
+
+constexpr known_sample_domain::known_sample_domain(std::size_t size) noexcept
+    : size_{size}
+{
+}
+
+
+constexpr std::size_t
+known_sample_domain::size() const noexcept
+{
+  return size_;
+}
+
+
+inline void
+counted_sample_domain::observe() noexcept
+{
+  ++count_;
+}
+
+
+inline std::size_t
+counted_sample_domain::size() const noexcept
+{
+  return count_;
+}
 
 
 template<typename Domain>
@@ -67,100 +174,75 @@ observe_domain(Domain &domain) noexcept
 
 
 template<supported_float Float>
-class numeric_discrete_sum
+void
+numeric_discrete_sum<Float>::add(Float value) noexcept
 {
-  Float value_{};
+  value_ += value;
+}
 
-public:
-  void
-  add(Float value) noexcept
-  {
-    value_ += value;
-  }
 
-  [[nodiscard]]
-  Float
-  finish() const noexcept
-  {
-    return value_;
-  }
-};
+template<supported_float Float>
+Float
+numeric_discrete_sum<Float>::finish() const noexcept
+{
+  return value_;
+}
 
 
 template<supported_float Float, typename Left, typename Right>
-class inner_product_term
+void
+inner_product_term<Float, Left, Right>::observe(Left const &left, Right const &right) noexcept
 {
-  numeric_discrete_sum<Float> sum_;
+  sum_.add(pointwise_multiply(left, right));
+}
 
-public:
-  void
-  observe(Left const &left, Right const &right) noexcept
-  {
-    sum_.add(pointwise_multiply(left, right));
-  }
 
-  [[nodiscard]]
-  Float
-  finish() const noexcept
-  {
-    return sum_.finish();
-  }
-};
+template<supported_float Float, typename Left, typename Right>
+Float
+inner_product_term<Float, Left, Right>::finish() const noexcept
+{
+  return sum_.finish();
+}
 
 
 template<supported_float Float>
-class inner_product_term<Float, one_t, Float>
+void
+inner_product_term<Float, one_t, Float>::observe(Float value) noexcept
 {
-  numeric_discrete_sum<Float> sum_;
-
-public:
-  void
-  observe(Float value) noexcept
-  {
-    sum_.add(value);
-  }
-
-  [[nodiscard]]
-  Float
-  finish() const noexcept
-  {
-    return sum_.finish();
-  }
-};
+  sum_.add(value);
+}
 
 
 template<supported_float Float>
-class inner_product_term<Float, Float, one_t>
+Float
+inner_product_term<Float, one_t, Float>::finish() const noexcept
 {
-  numeric_discrete_sum<Float> sum_;
-
-public:
-  void
-  observe(Float value) noexcept
-  {
-    sum_.add(value);
-  }
-
-  [[nodiscard]]
-  Float
-  finish() const noexcept
-  {
-    return sum_.finish();
-  }
-};
+  return sum_.finish();
+}
 
 
 template<supported_float Float>
-class inner_product_term<Float, one_t, one_t>
+void
+inner_product_term<Float, Float, one_t>::observe(Float value) noexcept
 {
-public:
-  [[nodiscard]]
-  discrete_domain_measure
-  finish() const noexcept
-  {
-    return {};
-  }
-};
+  sum_.add(value);
+}
+
+
+template<supported_float Float>
+Float
+inner_product_term<Float, Float, one_t>::finish() const noexcept
+{
+  return sum_.finish();
+}
+
+
+template<supported_float Float>
+discrete_domain_measure
+inner_product_term<Float, one_t, one_t>::finish() const noexcept
+{
+  return {};
+}
 
 
 template<typename Term, typename Left, typename Right>
@@ -183,7 +265,6 @@ observe_product(Term &term, Left const &left, Right const &right) noexcept
 
 
 template<supported_float Float, typename Domain>
-[[nodiscard]]
 Float
 resolve_reduction(Float value, [[maybe_unused]] Domain const &domain) noexcept
 {
@@ -192,7 +273,6 @@ resolve_reduction(Float value, [[maybe_unused]] Domain const &domain) noexcept
 
 
 template<supported_float Float, typename Domain>
-[[nodiscard]]
 Float
 resolve_reduction([[maybe_unused]] discrete_domain_measure measure, Domain const &domain) noexcept
 {

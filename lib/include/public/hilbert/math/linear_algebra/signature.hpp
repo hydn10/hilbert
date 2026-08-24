@@ -18,25 +18,11 @@ inline constexpr bool dependent_false = false;
 
 template<typename Tag>
 consteval std::size_t
-signature_index() noexcept
-{
-  static_assert(dependent_false<Tag>, "signature does not contain the requested tag");
-  return 0uz;
-}
+signature_index() noexcept;
 
 template<typename Tag, typename First, typename... Rest>
 consteval std::size_t
-signature_index() noexcept
-{
-  if constexpr (std::same_as<Tag, First>)
-  {
-    return 0uz;
-  }
-  else
-  {
-    return 1uz + signature_index<Tag, Rest...>();
-  }
-}
+signature_index() noexcept;
 
 template<typename... Tags>
 struct are_unique : std::true_type
@@ -61,18 +47,11 @@ struct signature
 
   template<typename Tag>
   static consteval bool
-  contains() noexcept
-  {
-    return (std::same_as<Tag, Tags> || ...);
-  }
+  contains() noexcept;
 
   template<typename Tag>
   static consteval std::size_t
-  index() noexcept
-  {
-    static_assert(contains<Tag>(), "signature does not contain the requested tag");
-    return detail::signature_index<Tag, Tags...>();
-  }
+  index() noexcept;
 };
 
 
@@ -121,17 +100,11 @@ struct dual
 
   template<typename Tag>
   static consteval bool
-  contains() noexcept
-  {
-    return primal_signature::template contains<Tag>();
-  }
+  contains() noexcept;
 
   template<typename Tag>
   static consteval std::size_t
-  index() noexcept
-  {
-    return primal_signature::template index<Tag>();
-  }
+  index() noexcept;
 };
 
 
@@ -141,6 +114,72 @@ using dual_signature_t = dual<std::remove_cvref_t<Signature>>;
 
 template<typename Signature, typename Tag>
 inline constexpr bool contains_tag_v = std::remove_cvref_t<Signature>::template contains<Tag>();
+
+
+namespace detail
+{
+
+template<typename Tag>
+consteval std::size_t
+signature_index() noexcept
+{
+  static_assert(dependent_false<Tag>, "signature does not contain the requested tag");
+  return 0uz;
+}
+
+
+template<typename Tag, typename First, typename... Rest>
+consteval std::size_t
+signature_index() noexcept
+{
+  if constexpr (std::same_as<Tag, First>)
+  {
+    return 0uz;
+  }
+  else
+  {
+    return 1uz + signature_index<Tag, Rest...>();
+  }
+}
+
+} // namespace detail
+
+
+template<typename... Tags>
+template<typename Tag>
+consteval bool
+signature<Tags...>::contains() noexcept
+{
+  return (std::same_as<Tag, Tags> || ...);
+}
+
+
+template<typename... Tags>
+template<typename Tag>
+consteval std::size_t
+signature<Tags...>::index() noexcept
+{
+  static_assert(contains<Tag>(), "signature does not contain the requested tag");
+  return detail::signature_index<Tag, Tags...>();
+}
+
+
+template<typename Signature>
+template<typename Tag>
+consteval bool
+dual<Signature>::contains() noexcept
+{
+  return primal_signature::template contains<Tag>();
+}
+
+
+template<typename Signature>
+template<typename Tag>
+consteval std::size_t
+dual<Signature>::index() noexcept
+{
+  return primal_signature::template index<Tag>();
+}
 
 } // namespace hilbert::math
 

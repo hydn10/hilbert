@@ -17,17 +17,11 @@ class exact_input_count
   std::size_t value_;
 
 public:
-  explicit constexpr exact_input_count(std::size_t value) noexcept
-      : value_{value}
-  {
-  }
+  explicit constexpr exact_input_count(std::size_t value) noexcept;
 
   [[nodiscard]]
   constexpr std::size_t
-  value() const noexcept
-  {
-    return value_;
-  }
+  value() const noexcept;
 };
 
 
@@ -36,17 +30,11 @@ class input_count_upper_bound
   std::size_t value_;
 
 public:
-  explicit constexpr input_count_upper_bound(std::size_t value) noexcept
-      : value_{value}
-  {
-  }
+  explicit constexpr input_count_upper_bound(std::size_t value) noexcept;
 
   [[nodiscard]]
   constexpr std::size_t
-  value() const noexcept
-  {
-    return value_;
-  }
+  value() const noexcept;
 };
 
 
@@ -63,13 +51,67 @@ concept input_count_descriptor = std::same_as<std::remove_cvref_t<Count>, exact_
 
 [[nodiscard]]
 constexpr input_count_upper_bound
+as_upper_bound(exact_input_count count) noexcept;
+
+
+[[nodiscard]]
+constexpr input_count_upper_bound
+as_upper_bound(input_count_upper_bound count) noexcept;
+
+
+[[nodiscard]]
+constexpr unknown_input_count
+as_upper_bound([[maybe_unused]] unknown_input_count count) noexcept;
+
+
+[[nodiscard]]
+constexpr std::size_t
+reservation_hint(exact_input_count count) noexcept;
+
+
+[[nodiscard]]
+constexpr std::size_t
+reservation_hint(input_count_upper_bound count) noexcept;
+
+
+[[nodiscard]]
+constexpr std::size_t
+reservation_hint([[maybe_unused]] unknown_input_count count) noexcept;
+
+
+constexpr exact_input_count::exact_input_count(std::size_t value) noexcept
+    : value_{value}
+{
+}
+
+
+constexpr std::size_t
+exact_input_count::value() const noexcept
+{
+  return value_;
+}
+
+
+constexpr input_count_upper_bound::input_count_upper_bound(std::size_t value) noexcept
+    : value_{value}
+{
+}
+
+
+constexpr std::size_t
+input_count_upper_bound::value() const noexcept
+{
+  return value_;
+}
+
+
+constexpr input_count_upper_bound
 as_upper_bound(exact_input_count count) noexcept
 {
   return input_count_upper_bound{count.value()};
 }
 
 
-[[nodiscard]]
 constexpr input_count_upper_bound
 as_upper_bound(input_count_upper_bound count) noexcept
 {
@@ -77,7 +119,6 @@ as_upper_bound(input_count_upper_bound count) noexcept
 }
 
 
-[[nodiscard]]
 constexpr unknown_input_count
 as_upper_bound([[maybe_unused]] unknown_input_count count) noexcept
 {
@@ -85,7 +126,6 @@ as_upper_bound([[maybe_unused]] unknown_input_count count) noexcept
 }
 
 
-[[nodiscard]]
 constexpr std::size_t
 reservation_hint(exact_input_count count) noexcept
 {
@@ -93,7 +133,6 @@ reservation_hint(exact_input_count count) noexcept
 }
 
 
-[[nodiscard]]
 constexpr std::size_t
 reservation_hint(input_count_upper_bound count) noexcept
 {
@@ -101,7 +140,6 @@ reservation_hint(input_count_upper_bound count) noexcept
 }
 
 
-[[nodiscard]]
 constexpr std::size_t
 reservation_hint([[maybe_unused]] unknown_input_count count) noexcept
 {

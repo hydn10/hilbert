@@ -104,6 +104,12 @@ private:
 
 template<typename Simulation>
 requires simulation_problem_for<Simulation>
+simulation_view<Simulation>
+simulate(Simulation simulation);
+
+
+template<typename Simulation>
+requires simulation_problem_for<Simulation>
 simulation_view<Simulation>::iterator::iterator(simulation_view *view)
     : view_{view}
 {
@@ -200,12 +206,6 @@ simulation_view<Simulation>::size() const
 {
   return remaining_;
 }
-
-
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
-simulation_view<Simulation>
-simulate(Simulation simulation);
 
 
 template<typename Simulation>
