@@ -59,11 +59,6 @@ public:
     auto const l22_squared = get<2, 2>(matrix) - l20 * l20 - l21 * l21;
     auto const l22 = std::sqrt(require_positive_finite(l22_squared));
 
-    if (!std::isfinite(l10) || !std::isfinite(l20) || !std::isfinite(l21) || !std::isfinite(l22))
-    {
-      throw std::invalid_argument{"Cholesky factor contains non-finite values"};
-    }
-
     return cholesky_factor3{l00, l10, l11, l20, l21, l22};
   }
 
@@ -79,12 +74,7 @@ public:
     auto const x1 = (y1 - l21_ * x2) / l11_;
     auto const x0 = (y0 - l10_ * x1 - l20_ * x2) / l00_;
 
-    vector<Float, Signature> const result{x0, x1, x2};
-    if (!std::isfinite(get<0>(result)) || !std::isfinite(get<1>(result)) || !std::isfinite(get<2>(result)))
-    {
-      throw std::invalid_argument{"Cholesky solve produced non-finite values"};
-    }
-    return result;
+    return vector<Float, Signature>{x0, x1, x2};
   }
 };
 

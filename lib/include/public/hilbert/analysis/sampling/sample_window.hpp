@@ -4,9 +4,9 @@
 
 #include <hilbert/core/supported_float.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <iterator>
 #include <span>
 #include <stdexcept>
 
@@ -100,6 +100,8 @@ public:
 };
 
 
+// Precondition: time contains finite values sorted in nondecreasing order.
+// TODO: Express this precondition as a contract when supported.
 template<supported_float Float>
 sample_range
 select_sample_range(std::span<Float const> time, time_window<Float> window)
@@ -109,34 +111,17 @@ select_sample_range(std::span<Float const> time, time_window<Float> window)
     throw std::invalid_argument{"phase analysis requires at least two time samples"};
   }
 
-  auto previous = time.begin();
-  for (auto current = time.begin(); current != time.end(); ++current)
-  {
-    if (!std::isfinite(*current) || (current != time.begin() && *current <= *previous))
-    {
-      throw std::invalid_argument{"time samples must be finite and strictly increasing"};
-    }
-    previous = current;
-  }
+  auto const begin_iterator = std::ranges::lower_bound(time, window.begin());
+  auto const end_iterator = std::ranges::lower_bound(begin_iterator, time.end(), window.end());
 
-  auto begin_iterator = time.begin();
-  while (begin_iterator != time.end() && *begin_iterator < window.begin())
-  {
-    ++begin_iterator;
-  }
-
-  auto end_iterator = begin_iterator;
-  while (end_iterator != time.end() && *end_iterator < window.end())
-  {
-    ++end_iterator;
-  }
-
-  auto const begin = static_cast<std::size_t>(std::distance(time.begin(), begin_iterator));
-  auto const end = static_cast<std::size_t>(std::distance(time.begin(), end_iterator));
-  if (end - begin < 2uz)
+  if (end_iterator - begin_iterator < 2)
   {
     throw std::invalid_argument{"time window contains too few samples"};
   }
+
+  auto const begin = static_cast<std::size_t>(begin_iterator - time.begin());
+  auto const end = static_cast<std::size_t>(end_iterator - time.begin());
+
   return sample_range{begin, end, time.size()};
 }
 

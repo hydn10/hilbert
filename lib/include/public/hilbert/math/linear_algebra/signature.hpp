@@ -60,13 +60,15 @@ struct signature
   static constexpr std::size_t size = sizeof...(Tags);
 
   template<typename Tag>
-  static consteval bool contains() noexcept
+  static consteval bool
+  contains() noexcept
   {
     return (std::same_as<Tag, Tags> || ...);
   }
 
   template<typename Tag>
-  static consteval std::size_t index() noexcept
+  static consteval std::size_t
+  index() noexcept
   {
     static_assert(contains<Tag>(), "signature does not contain the requested tag");
     return detail::signature_index<Tag, Tags...>();
@@ -105,8 +107,7 @@ concept signature_type = is_signature<std::remove_cvref_t<Type>>::value;
 
 
 template<typename Type>
-concept coordinate_signature =
-    signature_type<Type> || is_dual_signature<std::remove_cvref_t<Type>>::value;
+concept coordinate_signature = signature_type<Type> || is_dual_signature<std::remove_cvref_t<Type>>::value;
 
 
 template<typename Signature>
@@ -119,13 +120,15 @@ struct dual
   static constexpr std::size_t size = primal_signature::size;
 
   template<typename Tag>
-  static consteval bool contains() noexcept
+  static consteval bool
+  contains() noexcept
   {
     return primal_signature::template contains<Tag>();
   }
 
   template<typename Tag>
-  static consteval std::size_t index() noexcept
+  static consteval std::size_t
+  index() noexcept
   {
     return primal_signature::template index<Tag>();
   }

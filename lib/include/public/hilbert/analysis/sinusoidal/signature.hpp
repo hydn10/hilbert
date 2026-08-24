@@ -25,9 +25,8 @@ using sinusoidal_signature = math::signature<cosine_term, sine_term, constant_te
 
 template<typename Signature>
 concept sinusoidal_coordinate_signature =
-    math::signature_type<Signature> && (Signature::size == 3uz) &&
-    math::contains_tag_v<Signature, cosine_term> && math::contains_tag_v<Signature, sine_term> &&
-    math::contains_tag_v<Signature, constant_term>;
+    math::signature_type<Signature> && (Signature::size == 3uz) && math::contains_tag_v<Signature, cosine_term> &&
+    math::contains_tag_v<Signature, sine_term> && math::contains_tag_v<Signature, constant_term>;
 
 } // namespace hilbert::analysis
 

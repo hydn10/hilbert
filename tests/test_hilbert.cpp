@@ -17,8 +17,8 @@
 namespace
 {
 
-using reordered_sinusoidal_signature =
-    hilbert::math::signature<hilbert::analysis::sine_term, hilbert::analysis::cosine_term, hilbert::analysis::constant_term>;
+using reordered_sinusoidal_signature = hilbert::math::
+    signature<hilbert::analysis::sine_term, hilbert::analysis::cosine_term, hilbert::analysis::constant_term>;
 
 template<std::floating_point Float>
 Float constexpr tolerance = std::same_as<Float, float> ? Float{1e-3} : Float{1e-10};
@@ -183,6 +183,18 @@ test_preconditions()
             std::vector<Float>{Float{1}}, std::vector<Float>{}, std::vector<Float>{Float{1}}});
       },
       "mismatched signal data channel lengths accepted");
+
+  require_invalid_argument(
+      []
+      {
+        using signature = hilbert::analysis::sinusoidal_signature;
+        using matrix_type =
+            hilbert::math::symmetric_matrix<Float, hilbert::math::dual_signature_t<signature>, signature>;
+        auto const matrix =
+            matrix_type::from_lower_triangle(Float{1}, Float{0}, Float{1}, Float{0}, Float{0}, Float{-1});
+        static_cast<void>(hilbert::math::cholesky_decompose(matrix));
+      },
+      "non-positive Cholesky pivot accepted");
 }
 
 

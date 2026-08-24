@@ -82,8 +82,12 @@ public:
 };
 
 
-template<std::size_t Row, std::size_t Column, supported_float Float, coordinate_signature RowSignature,
-         coordinate_signature ColumnSignature>
+template<
+    std::size_t Row,
+    std::size_t Column,
+    supported_float Float,
+    coordinate_signature RowSignature,
+    coordinate_signature ColumnSignature>
 requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
          (Column < ColumnSignature::size)
 [[nodiscard]]
@@ -94,8 +98,12 @@ get(symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexce
 }
 
 
-template<std::size_t Row, std::size_t Column, supported_float Float, coordinate_signature RowSignature,
-         coordinate_signature ColumnSignature>
+template<
+    std::size_t Row,
+    std::size_t Column,
+    supported_float Float,
+    coordinate_signature RowSignature,
+    coordinate_signature ColumnSignature>
 requires std::same_as<RowSignature, dual_signature_t<ColumnSignature>> && (Row < ColumnSignature::size) &&
          (Column < ColumnSignature::size)
 [[nodiscard]]

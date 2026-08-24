@@ -24,9 +24,7 @@ public:
   using projection_type = math::vector<Float, math::dual_signature_t<Signature>>;
   using gram_type = math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature>;
 
-  least_squares_products(
-      gram_type gram,
-      std::array<projection_type, ResponseCount> projections) noexcept
+  least_squares_products(gram_type gram, std::array<projection_type, ResponseCount> projections) noexcept
       : gram_{gram}
       , projections_{projections}
   {

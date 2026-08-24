@@ -12,7 +12,6 @@
 #include <hilbert/math/linear_algebra/vector.hpp>
 
 #include <array>
-#include <cmath>
 #include <concepts>
 #include <cstddef>
 #include <ranges>
@@ -64,19 +63,6 @@ public:
   void
   accumulate(least_squares_observation<Float, ResponseCount> const &observation)
   {
-    if (!std::isfinite(observation.argument()))
-    {
-      throw std::invalid_argument{"least-squares arguments must be finite"};
-    }
-
-    for (auto const response : observation.responses())
-    {
-      if (!std::isfinite(response))
-      {
-        throw std::invalid_argument{"least-squares responses must be finite"};
-      }
-    }
-
     auto const row = basis_.template row_at<Float>(observation.argument());
 
     detail::observe_product(m00_, get<0>(row), get<0>(row));
@@ -107,14 +93,17 @@ public:
       throw std::invalid_argument{"least-squares fit requires at least three samples"};
     }
 
-    auto const gram = math::symmetric_matrix<Float, math::dual_signature_t<typename Basis::signature_type>,
-                                               typename Basis::signature_type>::from_lower_triangle(
-        detail::resolve_reduction<Float>(m00_.finish(), domain_),
-        detail::resolve_reduction<Float>(m10_.finish(), domain_),
-        detail::resolve_reduction<Float>(m11_.finish(), domain_),
-        detail::resolve_reduction<Float>(m20_.finish(), domain_),
-        detail::resolve_reduction<Float>(m21_.finish(), domain_),
-        detail::resolve_reduction<Float>(m22_.finish(), domain_));
+    auto const gram = math::symmetric_matrix<
+        Float,
+        math::dual_signature_t<typename Basis::signature_type>,
+        typename Basis::signature_type>::
+        from_lower_triangle(
+            detail::resolve_reduction<Float>(m00_.finish(), domain_),
+            detail::resolve_reduction<Float>(m10_.finish(), domain_),
+            detail::resolve_reduction<Float>(m11_.finish(), domain_),
+            detail::resolve_reduction<Float>(m20_.finish(), domain_),
+            detail::resolve_reduction<Float>(m21_.finish(), domain_),
+            detail::resolve_reduction<Float>(m22_.finish(), domain_));
 
     std::array<math::vector<Float, math::dual_signature_t<typename Basis::signature_type>>, ResponseCount> projections;
     for (

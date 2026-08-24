@@ -4,8 +4,8 @@
 
 #include <hilbert/analysis/least_squares/products.hpp>
 #include <hilbert/analysis/phase/principal_phase.hpp>
-#include <hilbert/analysis/sinusoidal/signature.hpp>
 #include <hilbert/analysis/sinusoidal/fit.hpp>
+#include <hilbert/analysis/sinusoidal/signature.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/cholesky3.hpp>
 
@@ -55,8 +55,7 @@ public:
 
 template<hilbert::supported_float Float, hilbert::analysis::sinusoidal_coordinate_signature Signature>
 phase_scan_least_squares_estimate<Float>
-estimate_phase_scan_by_least_squares(
-    hilbert::analysis::least_squares_products<Float, Signature, 2uz> const &products)
+estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products<Float, Signature, 2uz> const &products)
 {
   auto const factor = hilbert::math::cholesky_decompose(products.gram());
 

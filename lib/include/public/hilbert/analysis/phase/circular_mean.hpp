@@ -26,10 +26,12 @@ public:
   add_relative_vector(std::complex<Float> value)
   {
     auto const magnitude = std::abs(value);
-    if (!std::isfinite(magnitude) || magnitude == 0)
+
+    if (magnitude == 0)
     {
-      throw std::invalid_argument{"circular mean received a zero or non-finite vector"};
+      throw std::invalid_argument{"circular mean received a zero vector"};
     }
+    
     sum_ += value / magnitude;
     ++count_;
   }
