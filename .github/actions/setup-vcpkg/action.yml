@@ -33,8 +33,6 @@ runs:
         fingerprint="$({
           echo "image-os=${ImageOS:-local}"
           echo "compiler-hash=$compiler_hash"
-          echo "cxxflags=${CXXFLAGS:-}"
-          echo "ldflags=${LDFLAGS:-}"
           cmake --version | head -n 1
         } | sha256sum | cut -d ' ' -f 1)"
         echo "value=$fingerprint" >> "$GITHUB_OUTPUT"
@@ -68,7 +66,7 @@ runs:
       with:
         path: ${{ github.workspace }}/.cache/vcpkg-binaries
         key: >-
-          vcpkg-bin-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.triplet }}-${{ inputs.toolchain }}-${{ steps.fingerprint-posix.outputs.value || steps.fingerprint-windows.outputs.value }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'cmake/toolchains/vcpkg.cmake', 'triplets/**', 'cmake/triplets/**', 'ports/**', 'overlays/**') }}
+          vcpkg-bin-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.triplet }}-${{ inputs.toolchain }}-${{ steps.fingerprint-posix.outputs.value || steps.fingerprint-windows.outputs.value }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'cmake/toolchains/**', 'triplets/**', 'cmake/triplets/**', 'ports/**', 'overlays/**') }}
         restore-keys: |
           vcpkg-bin-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.triplet }}-${{ inputs.toolchain }}-${{ steps.fingerprint-posix.outputs.value || steps.fingerprint-windows.outputs.value }}-
           vcpkg-bin-v1-${{ runner.os }}-${{ runner.arch }}-${{ inputs.triplet }}-${{ inputs.toolchain }}-

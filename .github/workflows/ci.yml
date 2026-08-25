@@ -65,7 +65,7 @@ jobs:
             os: ubuntu-latest
             cc: clang
             cxx: clang++
-            triplet: x64-linux
+            triplet: x64-linux-clang-libcxx
             toolchain: clang
             preset: vcpkg-release
             mise-tools: cmake ninja just
@@ -110,17 +110,16 @@ jobs:
           version: ${{ env.LLVM_VERSION }}
           linux-x64-sha256: ${{ env.LLVM_LINUX_X64_SHA256 }}
 
-      - name: Configure Clang with libc++
+      - name: Configure the libc++ runtime
         if: matrix.toolchain == 'clang'
         shell: bash
         run: |
-          libcxx_library="$(find "$LLVM_PATH/lib" -type f \( -name 'libc++.so*' -o -name 'libc++.a' \) -print -quit)"
-          test -n "$libcxx_library"
-          libcxx_library_dir="$(dirname "$libcxx_library")"
+          libcxx_runtime="$(clang++ -stdlib=libc++ -print-file-name=libc++.so.1)"
+          test "$libcxx_runtime" != 'libc++.so.1'
+          libcxx_runtime_dir="$(dirname "$libcxx_runtime")"
           {
             echo "CXXFLAGS=-stdlib=libc++"
-            echo "LDFLAGS=-L$libcxx_library_dir -L$LLVM_PATH/lib"
-            echo "LD_LIBRARY_PATH=$libcxx_library_dir:$LLVM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+            echo "LD_LIBRARY_PATH=$libcxx_runtime_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           } >> "$GITHUB_ENV"
 
       - name: Set up the Visual Studio environment

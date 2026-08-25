@@ -37,6 +37,14 @@ static_assert(
 template<std::floating_point Float>
 Float constexpr tolerance = std::same_as<Float, float> ? Float{1e-3} : Float{1e-10};
 
+template<typename Function>
+auto
+make_samples(auto sample_count, Function function)
+{
+  return std::views::iota(0uz, sample_count) | std::views::transform(std::move(function)) |
+         std::ranges::to<std::vector>();
+}
+
 
 void
 require(bool condition, std::string_view message)
@@ -55,24 +63,30 @@ test_cosine_analytic_signal()
   constexpr auto sample_count = 128uz;
   constexpr auto cycles = 7uz;
 
-  std::vector<Float> input(sample_count);
-  for (auto [index, sample] : std::views::enumerate(input))
-  {
-    auto const phase = 2 * std::numbers::pi_v<Float> * static_cast<Float>(cycles) * static_cast<Float>(index) /
-                       static_cast<Float>(sample_count);
-    sample = std::cos(phase);
-  }
+  auto const input = make_samples(
+      sample_count,
+      [=](auto index)
+      {
+        auto const phase = 2 * std::numbers::pi_v<Float> * static_cast<Float>(cycles) * static_cast<Float>(index) /
+                           static_cast<Float>(sample_count);
+        return std::cos(phase);
+      });
 
-  auto const original_input = input;
   auto const analytic = hilbert::hilbert_transform(input);
-  require(input == original_input, "hilbert transform modified its input");
 
-  for (auto const &[index, sample] : std::views::enumerate(analytic))
+  auto const expected = make_samples(
+      sample_count,
+      [=](auto index)
+      {
+        auto const phase = 2 * std::numbers::pi_v<Float> * static_cast<Float>(cycles) * static_cast<Float>(index) /
+                           static_cast<Float>(sample_count);
+        return std::polar(Float{1}, phase);
+      });
+
+  for (auto const &[sample, expected_sample] : std::views::zip(analytic, expected))
   {
-    auto const phase = 2 * std::numbers::pi_v<Float> * static_cast<Float>(cycles) * static_cast<Float>(index) /
-                       static_cast<Float>(sample_count);
-    auto const expected = std::polar(Float{1}, phase);
-    require(std::abs(sample - expected) < tolerance<Float>, "cosine analytic signal mismatch");
+    require(analytic.size() == expected.size(), "analytic signal size mismatch");
+    require(std::abs(sample - expected_sample) < tolerance<Float>, "cosine analytic signal mismatch");
   }
 }
 
@@ -86,12 +100,13 @@ test_instantaneous_data_for_sinusoid()
   Float constexpr frequency = 11;
   Float constexpr amplitude = 2.5;
 
-  std::vector<Float> input(sample_count);
-  for (auto [index, sample] : std::views::enumerate(input))
-  {
-    auto const phase = 2 * std::numbers::pi_v<Float> * frequency * static_cast<Float>(index) / sampling_rate;
-    sample = amplitude * std::cos(phase);
-  }
+  auto const input = make_samples(
+      sample_count,
+      [=](auto index)
+      {
+        auto const phase = 2 * std::numbers::pi_v<Float> * frequency * static_cast<Float>(index) / sampling_rate;
+        return amplitude * std::cos(phase);
+      });
 
   auto const data = hilbert::calculate_inst_signal_data(input, sampling_rate);
   require(data.amplitude_span().size() == sample_count, "amplitude result size mismatch");
@@ -113,12 +128,13 @@ test_instantaneous_frequency_preserves_negative_phase_deltas()
   constexpr auto sample_count = 256uz;
   Float constexpr sampling_rate = 256;
 
-  std::vector<Float> input(sample_count);
-  for (auto [index, sample] : std::views::enumerate(input))
-  {
-    auto const time = static_cast<Float>(index) / sampling_rate;
-    sample = 2 * std::cos(2 * std::numbers::pi_v<Float> * time) + std::cos(2 * std::numbers::pi_v<Float> * 3 * time);
-  }
+  auto const input = make_samples(
+      sample_count,
+      [=](auto index)
+      {
+        auto const time = static_cast<Float>(index) / sampling_rate;
+        return 2 * std::cos(2 * std::numbers::pi_v<Float> * time) + std::cos(2 * std::numbers::pi_v<Float> * 3 * time);
+      });
 
   auto const data = hilbert::calculate_inst_signal_data(input, sampling_rate);
   auto const phase_pairs = data.phase_span() | std::views::adjacent<2>;
