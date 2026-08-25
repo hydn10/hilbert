@@ -61,7 +61,7 @@ jobs:
             mise-tools: clang-tools cmake ninja just
             check-installed: true
             produce-simulation: true
-          - name: Linux Clang 22
+          - name: Linux Clang 22, libc++, installed package
             os: ubuntu-latest
             cc: clang
             cxx: clang++
@@ -69,7 +69,7 @@ jobs:
             toolchain: clang
             preset: vcpkg-release
             mise-tools: cmake ninja just
-            check-installed: false
+            check-installed: true
             produce-simulation: false
           - name: Windows MSVC, shared
             os: windows-latest
@@ -109,6 +109,19 @@ jobs:
         with:
           version: ${{ env.LLVM_VERSION }}
           linux-x64-sha256: ${{ env.LLVM_LINUX_X64_SHA256 }}
+
+      - name: Configure Clang with libc++
+        if: matrix.toolchain == 'clang'
+        shell: bash
+        run: |
+          libcxx_library="$(find "$LLVM_PATH/lib" -type f \( -name 'libc++.so*' -o -name 'libc++.a' \) -print -quit)"
+          test -n "$libcxx_library"
+          libcxx_library_dir="$(dirname "$libcxx_library")"
+          {
+            echo "CXXFLAGS=-stdlib=libc++"
+            echo "LDFLAGS=-L$libcxx_library_dir -L$LLVM_PATH/lib"
+            echo "LD_LIBRARY_PATH=$libcxx_library_dir:$LLVM_PATH/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          } >> "$GITHUB_ENV"
 
       - name: Set up the Visual Studio environment
         if: matrix.toolchain == 'msvc'

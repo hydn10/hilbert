@@ -33,6 +33,8 @@ runs:
         fingerprint="$({
           echo "image-os=${ImageOS:-local}"
           echo "compiler-hash=$compiler_hash"
+          echo "cxxflags=${CXXFLAGS:-}"
+          echo "ldflags=${LDFLAGS:-}"
           cmake --version | head -n 1
         } | sha256sum | cut -d ' ' -f 1)"
         echo "value=$fingerprint" >> "$GITHUB_OUTPUT"
