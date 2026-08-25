@@ -28,6 +28,7 @@
 #include <limits>
 #include <optional>
 #include <print>
+#include <ranges>
 #include <span>
 #include <string_view>
 #include <utility>
@@ -199,28 +200,27 @@ simulate_phase_scan_point(double frequency_hz)
 }
 
 
+std::size_t
+phase_scan_point_count(phase_scan_command const &command)
+{
+  auto const steps = (command.end_frequency_hz - command.start_frequency_hz) / command.frequency_step_hz;
+  auto const step_tolerance = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::abs(steps));
+
+  return static_cast<std::size_t>(std::floor(steps + step_tolerance)) + 1uz;
+}
+
+
 std::vector<phase_scan_result<double>>
 run_phase_scan(phase_scan_command const &command)
 {
-  std::vector<phase_scan_result<double>> results;
-  auto const frequency_tolerance = 8 * std::numeric_limits<double>::epsilon() *
-                                   std::max({1.0, std::abs(command.start_frequency_hz), command.end_frequency_hz});
+  auto const frequencies = std::views::iota(0uz, phase_scan_point_count(command)) |
+                           std::views::transform(
+                               [start = command.start_frequency_hz, step = command.frequency_step_hz](std::size_t index)
+                               {
+                                 return std::fma(step, static_cast<double>(index), start);
+                               });
 
-  // TODO: ranges?
-  for (size_t index = 0uz;; ++index)
-  {
-    auto const frequency = command.start_frequency_hz + command.frequency_step_hz * static_cast<double>(index);
-
-    // TODO: why?
-    if (frequency > command.end_frequency_hz + frequency_tolerance)
-    {
-      break;
-    }
-
-    results.emplace_back(simulate_phase_scan_point(frequency));
-  }
-
-  return results;
+  return frequencies | std::views::transform(simulate_phase_scan_point) | std::ranges::to<std::vector>();
 }
 
 

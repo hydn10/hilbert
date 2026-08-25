@@ -25,9 +25,8 @@ using dual_sinusoidal_signature = hilbert::math::dual<hilbert::analysis::sinusoi
 static_assert(hilbert::math::signature_for_size<hilbert::analysis::sinusoidal_signature, 3uz>);
 static_assert(!hilbert::math::signature_for_size<dual_sinusoidal_signature, 3uz>);
 static_assert(hilbert::math::coordinate_signature_for_size<dual_sinusoidal_signature, 3uz>);
-static_assert(hilbert::math::signature_contains<
-              hilbert::analysis::sinusoidal_signature const &,
-              hilbert::analysis::cosine_term>);
+static_assert(
+    hilbert::math::signature_contains<hilbert::analysis::sinusoidal_signature const &, hilbert::analysis::cosine_term>);
 static_assert(!hilbert::analysis::sinusoidal_coordinate_signature<dual_sinusoidal_signature>);
 static_assert(hilbert::analysis::basis_for_size<sinusoidal_basis, 3uz, double>);
 static_assert(

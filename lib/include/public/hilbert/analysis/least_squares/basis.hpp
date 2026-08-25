@@ -131,7 +131,7 @@ template<typename Basis, typename Float>
 concept basis_for = supported_float<Float> && requires(Basis const &basis, Float argument) {
   typename Basis::signature_type;
   requires math::signature_type<typename Basis::signature_type>;
-  basis.template row_at<Float>(argument);
+  basis(argument);
 };
 
 
@@ -139,7 +139,7 @@ template<typename Basis, std::size_t Size, typename Float>
 concept basis_for_size = basis_for<Basis, Float> && requires {
   requires basis_row_for_size<
       Size,
-      std::remove_cvref_t<decltype(std::declval<Basis const &>().template row_at<Float>(std::declval<Float>()))>,
+      std::remove_cvref_t<decltype(std::declval<Basis const &>()(std::declval<Float>()))>,
       Float>;
 };
 
@@ -152,7 +152,7 @@ class basis
   template<basis_functions_for<Functions...> Float, std::size_t... Indices>
   [[nodiscard]]
   auto
-  row_at(Float argument, [[maybe_unused]] std::index_sequence<Indices...> indices) const;
+  make_row(Float argument, [[maybe_unused]] std::index_sequence<Indices...> indices) const;
 
 public:
   static constexpr std::size_t size = sizeof...(Functions);
@@ -166,14 +166,14 @@ public:
   template<basis_functions_for<Functions...> Float>
   [[nodiscard]]
   row_type<Float>
-  row_at(Float argument) const;
+  operator()(Float argument) const;
 };
 
 
 template<basis_function... Functions>
 template<basis_functions_for<Functions...> Float, std::size_t... Indices>
 auto
-basis<Functions...>::row_at(Float argument, [[maybe_unused]] std::index_sequence<Indices...> indices) const
+basis<Functions...>::make_row(Float argument, [[maybe_unused]] std::index_sequence<Indices...> indices) const
 {
   return basis_row<basis_element_value_t<Float, Functions>...>{
       evaluate_basis_element(std::get<Indices>(functions_), argument)...};
@@ -190,9 +190,9 @@ constexpr basis<Functions...>::basis(Functions... functions)
 template<basis_function... Functions>
 template<basis_functions_for<Functions...> Float>
 basis<Functions...>::template row_type<Float>
-basis<Functions...>::row_at(Float argument) const
+basis<Functions...>::operator()(Float argument) const
 {
-  return row_at<Float>(argument, std::index_sequence_for<Functions...>{});
+  return make_row<Float>(argument, std::index_sequence_for<Functions...>{});
 }
 
 

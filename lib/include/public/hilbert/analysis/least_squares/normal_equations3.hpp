@@ -32,8 +32,7 @@ class normal_equations_reducer3
 {
   static_assert(ResponseCount > 0uz);
 
-  using row_type =
-      std::remove_cvref_t<decltype(std::declval<Basis const &>().template row_at<Float>(std::declval<Float>()))>;
+  using row_type = std::remove_cvref_t<decltype(std::declval<Basis const &>()(std::declval<Float>()))>;
   static_assert(row_type::size == 3uz);
 
   using first_type = row_type::template value_type<0>;
@@ -90,7 +89,7 @@ void
 normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::accumulate(
     least_squares_observation<Float, ResponseCount> const &observation)
 {
-  auto const row = basis_.template row_at<Float>(observation.argument());
+  auto const row = basis_(observation.argument());
 
   detail::observe_product(m00_, get<0>(row), get<0>(row));
   detail::observe_product(m10_, get<1>(row), get<0>(row));
