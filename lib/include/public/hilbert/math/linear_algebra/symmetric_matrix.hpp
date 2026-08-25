@@ -41,6 +41,7 @@ public:
   static constexpr std::size_t lower_triangle_size = size * (size + 1uz) / 2uz;
 
 private:
+  using value_array = std::array<Float, ColumnSignature::size *(ColumnSignature::size + 1uz) / 2uz>;
   std::array<Float, lower_triangle_size> lower_triangle_{};
 
   explicit constexpr symmetric_matrix(std::array<Float, lower_triangle_size> lower_triangle) noexcept;
@@ -55,11 +56,11 @@ public:
   from_lower_triangle(Values... values) noexcept;
 
   [[nodiscard]]
-  constexpr std::array<Float, lower_triangle_size> const &
+  constexpr value_array const &
   values() const noexcept;
 
   [[nodiscard]]
-  constexpr std::array<Float, lower_triangle_size> &
+  constexpr value_array &
   values() noexcept;
 };
 
@@ -148,7 +149,7 @@ template<
     supported_float Float,
     coordinate_signature RowSignature,
     symmetric_signature_pair<RowSignature> ColumnSignature>
-constexpr std::array<Float, symmetric_matrix<Float, RowSignature, ColumnSignature>::lower_triangle_size> const &
+constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>::value_array const &
 symmetric_matrix<Float, RowSignature, ColumnSignature>::values() const noexcept
 {
   return lower_triangle_;
@@ -159,12 +160,11 @@ template<
     supported_float Float,
     coordinate_signature RowSignature,
     symmetric_signature_pair<RowSignature> ColumnSignature>
-constexpr std::array<Float, symmetric_matrix<Float, RowSignature, ColumnSignature>::lower_triangle_size> &
+constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>::value_array &
 symmetric_matrix<Float, RowSignature, ColumnSignature>::values() noexcept
 {
   return lower_triangle_;
 }
-
 
 template<
     std::size_t Row,

@@ -23,6 +23,7 @@ template<supported_float Float, coordinate_signature Signature>
 class vector
 {
   std::array<Float, Signature::size> values_{};
+  using value_array = std::array<Float, Signature::size>;
 
 public:
   using signature_type = Signature;
@@ -37,14 +38,29 @@ public:
   explicit constexpr vector(Values &&...values) noexcept;
 
   [[nodiscard]]
-  constexpr std::array<Float, size> const &
+  constexpr value_array const &
   values() const noexcept;
 
   [[nodiscard]]
-  constexpr std::array<Float, size> &
+  constexpr value_array &
   values() noexcept;
 };
 
+
+template<supported_float Float, coordinate_signature Signature>
+constexpr vector<Float, Signature>::value_array const &
+vector<Float, Signature>::values() const noexcept
+{
+  return values_;
+}
+
+
+template<supported_float Float, coordinate_signature Signature>
+constexpr vector<Float, Signature>::value_array &
+vector<Float, Signature>::values() noexcept
+{
+  return values_;
+}
 
 template<std::size_t Index, supported_float Float, coordinate_signature Signature>
 requires(Index < Signature::size)
@@ -89,22 +105,6 @@ requires(sizeof...(Values) == Signature::size)
 constexpr vector<Float, Signature>::vector(Values &&...values) noexcept
     : values_{static_cast<Float>(std::forward<Values>(values))...}
 {
-}
-
-
-template<supported_float Float, coordinate_signature Signature>
-constexpr std::array<Float, vector<Float, Signature>::size> const &
-vector<Float, Signature>::values() const noexcept
-{
-  return values_;
-}
-
-
-template<supported_float Float, coordinate_signature Signature>
-constexpr std::array<Float, vector<Float, Signature>::size> &
-vector<Float, Signature>::values() noexcept
-{
-  return values_;
 }
 
 

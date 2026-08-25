@@ -24,12 +24,18 @@ template<typename WriteRows, typename Rows>
 concept table_writer_for = std::invocable<WriteRows, Rows &>;
 
 
+namespace detail
+{
+
+template<size_t ColumnCount>
+class numeric_table_writer_rows;
+
+} // namespace detail
+
+
 template<std::floating_point Float>
 class numeric_table_writer
 {
-  template<size_t ColumnCount>
-  class table_rows;
-
   std::reference_wrapper<std::ostream> output_;
   bool has_table_ = false;
 
@@ -44,28 +50,30 @@ public:
   operator=(numeric_table_writer &&) = delete;
   ~numeric_table_writer() = default;
 
-  template<size_t ColumnCount, table_writer_for<table_rows<ColumnCount>> WriteRows>
+  template<size_t ColumnCount, table_writer_for<detail::numeric_table_writer_rows<ColumnCount>> WriteRows>
   void
   table(std::string_view name, std::array<std::string_view, ColumnCount> const &columns, WriteRows &&write_rows);
 };
 
 
-template<std::floating_point Float>
+namespace detail
+{
+
 template<size_t ColumnCount>
-class numeric_table_writer<Float>::table_rows
+class numeric_table_writer_rows
 {
   std::reference_wrapper<std::ostream> output_;
 
 public:
-  explicit table_rows(std::ostream &output) noexcept;
+  explicit numeric_table_writer_rows(std::ostream &output) noexcept;
 
-  table_rows(table_rows const &) = delete;
-  table_rows &
-  operator=(table_rows const &) = delete;
-  table_rows(table_rows &&) = delete;
-  table_rows &
-  operator=(table_rows &&) = delete;
-  ~table_rows() = default;
+  numeric_table_writer_rows(numeric_table_writer_rows const &) = delete;
+  numeric_table_writer_rows &
+  operator=(numeric_table_writer_rows const &) = delete;
+  numeric_table_writer_rows(numeric_table_writer_rows &&) = delete;
+  numeric_table_writer_rows &
+  operator=(numeric_table_writer_rows &&) = delete;
+  ~numeric_table_writer_rows() = default;
 
   template<stream_insertable... Values>
   requires(sizeof...(Values) == ColumnCount)
@@ -73,21 +81,21 @@ public:
   write(Values const &...values);
 };
 
+} // namespace detail
 
-template<std::floating_point Float>
+
 template<size_t ColumnCount>
-numeric_table_writer<Float>::table_rows<ColumnCount>::table_rows(std::ostream &output) noexcept
+detail::numeric_table_writer_rows<ColumnCount>::numeric_table_writer_rows(std::ostream &output) noexcept
     : output_{output}
 {
 }
 
 
-template<std::floating_point Float>
 template<size_t ColumnCount>
 template<stream_insertable... Values>
 requires(sizeof...(Values) == ColumnCount)
 void
-numeric_table_writer<Float>::table_rows<ColumnCount>::write(Values const &...values)
+detail::numeric_table_writer_rows<ColumnCount>::write(Values const &...values)
 {
   size_t column_index = 0uz;
   ((output_.get() << (column_index++ == 0uz ? "" : ",") << values), ...);
@@ -96,17 +104,7 @@ numeric_table_writer<Float>::table_rows<ColumnCount>::write(Values const &...val
 
 
 template<std::floating_point Float>
-numeric_table_writer<Float>::numeric_table_writer(std::ostream &output) noexcept
-    : output_{output}
-{
-  output_.get() << std::setprecision(std::numeric_limits<Float>::max_digits10);
-}
-
-
-template<std::floating_point Float>
-template<
-    size_t ColumnCount,
-    table_writer_for<typename numeric_table_writer<Float>::template table_rows<ColumnCount>> WriteRows>
+template<size_t ColumnCount, table_writer_for<detail::numeric_table_writer_rows<ColumnCount>> WriteRows>
 void
 numeric_table_writer<Float>::table(
     std::string_view name, std::array<std::string_view, ColumnCount> const &columns, WriteRows &&write_rows)
@@ -129,10 +127,19 @@ numeric_table_writer<Float>::table(
   }
   output_.get() << '\n';
 
-  table_rows<ColumnCount> rows{output_};
+  detail::numeric_table_writer_rows<ColumnCount> rows{output_};
   std::forward<WriteRows>(write_rows)(rows);
   has_table_ = true;
 }
+
+
+template<std::floating_point Float>
+numeric_table_writer<Float>::numeric_table_writer(std::ostream &output) noexcept
+    : output_{output}
+{
+  output_.get() << std::setprecision(std::numeric_limits<Float>::max_digits10);
+}
+
 
 } // namespace hilbert::app::io
 
