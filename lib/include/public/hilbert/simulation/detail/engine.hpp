@@ -14,9 +14,11 @@
 namespace hilbert::simulation::detail
 {
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 class simulation_engine
 {
   using sample_type = model_sample_t<Model, Float, State>;
@@ -58,9 +60,11 @@ using engine_for_t = simulation_engine<
     typename std::remove_cvref_t<Simulation>::integrator_type>;
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 Float
 simulation_engine<Float, State, Model, Integrator>::current_time() const noexcept
 {
@@ -68,9 +72,11 @@ simulation_engine<Float, State, Model, Integrator>::current_time() const noexcep
 }
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-             executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 simulation_engine<Float, State, Model, Integrator>::simulation_engine(
     simulation_problem<Float, State, Model, Integrator> &&problem)
     : time_step_{problem.time_step_}
@@ -82,9 +88,11 @@ simulation_engine<Float, State, Model, Integrator>::simulation_engine(
 }
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 std::size_t
 simulation_engine<Float, State, Model, Integrator>::sample_count() const noexcept
 {
@@ -92,9 +100,11 @@ simulation_engine<Float, State, Model, Integrator>::sample_count() const noexcep
 }
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 simulation_engine<Float, State, Model, Integrator>::sample_type
 simulation_engine<Float, State, Model, Integrator>::current_sample() const
 {
@@ -102,9 +112,11 @@ simulation_engine<Float, State, Model, Integrator>::current_sample() const
 }
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 void
 simulation_engine<Float, State, Model, Integrator>::advance()
 {

@@ -13,8 +13,7 @@
 namespace hilbert::math
 {
 
-template<supported_float Float, signature_type Signature>
-requires(Signature::size == 3uz)
+template<supported_float Float, signature_for_size<3uz> Signature>
 class cholesky_factor3
 {
   using matrix_type = symmetric_matrix<Float, dual_signature_t<Signature>, Signature>;
@@ -39,14 +38,12 @@ public:
 };
 
 
-template<supported_float Float, signature_type Signature>
-requires(Signature::size == 3uz)
+template<supported_float Float, signature_for_size<3uz> Signature>
 cholesky_factor3<Float, Signature>
 cholesky_decompose(symmetric_matrix<Float, dual_signature_t<Signature>, Signature> const &matrix);
 
 
-template<supported_float Float, signature_type Signature>
-requires(Signature::size == 3uz)
+template<supported_float Float, signature_for_size<3uz> Signature>
 constexpr cholesky_factor3<Float, Signature>::cholesky_factor3(
     Float l00, Float l10, Float l11, Float l20, Float l21, Float l22) noexcept
     : l00_{l00}
@@ -59,8 +56,7 @@ constexpr cholesky_factor3<Float, Signature>::cholesky_factor3(
 }
 
 
-template<supported_float Float, signature_type Signature>
-requires(Signature::size == 3uz)
+template<supported_float Float, signature_for_size<3uz> Signature>
 cholesky_factor3<Float, Signature>
 cholesky_factor3<Float, Signature>::decompose(matrix_type const &matrix)
 {
@@ -86,8 +82,7 @@ cholesky_factor3<Float, Signature>::decompose(matrix_type const &matrix)
 }
 
 
-template<supported_float Float, signature_type Signature>
-requires(Signature::size == 3uz)
+template<supported_float Float, signature_for_size<3uz> Signature>
 vector<Float, Signature>
 cholesky_factor3<Float, Signature>::solve(vector<Float, dual_signature_t<Signature>> const &right_hand_side) const
 {
@@ -103,8 +98,7 @@ cholesky_factor3<Float, Signature>::solve(vector<Float, dual_signature_t<Signatu
 }
 
 
-template<supported_float Float, signature_type Signature>
-requires(Signature::size == 3uz)
+template<supported_float Float, signature_for_size<3uz> Signature>
 cholesky_factor3<Float, Signature>
 cholesky_decompose(symmetric_matrix<Float, dual_signature_t<Signature>, Signature> const &matrix)
 {

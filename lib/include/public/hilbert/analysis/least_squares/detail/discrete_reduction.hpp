@@ -5,6 +5,7 @@
 #include <hilbert/analysis/least_squares/basis_value.hpp>
 #include <hilbert/core/supported_float.hpp>
 
+#include <concepts>
 #include <cstddef>
 
 
@@ -40,6 +41,12 @@ public:
   [[nodiscard]]
   std::size_t
   size() const noexcept;
+};
+
+
+template<typename Domain>
+concept reduction_domain = requires(Domain const &domain) {
+  { domain.size() } -> std::same_as<std::size_t>;
 };
 
 
@@ -119,6 +126,22 @@ public:
 
 
 template<typename Term, typename Left, typename Right>
+concept product_observer = requires(Term &term, Left const &left, Right const &right) {
+  { term.observe(left, right) } -> std::same_as<void>;
+} || requires(Term &term, Left const &left) {
+  { term.observe(left) } -> std::same_as<void>;
+} || requires(Term &term, Right const &right) {
+  { term.observe(right) } -> std::same_as<void>;
+};
+
+
+template<supported_float Float>
+void
+observe_product(inner_product_term<Float, one_t, one_t> &term, one_t const &left, one_t const &right) noexcept;
+
+
+template<typename Term, typename Left, typename Right>
+requires product_observer<Term, Left, Right>
 void
 observe_product(Term &term, Left const &left, Right const &right) noexcept;
 
@@ -246,6 +269,7 @@ inner_product_term<Float, one_t, one_t>::finish() const noexcept
 
 
 template<typename Term, typename Left, typename Right>
+requires product_observer<Term, Left, Right>
 void
 observe_product(Term &term, Left const &left, Right const &right) noexcept
 {
@@ -261,6 +285,16 @@ observe_product(Term &term, Left const &left, Right const &right) noexcept
   {
     term.observe(right);
   }
+}
+
+
+template<supported_float Float>
+void
+observe_product(
+    [[maybe_unused]] inner_product_term<Float, one_t, one_t> &term,
+    [[maybe_unused]] one_t const &left,
+    [[maybe_unused]] one_t const &right) noexcept
+{
 }
 
 

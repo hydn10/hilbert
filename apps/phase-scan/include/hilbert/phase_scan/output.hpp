@@ -14,12 +14,12 @@
 namespace hilbert::phase_scan
 {
 
-template<std::floating_point Float>
+template<hilbert::supported_float Float>
 void
 write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results);
 
 
-template<std::floating_point Float>
+template<hilbert::supported_float Float>
 void
 write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results)
 {

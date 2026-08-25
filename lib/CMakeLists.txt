@@ -54,6 +54,7 @@ target_sources(
                 include/public/hilbert/simulation/drivers/view.hpp
                 include/public/hilbert/simulation/integrators/rk4.hpp
                 include/public/hilbert/simulation/sinks/adapters.hpp
+                include/public/hilbert/simulation/sinks/concepts.hpp
                 include/public/hilbert/simulation/sinks/normal_equations.hpp
                 include/public/hilbert/simulation/suspension.hpp
                 include/public/hilbert/simulation/suspension/factory.hpp

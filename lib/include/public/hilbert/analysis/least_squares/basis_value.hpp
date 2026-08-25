@@ -21,13 +21,16 @@ struct one_t
 inline constexpr one_t constant_one;
 
 
+template<typename BasisElement, typename Float>
+concept basis_element_invocable = std::invocable<BasisElement const &, Float>;
+
+
 template<supported_float Float>
 constexpr one_t
 evaluate_basis_element([[maybe_unused]] one_t element, [[maybe_unused]] Float argument) noexcept;
 
 
-template<supported_float Float, typename BasisElement>
-requires std::invocable<BasisElement const &, Float>
+template<supported_float Float, basis_element_invocable<Float> BasisElement>
 std::remove_cvref_t<std::invoke_result_t<BasisElement const &, Float>>
 evaluate_basis_element(BasisElement const &element, Float argument);
 
@@ -64,8 +67,7 @@ evaluate_basis_element([[maybe_unused]] one_t element, [[maybe_unused]] Float ar
 }
 
 
-template<supported_float Float, typename BasisElement>
-requires std::invocable<BasisElement const &, Float>
+template<supported_float Float, basis_element_invocable<Float> BasisElement>
 std::remove_cvref_t<std::invoke_result_t<BasisElement const &, Float>>
 evaluate_basis_element(BasisElement const &element, Float argument)
 {

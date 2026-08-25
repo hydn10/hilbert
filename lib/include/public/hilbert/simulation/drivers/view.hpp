@@ -15,8 +15,7 @@
 namespace hilbert::simulation
 {
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 class simulation_view : public std::ranges::view_interface<simulation_view<Simulation>>
 {
   using engine_type = detail::engine_for_t<Simulation>;
@@ -50,15 +49,13 @@ public:
 };
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 class simulation_view<Simulation>::sentinel
 {
 };
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 class simulation_view<Simulation>::iterator
 {
   simulation_view *view_;
@@ -102,22 +99,19 @@ private:
 };
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>
 simulate(Simulation simulation);
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::iterator::iterator(simulation_view *view)
     : view_{view}
 {
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 bool
 simulation_view<Simulation>::iterator::at_end() const
 {
@@ -125,8 +119,7 @@ simulation_view<Simulation>::iterator::at_end() const
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::iterator::value_type
 simulation_view<Simulation>::iterator::operator*() const
 {
@@ -134,8 +127,7 @@ simulation_view<Simulation>::iterator::operator*() const
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::iterator &
 simulation_view<Simulation>::iterator::operator++()
 {
@@ -152,8 +144,7 @@ simulation_view<Simulation>::iterator::operator++()
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 void
 simulation_view<Simulation>::iterator::operator++(int)
 {
@@ -161,8 +152,7 @@ simulation_view<Simulation>::iterator::operator++(int)
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::simulation_view(Simulation simulation)
     : engine_{std::move(simulation)}
     , remaining_{engine_.sample_count()}
@@ -170,19 +160,16 @@ simulation_view<Simulation>::simulation_view(Simulation simulation)
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::simulation_view(simulation_view &&) noexcept = default;
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation> &
 simulation_view<Simulation>::operator=(simulation_view &&) noexcept = default;
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::iterator
 simulation_view<Simulation>::begin()
 {
@@ -190,8 +177,7 @@ simulation_view<Simulation>::begin()
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>::sentinel
 simulation_view<Simulation>::end() const
 {
@@ -199,8 +185,7 @@ simulation_view<Simulation>::end() const
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 std::size_t
 simulation_view<Simulation>::size() const
 {
@@ -208,8 +193,7 @@ simulation_view<Simulation>::size() const
 }
 
 
-template<typename Simulation>
-requires simulation_problem_for<Simulation>
+template<simulation_problem_for Simulation>
 simulation_view<Simulation>
 simulate(Simulation simulation)
 {

@@ -2,6 +2,7 @@
 #define HILBERT_APP_IO_OUTPUT_STREAM_HPP
 
 
+#include <concepts>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -16,12 +17,16 @@ namespace hilbert::app::io
 {
 
 template<typename WriteOutput>
+concept output_writer = std::invocable<WriteOutput, std::ostream &>;
+
+
+template<output_writer WriteOutput>
 void
 with_output_stream(
     std::optional<std::filesystem::path> const &output_path, std::ostream &default_output, WriteOutput &&write_output);
 
 
-template<typename WriteOutput>
+template<output_writer WriteOutput>
 void
 with_output_stream(
     std::optional<std::filesystem::path> const &output_path, std::ostream &default_output, WriteOutput &&write_output)

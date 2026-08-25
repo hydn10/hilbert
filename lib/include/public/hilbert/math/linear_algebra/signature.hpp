@@ -89,6 +89,19 @@ template<typename Type>
 concept coordinate_signature = signature_type<Type> || is_dual_signature<std::remove_cvref_t<Type>>::value;
 
 
+template<typename Signature, typename Tag>
+concept signature_contains =
+    coordinate_signature<Signature> && std::remove_cvref_t<Signature>::template contains<Tag>();
+
+
+template<typename Type, std::size_t Size>
+concept signature_for_size = signature_type<Type> && (std::remove_cvref_t<Type>::size == Size);
+
+
+template<typename Type, std::size_t Size>
+concept coordinate_signature_for_size = coordinate_signature<Type> && (std::remove_cvref_t<Type>::size == Size);
+
+
 template<typename Signature>
 struct dual
 {

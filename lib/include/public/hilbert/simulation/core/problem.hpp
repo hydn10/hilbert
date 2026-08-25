@@ -18,9 +18,11 @@
 namespace hilbert::simulation::detail
 {
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 class simulation_engine;
 
 
@@ -35,9 +37,11 @@ struct simulation_problem_traits : std::false_type
 namespace hilbert::simulation
 {
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 class simulation_problem
 {
   Float time_step_;
@@ -63,7 +67,11 @@ public:
 };
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 struct detail::simulation_problem_traits<simulation_problem<Float, State, Model, Integrator>> : std::true_type
 {
 };
@@ -73,9 +81,11 @@ template<typename Simulation>
 concept simulation_problem_for = detail::simulation_problem_traits<std::remove_cvref_t<Simulation>>::value;
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-             executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 simulation_problem<Float, State, Model, Integrator>::simulation_problem(
     simulation_settings<Float> settings, State initial_state, Model model, Integrator integrator)
     : time_step_{settings.time_step}
@@ -87,9 +97,11 @@ simulation_problem<Float, State, Model, Integrator>::simulation_problem(
 }
 
 
-template<std::floating_point Float, typename State, typename Model, typename Integrator>
-requires physical_model_for<Model, Float, State> && integrator_for<Integrator, Float, State, Model> &&
-         executable_state<State>
+template<
+    std::floating_point Float,
+    executable_state State,
+    physical_model_for<Float, State> Model,
+    integrator_for<Float, State, Model> Integrator>
 std::size_t
 simulation_problem<Float, State, Model, Integrator>::sample_count_for(simulation_settings<Float> settings)
 {

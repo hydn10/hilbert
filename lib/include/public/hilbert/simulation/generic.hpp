@@ -11,6 +11,7 @@
 #include <hilbert/simulation/drivers/view.hpp>     // IWYU pragma: export
 #include <hilbert/simulation/integrators/rk4.hpp>  // IWYU pragma: export
 #include <hilbert/simulation/sinks/adapters.hpp>   // IWYU pragma: export
+#include <hilbert/simulation/sinks/concepts.hpp>   // IWYU pragma: export
 // IWYU pragma: end_exports
 
 

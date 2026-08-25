@@ -10,8 +10,7 @@
 namespace hilbert::simulation::integrators
 {
 
-template<std::floating_point Float, typename State, typename Dynamics>
-requires dynamics_for<Dynamics, Float, State>
+template<std::floating_point Float, typename State, dynamics_for<Float, State> Dynamics>
 class rk4
 {
 public:
@@ -22,8 +21,7 @@ public:
 };
 
 
-template<std::floating_point Float, typename State, typename Dynamics>
-requires dynamics_for<Dynamics, Float, State>
+template<std::floating_point Float, typename State, dynamics_for<Float, State> Dynamics>
 rk4<Float, State, Dynamics>::delta_type
 rk4<Float, State, Dynamics>::operator()(Float time, State const &state, Dynamics const &dynamics, Float time_step) const
 {

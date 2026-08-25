@@ -35,8 +35,33 @@ public:
 };
 
 
-template<supported_float Float, typename... Responses>
-requires(sizeof...(Responses) > 0uz) && (std::same_as<std::remove_cvref_t<Responses>, Float> && ...)
+template<typename Observation>
+struct least_squares_observation_traits
+{
+  static constexpr bool valid = false;
+  using float_type = void;
+  static constexpr std::size_t response_count = 0uz;
+};
+
+
+template<supported_float Float, std::size_t ResponseCount>
+struct least_squares_observation_traits<least_squares_observation<Float, ResponseCount>>
+{
+  static constexpr bool valid = true;
+  using float_type = Float;
+  static constexpr std::size_t response_count = ResponseCount;
+};
+
+
+template<typename Observation, typename Float>
+concept least_squares_observation_for =
+    supported_float<Float> && least_squares_observation_traits<std::remove_cvref_t<Observation>>::valid &&
+    (least_squares_observation_traits<std::remove_cvref_t<Observation>>::response_count > 0uz) &&
+    std::same_as<typename least_squares_observation_traits<std::remove_cvref_t<Observation>>::float_type, Float>;
+
+
+template<supported_float Float, std::same_as<Float>... Responses>
+requires(sizeof...(Responses) > 0uz)
 [[nodiscard]]
 auto
 make_observation(Float argument, Responses... responses) noexcept;
@@ -67,8 +92,8 @@ least_squares_observation<Float, ResponseCount>::responses() const noexcept
 }
 
 
-template<supported_float Float, typename... Responses>
-requires(sizeof...(Responses) > 0uz) && (std::same_as<std::remove_cvref_t<Responses>, Float> && ...)
+template<supported_float Float, std::same_as<Float>... Responses>
+requires(sizeof...(Responses) > 0uz)
 auto
 make_observation(Float argument, Responses... responses) noexcept
 {

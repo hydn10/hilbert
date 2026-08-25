@@ -4,7 +4,9 @@
 
 #include <hilbert/detail/attributes.hpp>
 #include <hilbert/simulation/core/input_count.hpp>
+#include <hilbert/simulation/sinks/concepts.hpp>
 
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <tuple>
@@ -14,7 +16,7 @@
 namespace hilbert::simulation::sinks
 {
 
-template<typename Sink, typename Predicate>
+template<sink_finishable Sink, typename Predicate>
 class filtered_sink
 {
   HILBERT_NO_UNIQUE_ADDRESS Sink sink_;
@@ -24,6 +26,7 @@ public:
   filtered_sink(Sink sink, Predicate predicate);
 
   template<typename Sample>
+  requires std::predicate<Predicate &, Sample &> && sink_push_for<Sink, Sample>
   void
   push(Sample sample);
 
@@ -43,13 +46,14 @@ public:
   filtered_sink_factory(DownstreamFactory downstream_factory, Predicate predicate);
 
   template<input_count_descriptor Count>
+  requires std::invocable<DownstreamFactory const &, decltype(as_upper_bound(std::declval<Count>()))>
   [[nodiscard]]
   auto
   operator()(Count count) const;
 };
 
 
-template<typename FirstSink, typename SecondSink>
+template<sink_finishable FirstSink, sink_finishable SecondSink>
 class tee_sink
 {
   FirstSink first_;
@@ -59,6 +63,10 @@ public:
   tee_sink(FirstSink first, SecondSink second);
 
   template<typename Sample>
+  requires requires(FirstSink &first, SecondSink &second, Sample sample) {
+    { first.push(sample) } -> std::same_as<void>;
+    { second.push(std::move(sample)) } -> std::same_as<void>;
+  }
   void
   push(Sample sample);
 
@@ -78,6 +86,7 @@ public:
   tee_sink_factory(FirstFactory first_factory, SecondFactory second_factory);
 
   template<input_count_descriptor Count>
+  requires std::invocable<FirstFactory const &, Count> && std::invocable<SecondFactory const &, Count>
   [[nodiscard]]
   auto
   operator()(Count count) const;
@@ -96,7 +105,7 @@ auto
 make_tee_sink_factory(FirstFactory first_factory, SecondFactory second_factory);
 
 
-template<typename Sink, typename Predicate>
+template<sink_finishable Sink, typename Predicate>
 filtered_sink<Sink, Predicate>::filtered_sink(Sink sink, Predicate predicate)
     : sink_{std::move(sink)}
     , predicate_{std::move(predicate)}
@@ -104,8 +113,9 @@ filtered_sink<Sink, Predicate>::filtered_sink(Sink sink, Predicate predicate)
 }
 
 
-template<typename Sink, typename Predicate>
+template<sink_finishable Sink, typename Predicate>
 template<typename Sample>
+requires std::predicate<Predicate &, Sample &> && sink_push_for<Sink, Sample>
 void
 filtered_sink<Sink, Predicate>::push(Sample sample)
 {
@@ -116,7 +126,7 @@ filtered_sink<Sink, Predicate>::push(Sample sample)
 }
 
 
-template<typename Sink, typename Predicate>
+template<sink_finishable Sink, typename Predicate>
 auto
 filtered_sink<Sink, Predicate>::finish() &&
 {
@@ -135,6 +145,7 @@ filtered_sink_factory<DownstreamFactory, Predicate>::filtered_sink_factory(
 
 template<typename DownstreamFactory, typename Predicate>
 template<input_count_descriptor Count>
+requires std::invocable<DownstreamFactory const &, decltype(as_upper_bound(std::declval<Count>()))>
 auto
 filtered_sink_factory<DownstreamFactory, Predicate>::operator()(Count count) const
 {
@@ -145,7 +156,7 @@ filtered_sink_factory<DownstreamFactory, Predicate>::operator()(Count count) con
 }
 
 
-template<typename FirstSink, typename SecondSink>
+template<sink_finishable FirstSink, sink_finishable SecondSink>
 tee_sink<FirstSink, SecondSink>::tee_sink(FirstSink first, SecondSink second)
     : first_{std::move(first)}
     , second_{std::move(second)}
@@ -153,8 +164,12 @@ tee_sink<FirstSink, SecondSink>::tee_sink(FirstSink first, SecondSink second)
 }
 
 
-template<typename FirstSink, typename SecondSink>
+template<sink_finishable FirstSink, sink_finishable SecondSink>
 template<typename Sample>
+requires requires(FirstSink &first, SecondSink &second, Sample sample) {
+  { first.push(sample) } -> std::same_as<void>;
+  { second.push(std::move(sample)) } -> std::same_as<void>;
+}
 void
 tee_sink<FirstSink, SecondSink>::push(Sample sample)
 {
@@ -163,7 +178,7 @@ tee_sink<FirstSink, SecondSink>::push(Sample sample)
 }
 
 
-template<typename FirstSink, typename SecondSink>
+template<sink_finishable FirstSink, sink_finishable SecondSink>
 auto
 tee_sink<FirstSink, SecondSink>::finish() &&
 {
@@ -185,6 +200,7 @@ tee_sink_factory<FirstFactory, SecondFactory>::tee_sink_factory(
 
 template<typename FirstFactory, typename SecondFactory>
 template<input_count_descriptor Count>
+requires std::invocable<FirstFactory const &, Count> && std::invocable<SecondFactory const &, Count>
 auto
 tee_sink_factory<FirstFactory, SecondFactory>::operator()(Count count) const
 {

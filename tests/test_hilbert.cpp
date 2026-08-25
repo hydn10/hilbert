@@ -19,6 +19,21 @@ namespace
 
 using reordered_sinusoidal_signature = hilbert::math::
     signature<hilbert::analysis::sine_term, hilbert::analysis::cosine_term, hilbert::analysis::constant_term>;
+using sinusoidal_basis = decltype(hilbert::analysis::make_sinusoidal_basis(hilbert::analysis::frequency_hz<double>{1}));
+using dual_sinusoidal_signature = hilbert::math::dual<hilbert::analysis::sinusoidal_signature>;
+
+static_assert(hilbert::math::signature_for_size<hilbert::analysis::sinusoidal_signature, 3uz>);
+static_assert(!hilbert::math::signature_for_size<dual_sinusoidal_signature, 3uz>);
+static_assert(hilbert::math::coordinate_signature_for_size<dual_sinusoidal_signature, 3uz>);
+static_assert(hilbert::math::signature_contains<
+              hilbert::analysis::sinusoidal_signature const &,
+              hilbert::analysis::cosine_term>);
+static_assert(!hilbert::analysis::sinusoidal_coordinate_signature<dual_sinusoidal_signature>);
+static_assert(hilbert::analysis::basis_for_size<sinusoidal_basis, 3uz, double>);
+static_assert(
+    hilbert::analysis::least_squares_observation_for<hilbert::analysis::least_squares_observation<double, 2>, double>);
+static_assert(
+    !hilbert::analysis::least_squares_observation_for<hilbert::analysis::least_squares_observation<double, 0>, double>);
 
 template<std::floating_point Float>
 Float constexpr tolerance = std::same_as<Float, float> ? Float{1e-3} : Float{1e-10};

@@ -23,7 +23,11 @@
 namespace hilbert::analysis
 {
 
-template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+template<
+    supported_float Float,
+    basis_for_size<3uz, Float> Basis,
+    std::size_t ResponseCount,
+    detail::reduction_domain Domain>
 class normal_equations_reducer3
 {
   static_assert(ResponseCount > 0uz);
@@ -65,7 +69,11 @@ public:
 };
 
 
-template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+template<
+    supported_float Float,
+    basis_for_size<3uz, Float> Basis,
+    std::size_t ResponseCount,
+    detail::reduction_domain Domain>
 normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::normal_equations_reducer3(Basis basis, Domain domain)
     : basis_{std::move(basis)}
     , domain_{std::move(domain)}
@@ -73,7 +81,11 @@ normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::normal_equations
 }
 
 
-template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+template<
+    supported_float Float,
+    basis_for_size<3uz, Float> Basis,
+    std::size_t ResponseCount,
+    detail::reduction_domain Domain>
 void
 normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::accumulate(
     least_squares_observation<Float, ResponseCount> const &observation)
@@ -100,7 +112,11 @@ normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::accumulate(
 }
 
 
-template<supported_float Float, typename Basis, std::size_t ResponseCount, typename Domain>
+template<
+    supported_float Float,
+    basis_for_size<3uz, Float> Basis,
+    std::size_t ResponseCount,
+    detail::reduction_domain Domain>
 least_squares_products<Float, typename Basis::signature_type, ResponseCount>
 normal_equations_reducer3<Float, Basis, ResponseCount, Domain>::finish() &&
 {
@@ -139,30 +155,31 @@ template<supported_float Float, typename Basis, std::size_t ResponseCount, typen
 using normal_equations_reducer = normal_equations_reducer3<Float, Basis, ResponseCount, Domain>;
 
 
-template<supported_float Float, std::size_t ResponseCount, typename Basis>
+template<supported_float Float, std::size_t ResponseCount, basis_for_size<3uz, Float> Basis>
 [[nodiscard]]
 auto
 make_normal_equations_reducer(Basis basis, exact_observation_count count);
 
 
-template<supported_float Float, std::size_t ResponseCount, typename Basis>
+template<supported_float Float, std::size_t ResponseCount, basis_for_size<3uz, Float> Basis>
 [[nodiscard]]
 auto
 make_normal_equations_reducer(Basis basis, [[maybe_unused]] count_observations_t count);
 
 
-template<supported_float Float, typename Basis, std::ranges::input_range Observations>
-requires requires(std::ranges::range_value_t<Observations> const &observation) {
-  std::remove_cvref_t<std::ranges::range_value_t<Observations>>::response_count;
-  observation.argument();
-  observation.responses();
-}
+template<typename Observations, typename Float>
+concept least_squares_observation_range =
+    supported_float<Float> && std::ranges::input_range<Observations> &&
+    least_squares_observation_for<std::ranges::range_value_t<Observations>, Float>;
+
+
+template<supported_float Float, basis_for_size<3uz, Float> Basis, least_squares_observation_range<Float> Observations>
 [[nodiscard]]
 auto
 form_normal_equations(Basis basis, Observations &&observations);
 
 
-template<supported_float Float, std::size_t ResponseCount, typename Basis>
+template<supported_float Float, std::size_t ResponseCount, basis_for_size<3uz, Float> Basis>
 auto
 make_normal_equations_reducer(Basis basis, exact_observation_count count)
 {
@@ -171,7 +188,7 @@ make_normal_equations_reducer(Basis basis, exact_observation_count count)
 }
 
 
-template<supported_float Float, std::size_t ResponseCount, typename Basis>
+template<supported_float Float, std::size_t ResponseCount, basis_for_size<3uz, Float> Basis>
 auto
 make_normal_equations_reducer(Basis basis, [[maybe_unused]] count_observations_t count)
 {
@@ -180,12 +197,7 @@ make_normal_equations_reducer(Basis basis, [[maybe_unused]] count_observations_t
 }
 
 
-template<supported_float Float, typename Basis, std::ranges::input_range Observations>
-requires requires(std::ranges::range_value_t<Observations> const &observation) {
-  std::remove_cvref_t<std::ranges::range_value_t<Observations>>::response_count;
-  observation.argument();
-  observation.responses();
-}
+template<supported_float Float, basis_for_size<3uz, Float> Basis, least_squares_observation_range<Float> Observations>
 auto
 form_normal_equations(Basis basis, Observations &&observations)
 {

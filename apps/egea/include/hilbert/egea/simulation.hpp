@@ -48,7 +48,7 @@ template<std::floating_point Float>
 using simulation_data = hilbert::simulation::suspension::sinks::soa_vector_sink<Float>::simulation_data;
 
 
-template<std::floating_point Float>
+template<hilbert::supported_float Float>
 struct analysis_result
 {
   size_t hilbert_offset;

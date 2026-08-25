@@ -1,8 +1,10 @@
 #include <hilbert/simulation/core/concepts.hpp>
+#include <hilbert/simulation/core/input_count.hpp>
 #include <hilbert/simulation/core/problem.hpp>
 #include <hilbert/simulation/core/settings.hpp>
 #include <hilbert/simulation/drivers/view.hpp>
 #include <hilbert/simulation/integrators/rk4.hpp>
+#include <hilbert/simulation/sinks/concepts.hpp>
 #include <hilbert/simulation/suspension/ground_frequencies/constant.hpp>
 #include <hilbert/simulation/suspension/model.hpp>
 #include <hilbert/simulation/suspension/state.hpp>
@@ -111,6 +113,35 @@ operator+(non_assignable_state const &state, test_delta const &delta)
 
 struct test_sample
 {
+};
+
+
+struct test_sink
+{
+  void push(test_sample);
+
+  int
+  finish() &&;
+};
+
+
+struct invalid_sink
+{
+  void push(test_sample);
+};
+
+
+struct test_sink_factory
+{
+  test_sink
+  operator()(hilbert::simulation::exact_input_count) const;
+};
+
+
+struct invalid_sink_factory
+{
+  int
+  operator()(hilbert::simulation::exact_input_count) const;
 };
 
 
@@ -258,6 +289,12 @@ static_assert(
 static_assert(
     hilbert::simulation::physical_model_for<suspension_model, double, hilbert::simulation::suspension::state<double>>);
 static_assert(hilbert::simulation::simulation_problem_for<test_problem>);
+static_assert(hilbert::simulation::sinks::sink_for<test_sink, test_sample>);
+static_assert(!hilbert::simulation::sinks::sink_for<invalid_sink, test_sample>);
+static_assert(hilbert::simulation::sinks::
+                  sink_factory_for<test_sink_factory, hilbert::simulation::exact_input_count, test_sample>);
+static_assert(!hilbert::simulation::sinks::
+                  sink_factory_for<invalid_sink_factory, hilbert::simulation::exact_input_count, test_sample>);
 static_assert(!simulation_problem_type<non_assignable_state, non_assignable_model, non_assignable_integrator>);
 static_assert(std::constructible_from<
               test_problem,

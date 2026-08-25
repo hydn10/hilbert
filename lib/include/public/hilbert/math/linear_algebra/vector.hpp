@@ -15,6 +15,10 @@
 namespace hilbert::math
 {
 
+template<typename Value, typename Expected>
+concept same_as_unqualified = std::same_as<std::remove_cvref_t<Value>, Expected>;
+
+
 template<supported_float Float, coordinate_signature Signature>
 class vector
 {
@@ -28,8 +32,8 @@ public:
 
   explicit constexpr vector(std::array<Float, size> values) noexcept;
 
-  template<typename... Values>
-  requires(sizeof...(Values) == Signature::size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+  template<same_as_unqualified<Float>... Values>
+  requires(sizeof...(Values) == Signature::size)
   explicit constexpr vector(Values &&...values) noexcept;
 
   [[nodiscard]]
@@ -56,15 +60,13 @@ constexpr Float &
 get(vector<Float, Signature> &value) noexcept;
 
 
-template<typename Tag, supported_float Float, coordinate_signature Signature>
-requires(Signature::template contains<Tag>())
+template<typename Tag, supported_float Float, signature_contains<Tag> Signature>
 [[nodiscard]]
 constexpr Float const &
 get(vector<Float, Signature> const &value) noexcept;
 
 
-template<typename Tag, supported_float Float, coordinate_signature Signature>
-requires(Signature::template contains<Tag>())
+template<typename Tag, supported_float Float, signature_contains<Tag> Signature>
 [[nodiscard]]
 constexpr Float &
 get(vector<Float, Signature> &value) noexcept;
@@ -82,8 +84,8 @@ constexpr vector<Float, Signature>::vector(std::array<Float, size> values) noexc
 
 
 template<supported_float Float, coordinate_signature Signature>
-template<typename... Values>
-requires(sizeof...(Values) == Signature::size) && (std::same_as<std::remove_cvref_t<Values>, Float> && ...)
+template<same_as_unqualified<Float>... Values>
+requires(sizeof...(Values) == Signature::size)
 constexpr vector<Float, Signature>::vector(Values &&...values) noexcept
     : values_{static_cast<Float>(std::forward<Values>(values))...}
 {
@@ -124,8 +126,7 @@ get(vector<Float, Signature> &value) noexcept
 }
 
 
-template<typename Tag, supported_float Float, coordinate_signature Signature>
-requires(Signature::template contains<Tag>())
+template<typename Tag, supported_float Float, signature_contains<Tag> Signature>
 constexpr Float const &
 get(vector<Float, Signature> const &value) noexcept
 {
@@ -133,8 +134,7 @@ get(vector<Float, Signature> const &value) noexcept
 }
 
 
-template<typename Tag, supported_float Float, coordinate_signature Signature>
-requires(Signature::template contains<Tag>())
+template<typename Tag, supported_float Float, signature_contains<Tag> Signature>
 constexpr Float &
 get(vector<Float, Signature> &value) noexcept
 {

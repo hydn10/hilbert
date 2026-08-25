@@ -5,6 +5,7 @@
 #include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/process/exit_status.hpp>
 
+#include <concepts>
 #include <exception>
 #include <functional>
 #include <iostream>
@@ -16,7 +17,11 @@
 namespace hilbert::app::cli
 {
 
-template<typename RunCommand, typename PrintUsageSynopsis>
+template<typename PrintUsageSynopsis>
+concept usage_synopsis_printer = std::invocable<PrintUsageSynopsis, std::ostream &>;
+
+
+template<std::invocable RunCommand, usage_synopsis_printer PrintUsageSynopsis>
 application_result
 run(std::string_view application_name,
     std::ostream &error_output,
@@ -24,7 +29,7 @@ run(std::string_view application_name,
     PrintUsageSynopsis &&print_usage_synopsis);
 
 
-template<typename RunCommand, typename PrintUsageSynopsis>
+template<std::invocable RunCommand, usage_synopsis_printer PrintUsageSynopsis>
 application_result
 run(std::string_view application_name,
     std::ostream &error_output,

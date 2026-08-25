@@ -94,13 +94,62 @@ template<typename Function>
 concept basis_function = requires { typename std::remove_cvref_t<Function>::tag_type; };
 
 
-template<class... Functions>
-requires(basis_function<Functions> && ...)
+template<typename Function, typename Float>
+concept basis_function_for =
+    basis_function<Function> && supported_float<Float> && requires(Function const &function, Float argument) {
+      { evaluate_basis_element(function, argument) } -> basis_value<Float>;
+    };
+
+
+template<typename Float, typename... Functions>
+concept basis_functions_for = supported_float<Float> && (basis_function_for<Functions, Float> && ...);
+
+
+namespace detail
+{
+
+template<typename Row, typename Float, std::size_t... Indices>
+consteval bool
+basis_row_elements_for([[maybe_unused]] std::index_sequence<Indices...> indices)
+{
+  return (basis_value<typename Row::template value_type<Indices>, Float> && ...) &&
+  requires(Row const &row)
+  {
+    (get<Indices>(row), ...);
+  };
+}
+
+} // namespace detail
+
+
+template<std::size_t Size, typename Row, typename Float>
+concept basis_row_for_size = supported_float<Float> && requires { requires Row::size == Size; } &&
+                             detail::basis_row_elements_for<Row, Float>(std::make_index_sequence<Size>{});
+
+
+template<typename Basis, typename Float>
+concept basis_for = supported_float<Float> && requires(Basis const &basis, Float argument) {
+  typename Basis::signature_type;
+  requires math::signature_type<typename Basis::signature_type>;
+  basis.template row_at<Float>(argument);
+};
+
+
+template<typename Basis, std::size_t Size, typename Float>
+concept basis_for_size = basis_for<Basis, Float> && requires {
+  requires basis_row_for_size<
+      Size,
+      std::remove_cvref_t<decltype(std::declval<Basis const &>().template row_at<Float>(std::declval<Float>()))>,
+      Float>;
+};
+
+
+template<basis_function... Functions>
 class basis
 {
   std::tuple<Functions...> functions_;
 
-  template<supported_float Float, std::size_t... Indices>
+  template<basis_functions_for<Functions...> Float, std::size_t... Indices>
   [[nodiscard]]
   auto
   row_at(Float argument, [[maybe_unused]] std::index_sequence<Indices...> indices) const;
@@ -111,19 +160,18 @@ public:
 
   explicit constexpr basis(Functions... functions);
 
-  template<supported_float Float>
+  template<basis_functions_for<Functions...> Float>
   using row_type = basis_row<basis_element_value_t<Float, Functions>...>;
 
-  template<supported_float Float>
+  template<basis_functions_for<Functions...> Float>
   [[nodiscard]]
   row_type<Float>
   row_at(Float argument) const;
 };
 
 
-template<class... Functions>
-requires(basis_function<Functions> && ...)
-template<supported_float Float, std::size_t... Indices>
+template<basis_function... Functions>
+template<basis_functions_for<Functions...> Float, std::size_t... Indices>
 auto
 basis<Functions...>::row_at(Float argument, [[maybe_unused]] std::index_sequence<Indices...> indices) const
 {
@@ -132,17 +180,15 @@ basis<Functions...>::row_at(Float argument, [[maybe_unused]] std::index_sequence
 }
 
 
-template<class... Functions>
-requires(basis_function<Functions> && ...)
+template<basis_function... Functions>
 constexpr basis<Functions...>::basis(Functions... functions)
     : functions_{std::move(functions)...}
 {
 }
 
 
-template<class... Functions>
-requires(basis_function<Functions> && ...)
-template<supported_float Float>
+template<basis_function... Functions>
+template<basis_functions_for<Functions...> Float>
 basis<Functions...>::template row_type<Float>
 basis<Functions...>::row_at(Float argument) const
 {
