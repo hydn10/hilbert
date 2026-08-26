@@ -2,7 +2,7 @@
 #include <hilbert/simulation/core/input_count.hpp>
 #include <hilbert/simulation/core/problem.hpp>
 #include <hilbert/simulation/core/settings.hpp>
-#include <hilbert/simulation/drivers/view.hpp>
+#include <hilbert/simulation/drivers/simulation_view.hpp>
 #include <hilbert/simulation/integrators/rk4.hpp>
 #include <hilbert/simulation/sinks/concepts.hpp>
 #include <hilbert/simulation/suspension/ground_frequencies/constant.hpp>

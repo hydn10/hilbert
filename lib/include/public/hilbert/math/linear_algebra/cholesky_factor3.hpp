@@ -1,5 +1,5 @@
-#ifndef HILBERT_MATH_LINEAR_ALGEBRA_CHOLESKY3_HPP
-#define HILBERT_MATH_LINEAR_ALGEBRA_CHOLESKY3_HPP
+#ifndef HILBERT_MATH_LINEAR_ALGEBRA_CHOLESKY_FACTOR3_HPP
+#define HILBERT_MATH_LINEAR_ALGEBRA_CHOLESKY_FACTOR3_HPP
 
 
 #include <hilbert/core/supported_float.hpp>
@@ -107,4 +107,4 @@ cholesky_decompose(symmetric_matrix<Float, dual_signature_t<Signature>, Signatur
 
 } // namespace hilbert::math
 
-#endif // HILBERT_MATH_LINEAR_ALGEBRA_CHOLESKY3_HPP
+#endif // HILBERT_MATH_LINEAR_ALGEBRA_CHOLESKY_FACTOR3_HPP

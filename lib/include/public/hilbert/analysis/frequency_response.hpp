@@ -1,5 +1,5 @@
-#ifndef HILBERT_ANALYSIS_RESPONSE_HPP
-#define HILBERT_ANALYSIS_RESPONSE_HPP
+#ifndef HILBERT_ANALYSIS_FREQUENCY_RESPONSE_HPP
+#define HILBERT_ANALYSIS_FREQUENCY_RESPONSE_HPP
 
 
 #include <hilbert/analysis/phase/principal_phase.hpp>
@@ -71,4 +71,4 @@ frequency_response<Float>::phase() const
 
 } // namespace hilbert::analysis
 
-#endif // HILBERT_ANALYSIS_RESPONSE_HPP
+#endif // HILBERT_ANALYSIS_FREQUENCY_RESPONSE_HPP

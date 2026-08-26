@@ -13,13 +13,13 @@ target_sources(
                 include/hilbert/app/process/exit_domain.hpp
                 include/hilbert/app/process/exit_status.hpp
                 include/hilbert/app/process/run.hpp
-                include/hilbert/app/cli/arguments.hpp
+                include/hilbert/app/cli/argument_cursor.hpp
                 include/hilbert/app/cli/error.hpp
                 include/hilbert/app/cli/parse.hpp
                 include/hilbert/app/cli/run.hpp
                 include/hilbert/app/io/output_stream.hpp
                 include/hilbert/app/io/numeric_table_writer.hpp
-    PRIVATE src/cli/arguments.cpp src/cli/parse.cpp
+    PRIVATE src/cli/argument_cursor.cpp src/cli/parse.cpp
 )
 
 target_compile_features(${target_name} PUBLIC cxx_std_23)

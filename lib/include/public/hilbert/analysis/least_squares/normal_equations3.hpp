@@ -6,7 +6,7 @@
 #include <hilbert/analysis/least_squares/detail/discrete_reduction.hpp>
 #include <hilbert/analysis/least_squares/observation.hpp>
 #include <hilbert/analysis/least_squares/observation_count.hpp>
-#include <hilbert/analysis/least_squares/products.hpp>
+#include <hilbert/analysis/least_squares/least_squares_products.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/symmetric_matrix.hpp>
 #include <hilbert/math/linear_algebra/vector.hpp>

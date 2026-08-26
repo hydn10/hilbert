@@ -1,5 +1,5 @@
-#ifndef HILBERT_ANALYSIS_SIGNALS_INSTANTANEOUS_SIGNAL_HPP
-#define HILBERT_ANALYSIS_SIGNALS_INSTANTANEOUS_SIGNAL_HPP
+#ifndef HILBERT_ANALYSIS_SIGNALS_SIGNAL_DATA_HPP
+#define HILBERT_ANALYSIS_SIGNALS_SIGNAL_DATA_HPP
 
 
 #include <hilbert/core/supported_float.hpp>
@@ -98,4 +98,4 @@ calculate_inst_signal_data(std::vector<Float, Allocator> const &data, Float samp
 
 } // namespace hilbert
 
-#endif // HILBERT_ANALYSIS_SIGNALS_INSTANTANEOUS_SIGNAL_HPP
+#endif // HILBERT_ANALYSIS_SIGNALS_SIGNAL_DATA_HPP

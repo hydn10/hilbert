@@ -1,5 +1,5 @@
-#ifndef HILBERT_APP_CLI_ARGUMENTS_HPP
-#define HILBERT_APP_CLI_ARGUMENTS_HPP
+#ifndef HILBERT_APP_CLI_ARGUMENT_CURSOR_HPP
+#define HILBERT_APP_CLI_ARGUMENT_CURSOR_HPP
 
 
 #include <span>
@@ -28,4 +28,4 @@ public:
 
 } // namespace hilbert::app::cli
 
-#endif // HILBERT_APP_CLI_ARGUMENTS_HPP
+#endif // HILBERT_APP_CLI_ARGUMENT_CURSOR_HPP

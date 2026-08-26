@@ -1,5 +1,5 @@
-#ifndef HILBERT_SIMULATION_DETAIL_ENGINE_HPP
-#define HILBERT_SIMULATION_DETAIL_ENGINE_HPP
+#ifndef HILBERT_SIMULATION_DETAIL_SIMULATION_ENGINE_HPP
+#define HILBERT_SIMULATION_DETAIL_SIMULATION_ENGINE_HPP
 
 
 #include <hilbert/detail/attributes.hpp>
@@ -128,4 +128,4 @@ simulation_engine<Float, State, Model, Integrator>::advance()
 
 } // namespace hilbert::simulation::detail
 
-#endif // HILBERT_SIMULATION_DETAIL_ENGINE_HPP
+#endif // HILBERT_SIMULATION_DETAIL_SIMULATION_ENGINE_HPP

@@ -1,5 +1,5 @@
-#ifndef HILBERT_ANALYSIS_SINUSOIDAL_FREQUENCY_HPP
-#define HILBERT_ANALYSIS_SINUSOIDAL_FREQUENCY_HPP
+#ifndef HILBERT_ANALYSIS_SINUSOIDAL_FREQUENCY_HZ_HPP
+#define HILBERT_ANALYSIS_SINUSOIDAL_FREQUENCY_HZ_HPP
 
 
 #include <hilbert/core/supported_float.hpp>
@@ -58,4 +58,4 @@ frequency_hz<Float>::angular_frequency() const noexcept
 
 } // namespace hilbert::analysis
 
-#endif // HILBERT_ANALYSIS_SINUSOIDAL_FREQUENCY_HPP
+#endif // HILBERT_ANALYSIS_SINUSOIDAL_FREQUENCY_HZ_HPP

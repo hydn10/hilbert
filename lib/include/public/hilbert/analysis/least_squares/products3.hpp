@@ -2,7 +2,7 @@
 #define HILBERT_ANALYSIS_LEAST_SQUARES_PRODUCTS3_HPP
 
 
-#include <hilbert/analysis/least_squares/products.hpp>
+#include <hilbert/analysis/least_squares/least_squares_products.hpp>
 
 
 namespace hilbert::analysis

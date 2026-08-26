@@ -1,4 +1,4 @@
-#include <hilbert/analysis/signals/instantaneous_signal.hpp>
+#include <hilbert/analysis/signals/signal_data.hpp>
 
 #include <hilbert/analysis/signals/hilbert_transform.hpp>
 #include <hilbert/core/supported_float.hpp>

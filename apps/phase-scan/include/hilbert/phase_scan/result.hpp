@@ -9,7 +9,7 @@ namespace hilbert::phase_scan
 {
 
 template<hilbert::supported_float Float>
-struct phase_scan_result
+struct result
 {
   Float frequency_hz;
   Float magnitude_fit_n_per_m;

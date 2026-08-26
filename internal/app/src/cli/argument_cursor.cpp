@@ -1,4 +1,5 @@
-#include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/argument_cursor.hpp>
+
 #include <hilbert/app/cli/error.hpp>
 
 #include <format>

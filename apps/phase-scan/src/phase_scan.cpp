@@ -3,17 +3,16 @@
 #include <hilbert/analysis/least_squares/observation.hpp>
 #include <hilbert/analysis/sampling/sample_window.hpp>
 #include <hilbert/analysis/sinusoidal/basis.hpp>
-#include <hilbert/analysis/sinusoidal/frequency.hpp>
-#include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/analysis/sinusoidal/frequency_hz.hpp>
+#include <hilbert/app/cli/argument_cursor.hpp>
 #include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/cli/parse.hpp>
 #include <hilbert/app/cli/run.hpp>
 #include <hilbert/app/io/output_stream.hpp>
 #include <hilbert/app/process/exit_status.hpp>
-#include <hilbert/phase_scan/estimators/hilbert.hpp>
-#include <hilbert/phase_scan/estimators/least_squares.hpp>
+#include <hilbert/phase_scan/estimators/hilbert_estimate.hpp>
+#include <hilbert/phase_scan/estimators/least_squares_estimate.hpp>
 #include <hilbert/phase_scan/output.hpp>
-
 #include <hilbert/phase_scan/result.hpp>
 #include <hilbert/simulation.hpp>
 #include <hilbert/simulation/sinks/adapters.hpp>
@@ -152,7 +151,7 @@ default_parameters()
 }
 
 
-phase_scan_result<double>
+result<double>
 simulate_phase_scan_point(double frequency_hz)
 {
   using namespace hilbert::simulation;
@@ -212,7 +211,7 @@ phase_scan_point_count(phase_scan_command const &command)
 }
 
 
-std::vector<phase_scan_result<double>>
+std::vector<result<double>>
 run_phase_scan(phase_scan_command const &command)
 {
   auto const frequencies = std::views::iota(0uz, phase_scan_point_count(command)) |
@@ -233,7 +232,7 @@ run_phase_scan_command(phase_scan_command const &command)
 
   auto write_to = [&results](std::ostream &output)
   {
-    write_phase_scan_results(output, std::span<phase_scan_result<double> const>{results});
+    write_results(output, std::span<result<double> const>{results});
   };
 
   hilbert::app::io::with_output_stream(command.output_path, std::cout, std::move(write_to));

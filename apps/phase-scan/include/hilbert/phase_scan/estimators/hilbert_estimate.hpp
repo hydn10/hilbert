@@ -1,10 +1,10 @@
-#ifndef HILBERT_PHASE_SCAN_ESTIMATORS_HILBERT_HPP
-#define HILBERT_PHASE_SCAN_ESTIMATORS_HILBERT_HPP
+#ifndef HILBERT_PHASE_SCAN_ESTIMATORS_HILBERT_ESTIMATE_HPP
+#define HILBERT_PHASE_SCAN_ESTIMATORS_HILBERT_ESTIMATE_HPP
 
 
 #include <hilbert/analysis/phase/circular_mean.hpp>
 #include <hilbert/analysis/phase/mean_resultant_length.hpp>
-#include <hilbert/analysis/response.hpp>
+#include <hilbert/analysis/frequency_response.hpp>
 #include <hilbert/analysis/sampling/sample_window.hpp>
 #include <hilbert/analysis/signals/hilbert_transform.hpp>
 #include <hilbert/analysis/signals/remove_dc_component.hpp>
@@ -20,13 +20,13 @@ namespace hilbert::phase_scan
 {
 
 template<hilbert::supported_float Float>
-class phase_scan_hilbert_estimate
+class hilbert_estimate
 {
   hilbert::analysis::frequency_response<Float> response_;
   hilbert::analysis::mean_resultant_length<Float> resultant_length_;
 
 public:
-  phase_scan_hilbert_estimate(
+  hilbert_estimate(
       hilbert::analysis::frequency_response<Float> response,
       hilbert::analysis::mean_resultant_length<Float> resultant_length);
 
@@ -41,7 +41,7 @@ public:
 
 
 template<hilbert::supported_float Float>
-phase_scan_hilbert_estimate<Float>::phase_scan_hilbert_estimate(
+hilbert_estimate<Float>::hilbert_estimate(
     hilbert::analysis::frequency_response<Float> response,
     hilbert::analysis::mean_resultant_length<Float> resultant_length)
     : response_{response}
@@ -52,7 +52,7 @@ phase_scan_hilbert_estimate<Float>::phase_scan_hilbert_estimate(
 
 template<hilbert::supported_float Float>
 hilbert::analysis::frequency_response<Float> const &
-phase_scan_hilbert_estimate<Float>::response() const noexcept
+hilbert_estimate<Float>::response() const noexcept
 {
   return response_;
 }
@@ -60,20 +60,20 @@ phase_scan_hilbert_estimate<Float>::response() const noexcept
 
 template<hilbert::supported_float Float>
 hilbert::analysis::mean_resultant_length<Float>
-phase_scan_hilbert_estimate<Float>::resultant_length() const noexcept
+hilbert_estimate<Float>::resultant_length() const noexcept
 {
   return resultant_length_;
 }
 
 
 template<hilbert::supported_float Float>
-phase_scan_hilbert_estimate<Float>
+hilbert_estimate<Float>
 estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> ground, std::span<Float const> force, hilbert::analysis::sample_range const &measurement);
 
 
 template<hilbert::supported_float Float>
-phase_scan_hilbert_estimate<Float>
+hilbert_estimate<Float>
 estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> ground, std::span<Float const> force, hilbert::analysis::sample_range const &measurement)
 {
@@ -118,4 +118,4 @@ estimate_phase_scan_by_hilbert_transform(
 
 } // namespace hilbert::phase_scan
 
-#endif // HILBERT_PHASE_SCAN_ESTIMATORS_HILBERT_HPP
+#endif // HILBERT_PHASE_SCAN_ESTIMATORS_HILBERT_ESTIMATE_HPP

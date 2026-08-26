@@ -1,11 +1,11 @@
-#ifndef HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_HPP
-#define HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_HPP
+#ifndef HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_ESTIMATE_HPP
+#define HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_ESTIMATE_HPP
 
 
-#include <hilbert/analysis/least_squares/products.hpp>
-#include <hilbert/analysis/sinusoidal/fit.hpp>
+#include <hilbert/analysis/least_squares/least_squares_products.hpp>
+#include <hilbert/analysis/sinusoidal/sinusoidal_fit.hpp>
 #include <hilbert/core/supported_float.hpp>
-#include <hilbert/math/linear_algebra/cholesky3.hpp>
+#include <hilbert/math/linear_algebra/cholesky_factor3.hpp>
 
 #include <cstddef>
 #include <utility>
@@ -15,14 +15,14 @@ namespace hilbert::phase_scan
 {
 
 template<hilbert::supported_float Float>
-class phase_scan_least_squares_estimate
+class least_squares_estimate
 {
   hilbert::analysis::sinusoidal_fit<Float> ground_;
   hilbert::analysis::sinusoidal_fit<Float> tire_force_;
   hilbert::analysis::frequency_response<Float> response_;
 
 public:
-  phase_scan_least_squares_estimate(
+  least_squares_estimate(
       hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force);
 
   [[nodiscard]]
@@ -40,12 +40,12 @@ public:
 
 
 template<hilbert::supported_float Float, hilbert::analysis::sinusoidal_coordinate_signature Signature>
-phase_scan_least_squares_estimate<Float>
+least_squares_estimate<Float>
 estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products<Float, Signature, 2uz> const &products);
 
 
 template<hilbert::supported_float Float>
-phase_scan_least_squares_estimate<Float>::phase_scan_least_squares_estimate(
+least_squares_estimate<Float>::least_squares_estimate(
     hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force)
     : ground_{std::move(ground)}
     , tire_force_{std::move(tire_force)}
@@ -56,7 +56,7 @@ phase_scan_least_squares_estimate<Float>::phase_scan_least_squares_estimate(
 
 template<hilbert::supported_float Float>
 hilbert::analysis::frequency_response<Float> const &
-phase_scan_least_squares_estimate<Float>::response() const noexcept
+least_squares_estimate<Float>::response() const noexcept
 {
   return response_;
 }
@@ -64,7 +64,7 @@ phase_scan_least_squares_estimate<Float>::response() const noexcept
 
 template<hilbert::supported_float Float>
 hilbert::analysis::sinusoidal_fit<Float> const &
-phase_scan_least_squares_estimate<Float>::ground_fit() const noexcept
+least_squares_estimate<Float>::ground_fit() const noexcept
 {
   return ground_;
 }
@@ -72,14 +72,14 @@ phase_scan_least_squares_estimate<Float>::ground_fit() const noexcept
 
 template<hilbert::supported_float Float>
 hilbert::analysis::sinusoidal_fit<Float> const &
-phase_scan_least_squares_estimate<Float>::tire_force_fit() const noexcept
+least_squares_estimate<Float>::tire_force_fit() const noexcept
 {
   return tire_force_;
 }
 
 
 template<hilbert::supported_float Float, hilbert::analysis::sinusoidal_coordinate_signature Signature>
-phase_scan_least_squares_estimate<Float>
+least_squares_estimate<Float>
 estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products<Float, Signature, 2uz> const &products)
 {
   auto const factor = hilbert::math::cholesky_decompose(products.gram());
@@ -94,4 +94,4 @@ estimate_phase_scan_by_least_squares(hilbert::analysis::least_squares_products<F
 
 } // namespace hilbert::phase_scan
 
-#endif // HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_HPP
+#endif // HILBERT_PHASE_SCAN_ESTIMATORS_LEAST_SQUARES_ESTIMATE_HPP

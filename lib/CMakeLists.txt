@@ -20,25 +20,25 @@ target_sources(
                 include/public/hilbert/analysis/least_squares/normal_equations3.hpp
                 include/public/hilbert/analysis/least_squares/observation.hpp
                 include/public/hilbert/analysis/least_squares/observation_count.hpp
-                include/public/hilbert/analysis/least_squares/products.hpp
+                include/public/hilbert/analysis/least_squares/least_squares_products.hpp
                 include/public/hilbert/analysis/least_squares/products3.hpp
                 include/public/hilbert/analysis/phase/circular_mean.hpp
                 include/public/hilbert/analysis/phase/circular_mean_result.hpp
                 include/public/hilbert/analysis/phase/mean_resultant_length.hpp
                 include/public/hilbert/analysis/phase/principal_phase.hpp
-                include/public/hilbert/analysis/response.hpp
+                include/public/hilbert/analysis/frequency_response.hpp
                 include/public/hilbert/analysis/sampling/sample_window.hpp
                 include/public/hilbert/analysis/signals/hilbert_transform.hpp
-                include/public/hilbert/analysis/signals/instantaneous_signal.hpp
+                include/public/hilbert/analysis/signals/signal_data.hpp
                 include/public/hilbert/analysis/signals/remove_dc_component.hpp
                 include/public/hilbert/analysis/sinusoidal/basis.hpp
-                include/public/hilbert/analysis/sinusoidal/fit.hpp
-                include/public/hilbert/analysis/sinusoidal/frequency.hpp
+                include/public/hilbert/analysis/sinusoidal/sinusoidal_fit.hpp
+                include/public/hilbert/analysis/sinusoidal/frequency_hz.hpp
                 include/public/hilbert/core/supported_float.hpp
                 include/public/hilbert/detail/attributes.hpp
                 include/public/hilbert/hilbert.hpp
                 include/public/hilbert/math.hpp
-                include/public/hilbert/math/linear_algebra/cholesky3.hpp
+                include/public/hilbert/math/linear_algebra/cholesky_factor3.hpp
                 include/public/hilbert/math/linear_algebra/signature.hpp
                 include/public/hilbert/math/linear_algebra/symmetric_matrix.hpp
                 include/public/hilbert/math/linear_algebra/symmetric_matrix3.hpp
@@ -50,9 +50,9 @@ target_sources(
                 include/public/hilbert/simulation/core/input_count.hpp
                 include/public/hilbert/simulation/core/problem.hpp
                 include/public/hilbert/simulation/core/settings.hpp
-                include/public/hilbert/simulation/detail/engine.hpp
+                include/public/hilbert/simulation/detail/simulation_engine.hpp
                 include/public/hilbert/simulation/drivers/run.hpp
-                include/public/hilbert/simulation/drivers/view.hpp
+                include/public/hilbert/simulation/drivers/simulation_view.hpp
                 include/public/hilbert/simulation/integrators/rk4.hpp
                 include/public/hilbert/simulation/sinks/adapters.hpp
                 include/public/hilbert/simulation/sinks/concepts.hpp
@@ -75,7 +75,7 @@ target_sources(
             FILES include/private/hilbert/detail/fft.hpp
     PRIVATE
         src/analysis/hilbert_transform.cpp
-        src/analysis/instantaneous_signal.cpp
+        src/analysis/signal_data.cpp
         src/detail/fft.cpp
 )
 

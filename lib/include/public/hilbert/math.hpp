@@ -3,7 +3,7 @@
 
 
 // IWYU pragma: begin_exports
-#include <hilbert/math/linear_algebra/cholesky3.hpp>        // IWYU pragma: export
+#include <hilbert/math/linear_algebra/cholesky_factor3.hpp>        // IWYU pragma: export
 #include <hilbert/math/linear_algebra/signature.hpp>        // IWYU pragma: export
 #include <hilbert/math/linear_algebra/symmetric_matrix.hpp> // IWYU pragma: export
 #include <hilbert/math/linear_algebra/vector.hpp>           // IWYU pragma: export

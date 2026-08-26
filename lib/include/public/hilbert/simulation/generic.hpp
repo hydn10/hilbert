@@ -8,7 +8,7 @@
 #include <hilbert/simulation/core/problem.hpp>     // IWYU pragma: export
 #include <hilbert/simulation/core/settings.hpp>    // IWYU pragma: export
 #include <hilbert/simulation/drivers/run.hpp>      // IWYU pragma: export
-#include <hilbert/simulation/drivers/view.hpp>     // IWYU pragma: export
+#include <hilbert/simulation/drivers/simulation_view.hpp>     // IWYU pragma: export
 #include <hilbert/simulation/integrators/rk4.hpp>  // IWYU pragma: export
 #include <hilbert/simulation/sinks/adapters.hpp>   // IWYU pragma: export
 #include <hilbert/simulation/sinks/concepts.hpp>   // IWYU pragma: export

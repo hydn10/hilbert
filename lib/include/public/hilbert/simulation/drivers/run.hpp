@@ -4,7 +4,7 @@
 
 #include <hilbert/simulation/core/input_count.hpp>
 #include <hilbert/simulation/core/problem.hpp>
-#include <hilbert/simulation/detail/engine.hpp>
+#include <hilbert/simulation/detail/simulation_engine.hpp>
 #include <hilbert/simulation/sinks/concepts.hpp>
 
 #include <concepts>

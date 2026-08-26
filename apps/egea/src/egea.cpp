@@ -1,6 +1,6 @@
 #include <hilbert/egea/egea.hpp>
 
-#include <hilbert/app/cli/arguments.hpp>
+#include <hilbert/app/cli/argument_cursor.hpp>
 #include <hilbert/app/cli/error.hpp>
 #include <hilbert/app/cli/parse.hpp>
 #include <hilbert/app/cli/run.hpp>

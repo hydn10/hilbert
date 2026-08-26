@@ -3,7 +3,7 @@
 
 
 #include <hilbert/analysis/phase/principal_phase.hpp>
-#include <hilbert/analysis/response.hpp>
+#include <hilbert/analysis/frequency_response.hpp>
 #include <hilbert/analysis/sinusoidal/basis.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/vector.hpp>

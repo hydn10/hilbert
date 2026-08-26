@@ -3,7 +3,7 @@
 
 
 #include <hilbert/analysis/least_squares/basis.hpp>
-#include <hilbert/analysis/sinusoidal/frequency.hpp>
+#include <hilbert/analysis/sinusoidal/frequency_hz.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/signature.hpp>
 

@@ -1,9 +1,9 @@
-#ifndef HILBERT_SIMULATION_DRIVERS_VIEW_HPP
-#define HILBERT_SIMULATION_DRIVERS_VIEW_HPP
+#ifndef HILBERT_SIMULATION_DRIVERS_SIMULATION_VIEW_HPP
+#define HILBERT_SIMULATION_DRIVERS_SIMULATION_VIEW_HPP
 
 
 #include <hilbert/simulation/core/problem.hpp>
-#include <hilbert/simulation/detail/engine.hpp>
+#include <hilbert/simulation/detail/simulation_engine.hpp>
 
 #include <concepts>
 #include <cstddef>
@@ -202,4 +202,4 @@ simulate(Simulation simulation)
 
 } // namespace hilbert::simulation
 
-#endif // HILBERT_SIMULATION_DRIVERS_VIEW_HPP
+#endif // HILBERT_SIMULATION_DRIVERS_SIMULATION_VIEW_HPP

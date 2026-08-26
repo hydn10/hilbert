@@ -16,12 +16,12 @@ namespace hilbert::phase_scan
 
 template<hilbert::supported_float Float>
 void
-write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results);
+write_results(std::ostream &output, std::span<result<Float> const> results);
 
 
 template<hilbert::supported_float Float>
 void
-write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float> const> results)
+write_results(std::ostream &output, std::span<result<Float> const> results)
 {
   hilbert::app::io::numeric_table_writer<Float> document{output};
 
