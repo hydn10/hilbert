@@ -21,6 +21,9 @@ template<std::size_t Row, std::size_t Column>
 consteval std::size_t
 symmetric_matrix_index() noexcept;
 
+template<typename Matrix>
+struct symmetric_matrix_access;
+
 } // namespace detail
 
 template<typename ColumnSignature, typename RowSignature>
@@ -41,8 +44,8 @@ public:
   static constexpr std::size_t lower_triangle_size = size * (size + 1uz) / 2uz;
 
 private:
-  using value_array = std::array<Float, ColumnSignature::size *(ColumnSignature::size + 1uz) / 2uz>;
   std::array<Float, lower_triangle_size> lower_triangle_{};
+  friend struct detail::symmetric_matrix_access<symmetric_matrix<Float, RowSignature, ColumnSignature>>;
 
   explicit constexpr symmetric_matrix(std::array<Float, lower_triangle_size> lower_triangle) noexcept;
 
@@ -54,15 +57,30 @@ public:
   requires(sizeof...(Values) == ColumnSignature::size * (ColumnSignature::size + 1uz) / 2uz)
   static constexpr symmetric_matrix
   from_lower_triangle(Values... values) noexcept;
-
-  [[nodiscard]]
-  constexpr value_array const &
-  values() const noexcept;
-
-  [[nodiscard]]
-  constexpr value_array &
-  values() noexcept;
 };
+
+
+namespace detail
+{
+
+template<
+    supported_float Float,
+    coordinate_signature RowSignature,
+    symmetric_signature_pair<RowSignature> ColumnSignature>
+struct symmetric_matrix_access<symmetric_matrix<Float, RowSignature, ColumnSignature>>
+{
+  template<std::size_t Row, std::size_t Column>
+  [[nodiscard]]
+  static constexpr Float const &
+  get(symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexcept;
+
+  template<std::size_t Row, std::size_t Column>
+  [[nodiscard]]
+  static constexpr Float &
+  get(symmetric_matrix<Float, RowSignature, ColumnSignature> &matrix) noexcept;
+};
+
+} // namespace detail
 
 
 template<
@@ -109,6 +127,37 @@ symmetric_matrix_index() noexcept
 } // namespace detail
 
 
+namespace detail
+{
+
+template<
+    supported_float Float,
+    coordinate_signature RowSignature,
+    symmetric_signature_pair<RowSignature> ColumnSignature>
+template<std::size_t Row, std::size_t Column>
+constexpr Float const &
+symmetric_matrix_access<symmetric_matrix<Float, RowSignature, ColumnSignature>>::get(
+    symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexcept
+{
+  return std::get<symmetric_matrix_index<Row, Column>()>(matrix.lower_triangle_);
+}
+
+
+template<
+    supported_float Float,
+    coordinate_signature RowSignature,
+    symmetric_signature_pair<RowSignature> ColumnSignature>
+template<std::size_t Row, std::size_t Column>
+constexpr Float &
+symmetric_matrix_access<symmetric_matrix<Float, RowSignature, ColumnSignature>>::get(
+    symmetric_matrix<Float, RowSignature, ColumnSignature> &matrix) noexcept
+{
+  return std::get<symmetric_matrix_index<Row, Column>()>(matrix.lower_triangle_);
+}
+
+} // namespace detail
+
+
 template<
     supported_float Float,
     coordinate_signature RowSignature,
@@ -146,27 +195,6 @@ symmetric_matrix<Float, RowSignature, ColumnSignature>::from_lower_triangle(Valu
 
 
 template<
-    supported_float Float,
-    coordinate_signature RowSignature,
-    symmetric_signature_pair<RowSignature> ColumnSignature>
-constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>::value_array const &
-symmetric_matrix<Float, RowSignature, ColumnSignature>::values() const noexcept
-{
-  return lower_triangle_;
-}
-
-
-template<
-    supported_float Float,
-    coordinate_signature RowSignature,
-    symmetric_signature_pair<RowSignature> ColumnSignature>
-constexpr symmetric_matrix<Float, RowSignature, ColumnSignature>::value_array &
-symmetric_matrix<Float, RowSignature, ColumnSignature>::values() noexcept
-{
-  return lower_triangle_;
-}
-
-template<
     std::size_t Row,
     std::size_t Column,
     supported_float Float,
@@ -176,7 +204,8 @@ requires(Row < ColumnSignature::size) && (Column < ColumnSignature::size)
 constexpr Float const &
 get(symmetric_matrix<Float, RowSignature, ColumnSignature> const &matrix) noexcept
 {
-  return std::get<detail::symmetric_matrix_index<Row, Column>()>(matrix.values());
+  return detail::symmetric_matrix_access<
+      symmetric_matrix<Float, RowSignature, ColumnSignature>>::template get<Row, Column>(matrix);
 }
 
 
@@ -190,8 +219,13 @@ requires(Row < ColumnSignature::size) && (Column < ColumnSignature::size)
 constexpr Float &
 get(symmetric_matrix<Float, RowSignature, ColumnSignature> &matrix) noexcept
 {
-  return std::get<detail::symmetric_matrix_index<Row, Column>()>(matrix.values());
+  return detail::symmetric_matrix_access<
+      symmetric_matrix<Float, RowSignature, ColumnSignature>>::template get<Row, Column>(matrix);
 }
+
+
+template<supported_float Float, coordinate_signature_for_size<3uz> Signature>
+using symmetric_matrix3 = symmetric_matrix<Float, dual_signature_t<Signature>, Signature>;
 
 } // namespace hilbert::math
 

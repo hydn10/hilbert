@@ -48,7 +48,8 @@ def phase_scan_plot(
     save: Annotated[
         Path | None,
         typer.Option(
-            "--save", help="Save the magnitude-and-phase frequency-response figure to this path."
+            "--save",
+            help="Save the response figure to this path and diagnostics to a '-diagnostics' sibling path.",
         ),
     ] = None,
     show: Annotated[
@@ -56,7 +57,7 @@ def phase_scan_plot(
         typer.Option("--show/--no-show", help="Open the interactive plot window."),
     ] = True,
 ) -> None:
-    """Plot magnitude and phase estimates from a constant-frequency phase scan."""
+    """Plot response estimates and diagnostics from a constant-frequency phase scan."""
     cli_cmds.plot_phase_scan(file_path, save, show)
 
 
@@ -64,7 +65,7 @@ def phase_scan_plot(
 def phase_scan_validate(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
 ) -> None:
-    """Validate the phase-scan magnitude/phase results contract without opening a plot."""
+    """Validate the phase-scan response and diagnostics contract without opening a plot."""
     typer.echo(cli_cmds.validate_phase_scan(file_path))
 
 

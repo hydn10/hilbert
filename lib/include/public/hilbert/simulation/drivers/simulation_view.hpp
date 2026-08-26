@@ -80,17 +80,8 @@ public:
   void
   operator++(int);
 
-  friend bool
-  operator==(iterator const &iterator, [[maybe_unused]] sentinel sentinel)
-  {
-    return iterator.at_end();
-  }
-
-  friend bool
-  operator==(sentinel sentinel, iterator const &iterator)
-  {
-    return iterator == sentinel;
-  }
+  bool
+  operator==([[maybe_unused]] sentinel sentinel) const;
 
 private:
   explicit iterator(simulation_view *view);
@@ -167,6 +158,14 @@ simulation_view<Simulation>::simulation_view(simulation_view &&) noexcept = defa
 template<simulation_problem_for Simulation>
 simulation_view<Simulation> &
 simulation_view<Simulation>::operator=(simulation_view &&) noexcept = default;
+
+
+template<simulation_problem_for Simulation>
+bool
+simulation_view<Simulation>::iterator::operator==([[maybe_unused]] sentinel sentinel) const
+{
+  return at_end();
+}
 
 
 template<simulation_problem_for Simulation>

@@ -4,7 +4,7 @@ from matplotlib.figure import Figure
 from ..phase_scan_data import PhaseScanData
 
 
-def create_phase_scan_phase_frequency_figure(data: PhaseScanData) -> Figure:
+def create_phase_scan_frequency_response_figure(data: PhaseScanData) -> Figure:
     figure, (magnitude_axis, phase_axis) = plt.subplots(
         2,
         1,
@@ -16,7 +16,7 @@ def create_phase_scan_phase_frequency_figure(data: PhaseScanData) -> Figure:
 
     magnitude_axis.plot(
         data["frequency_hz"],
-        data["magnitude_fit_n_per_m"],
+        data["magnitude_least_squares_n_per_m"],
         label="Least-squares magnitude",
         marker="o",
     )
@@ -32,7 +32,7 @@ def create_phase_scan_phase_frequency_figure(data: PhaseScanData) -> Figure:
 
     phase_axis.plot(
         data["frequency_hz"],
-        data["phase_fit_rad"],
+        data["phase_least_squares_rad"],
         label="Least-squares phase",
         marker="o",
     )

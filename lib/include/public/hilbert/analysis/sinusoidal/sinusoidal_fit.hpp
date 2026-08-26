@@ -2,8 +2,8 @@
 #define HILBERT_ANALYSIS_SINUSOIDAL_FIT_HPP
 
 
-#include <hilbert/analysis/phase/principal_phase.hpp>
 #include <hilbert/analysis/frequency_response.hpp>
+#include <hilbert/analysis/phase/principal_phase.hpp>
 #include <hilbert/analysis/sinusoidal/basis.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/vector.hpp>
@@ -78,7 +78,7 @@ sinusoidal_fit<Float>::from_coefficients(math::vector<Float, Signature> coeffici
   {
     throw std::invalid_argument{"sinusoidal coefficients must be finite"};
   }
-  
+
   return sinusoidal_fit{{cosine, -sine}, offset};
 }
 

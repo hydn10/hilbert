@@ -27,10 +27,15 @@ write_results(std::ostream &output, std::span<result<Float> const> results)
 
   constexpr std::array result_columns{
       std::string_view{"frequency_hz"},
-      std::string_view{"magnitude_fit_n_per_m"},
+      std::string_view{"magnitude_least_squares_n_per_m"},
       std::string_view{"magnitude_hilbert_n_per_m"},
-      std::string_view{"phase_fit_rad"},
+      std::string_view{"phase_least_squares_rad"},
       std::string_view{"phase_hilbert_rad"},
+      std::string_view{"least_squares_basis_condition_number"},
+      std::string_view{"least_squares_ground_normalized_residual"},
+      std::string_view{"least_squares_tire_force_normalized_residual"},
+      std::string_view{"hilbert_mean_resultant_length"},
+      std::string_view{"hilbert_gain_coefficient_of_variation"},
   };
 
   document.table(
@@ -42,10 +47,15 @@ write_results(std::ostream &output, std::span<result<Float> const> results)
         {
           rows.write(
               result.frequency_hz,
-              result.magnitude_fit_n_per_m,
+              result.magnitude_least_squares_n_per_m,
               result.magnitude_hilbert_n_per_m,
-              result.phase_fit_rad,
-              result.phase_hilbert_rad);
+              result.phase_least_squares_rad,
+              result.phase_hilbert_rad,
+              result.least_squares_basis_condition_number,
+              result.least_squares_ground_normalized_residual,
+              result.least_squares_tire_force_normalized_residual,
+              result.hilbert_mean_resultant_length,
+              result.hilbert_gain_coefficient_of_variation);
         }
       });
 }

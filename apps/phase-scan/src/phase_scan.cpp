@@ -1,5 +1,6 @@
 #include <hilbert/phase_scan/phase_scan.hpp>
 
+#include <hilbert/analysis/least_squares/least_squares_residual_statistics.hpp>
 #include <hilbert/analysis/least_squares/observation.hpp>
 #include <hilbert/analysis/sampling/sample_window.hpp>
 #include <hilbert/analysis/sinusoidal/basis.hpp>
@@ -175,7 +176,8 @@ simulate_phase_scan_point(double frequency_hz)
   };
 
   auto const fit_sink_factory = hilbert::simulation::sinks::make_filtered_sink_factory(
-      hilbert::simulation::sinks::make_normal_equations_sink_factory<double, 2uz>(basis, make_fit_observation),
+      hilbert::simulation::sinks::make_normal_equations_sink_factory<double, 2uz>(
+          basis, make_fit_observation, hilbert::analysis::least_squares_residual_statistics_collector<double, 2uz>{}),
       predicate);
   auto const sink_factory = hilbert::simulation::sinks::make_tee_sink_factory(
       suspension::sinks::soa_vector_sink_factory<double>{}, fit_sink_factory);
@@ -190,13 +192,21 @@ simulate_phase_scan_point(double frequency_hz)
   auto const least_squares = estimate_phase_scan_by_least_squares(products);
   auto const hilbert_estimate = estimate_phase_scan_by_hilbert_transform(
       samples.ground_displacement_span(), samples.tire_force_span(), measurement);
+  auto const &[basis_condition_number, ground_normalized_residual, tire_force_normalized_residual] =
+      least_squares.diagnostics();
+  auto const &[mean_resultant_length, gain_coefficient_of_variation] = hilbert_estimate.diagnostics();
 
   return {
       .frequency_hz = frequency_hz,
-      .magnitude_fit_n_per_m = least_squares.response().magnitude(),
+      .magnitude_least_squares_n_per_m = least_squares.response().magnitude(),
       .magnitude_hilbert_n_per_m = hilbert_estimate.response().magnitude(),
-      .phase_fit_rad = least_squares.response().phase().radians(),
+      .phase_least_squares_rad = least_squares.response().phase().radians(),
       .phase_hilbert_rad = hilbert_estimate.response().phase().radians(),
+      .least_squares_basis_condition_number = basis_condition_number,
+      .least_squares_ground_normalized_residual = ground_normalized_residual,
+      .least_squares_tire_force_normalized_residual = tire_force_normalized_residual,
+      .hilbert_mean_resultant_length = mean_resultant_length.value(),
+      .hilbert_gain_coefficient_of_variation = gain_coefficient_of_variation,
   };
 }
 

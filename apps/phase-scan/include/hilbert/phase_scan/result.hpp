@@ -12,10 +12,15 @@ template<hilbert::supported_float Float>
 struct result
 {
   Float frequency_hz;
-  Float magnitude_fit_n_per_m;
+  Float magnitude_least_squares_n_per_m;
   Float magnitude_hilbert_n_per_m;
-  Float phase_fit_rad;
+  Float phase_least_squares_rad;
   Float phase_hilbert_rad;
+  Float least_squares_basis_condition_number;
+  Float least_squares_ground_normalized_residual;
+  Float least_squares_tire_force_normalized_residual;
+  Float hilbert_mean_resultant_length;
+  Float hilbert_gain_coefficient_of_variation;
 };
 
 } // namespace hilbert::phase_scan

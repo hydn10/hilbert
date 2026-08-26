@@ -8,10 +8,15 @@ from .tables import StructuredArray, load_numeric_tables
 
 PHASE_SCAN_RESULT_COLUMNS = (
     "frequency_hz",
-    "magnitude_fit_n_per_m",
+    "magnitude_least_squares_n_per_m",
     "magnitude_hilbert_n_per_m",
-    "phase_fit_rad",
+    "phase_least_squares_rad",
     "phase_hilbert_rad",
+    "least_squares_basis_condition_number",
+    "least_squares_ground_normalized_residual",
+    "least_squares_tire_force_normalized_residual",
+    "hilbert_mean_resultant_length",
+    "hilbert_gain_coefficient_of_variation",
 )
 
 
@@ -24,7 +29,7 @@ class PhaseScanData:
 
 
 def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
-    """Load and validate the phase-scan magnitude/phase results contract."""
+    """Load and validate the phase-scan response and diagnostics contract."""
     path = Path(file_path)
 
     with path.open("r", encoding="utf-8", newline="") as source:
@@ -43,8 +48,30 @@ def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
     if results.size > 1 and np.any(np.diff(frequencies) <= 0):
         raise ValueError("table 'results' frequency_hz must be strictly increasing")
 
-    for column in ("magnitude_fit_n_per_m", "magnitude_hilbert_n_per_m"):
+    for column in (
+        "magnitude_least_squares_n_per_m",
+        "magnitude_hilbert_n_per_m",
+    ):
         if np.any(results[column] < 0):
             raise ValueError(f"table 'results' {column} must be non-negative")
+
+    if np.any(results["least_squares_basis_condition_number"] < 1):
+        raise ValueError(
+            "table 'results' least_squares_basis_condition_number must be at least one"
+        )
+
+    for column in (
+        "least_squares_ground_normalized_residual",
+        "least_squares_tire_force_normalized_residual",
+        "hilbert_gain_coefficient_of_variation",
+    ):
+        if np.any(results[column] < 0):
+            raise ValueError(f"table 'results' {column} must be non-negative")
+
+    if np.any(
+        (results["hilbert_mean_resultant_length"] < 0)
+        | (results["hilbert_mean_resultant_length"] > 1)
+    ):
+        raise ValueError("table 'results' hilbert_mean_resultant_length must be in [0, 1]")
 
     return PhaseScanData(data=results)

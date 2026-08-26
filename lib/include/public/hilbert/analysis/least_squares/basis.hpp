@@ -199,6 +199,14 @@ basis<Functions...>::operator()(Float argument) const
 template<class... Functions>
 basis(Functions...) -> basis<Functions...>;
 
+
+template<typename First, typename Second, typename Third>
+using basis_row3 = basis_row<First, Second, Third>;
+
+
+template<class FirstFunction, class SecondFunction, class ThirdFunction>
+using basis3 = basis<FirstFunction, SecondFunction, ThirdFunction>;
+
 } // namespace hilbert::analysis
 
 #endif // HILBERT_ANALYSIS_LEAST_SQUARES_BASIS_HPP
