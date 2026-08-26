@@ -3,6 +3,7 @@
 
 
 #include <hilbert/analysis/phase/principal_phase.hpp>
+#include <hilbert/analysis/response.hpp>
 #include <hilbert/analysis/sinusoidal/basis.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/vector.hpp>
@@ -52,8 +53,8 @@ public:
 
 template<supported_float Float>
 [[nodiscard]]
-principal_phase<Float>
-relative_phase(sinusoidal_fit<Float> const &first, sinusoidal_fit<Float> const &second);
+frequency_response<Float>
+make_frequency_response(sinusoidal_fit<Float> const &output, sinusoidal_fit<Float> const &input);
 
 
 template<supported_float Float>
@@ -72,10 +73,12 @@ sinusoidal_fit<Float>::from_coefficients(math::vector<Float, Signature> coeffici
   auto const cosine = math::get<cosine_term>(coefficients);
   auto const sine = math::get<sine_term>(coefficients);
   auto const offset = math::get<constant_term>(coefficients);
+
   if (!std::isfinite(cosine) || !std::isfinite(sine) || !std::isfinite(offset))
   {
     throw std::invalid_argument{"sinusoidal coefficients must be finite"};
   }
+  
   return sinusoidal_fit{{cosine, -sine}, offset};
 }
 
@@ -121,18 +124,17 @@ sinusoidal_fit<Float>::amplitude() const noexcept
 
 
 template<supported_float Float>
-principal_phase<Float>
-relative_phase(sinusoidal_fit<Float> const &first, sinusoidal_fit<Float> const &second)
+frequency_response<Float>
+make_frequency_response(sinusoidal_fit<Float> const &output, sinusoidal_fit<Float> const &input)
 {
-  auto const relative_phasor = first.phasor() * std::conj(second.phasor());
-  auto const magnitude = std::abs(relative_phasor);
+  auto const input_phasor = input.phasor();
 
-  if (!std::isfinite(magnitude) || magnitude == 0)
+  if (std::abs(input_phasor) == 0)
   {
-    throw std::invalid_argument{"sinusoidal phase is undefined for a zero signal"};
+    throw std::invalid_argument{"frequency response has zero input phasor"};
   }
 
-  return principal_phase<Float>{std::arg(relative_phasor)};
+  return frequency_response<Float>{output.phasor() / input_phasor};
 }
 
 } // namespace hilbert::analysis

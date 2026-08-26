@@ -23,9 +23,10 @@ target_sources(
                 include/public/hilbert/analysis/least_squares/products.hpp
                 include/public/hilbert/analysis/least_squares/products3.hpp
                 include/public/hilbert/analysis/phase/circular_mean.hpp
+                include/public/hilbert/analysis/phase/circular_mean_result.hpp
                 include/public/hilbert/analysis/phase/mean_resultant_length.hpp
                 include/public/hilbert/analysis/phase/principal_phase.hpp
-                include/public/hilbert/analysis/phase/relative_phase_estimate.hpp
+                include/public/hilbert/analysis/response.hpp
                 include/public/hilbert/analysis/sampling/sample_window.hpp
                 include/public/hilbert/analysis/signals/hilbert_transform.hpp
                 include/public/hilbert/analysis/signals/instantaneous_signal.hpp

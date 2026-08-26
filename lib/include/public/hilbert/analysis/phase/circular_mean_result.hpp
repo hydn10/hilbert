@@ -1,5 +1,5 @@
-#ifndef HILBERT_ANALYSIS_PHASE_RELATIVE_PHASE_ESTIMATE_HPP
-#define HILBERT_ANALYSIS_PHASE_RELATIVE_PHASE_ESTIMATE_HPP
+#ifndef HILBERT_ANALYSIS_PHASE_CIRCULAR_MEAN_RESULT_HPP
+#define HILBERT_ANALYSIS_PHASE_CIRCULAR_MEAN_RESULT_HPP
 
 
 #include <hilbert/analysis/phase/mean_resultant_length.hpp>
@@ -11,26 +11,26 @@ namespace hilbert::analysis
 {
 
 template<supported_float Float>
-class relative_phase_estimate
+class circular_mean_result
 {
   principal_phase<Float> phase_;
   mean_resultant_length<Float> resultant_length_;
 
 public:
-  relative_phase_estimate(principal_phase<Float> phase, mean_resultant_length<Float> resultant_length);
+  circular_mean_result(principal_phase<Float> phase, mean_resultant_length<Float> resultant_length);
 
   [[nodiscard]]
   principal_phase<Float>
-  phase() const;
+  phase() const noexcept;
 
   [[nodiscard]]
   mean_resultant_length<Float>
-  resultant_length() const;
+  resultant_length() const noexcept;
 };
 
 
 template<supported_float Float>
-relative_phase_estimate<Float>::relative_phase_estimate(
+circular_mean_result<Float>::circular_mean_result(
     principal_phase<Float> phase, mean_resultant_length<Float> resultant_length)
     : phase_{phase}
     , resultant_length_{resultant_length}
@@ -40,7 +40,7 @@ relative_phase_estimate<Float>::relative_phase_estimate(
 
 template<supported_float Float>
 principal_phase<Float>
-relative_phase_estimate<Float>::phase() const
+circular_mean_result<Float>::phase() const noexcept
 {
   return phase_;
 }
@@ -48,11 +48,11 @@ relative_phase_estimate<Float>::phase() const
 
 template<supported_float Float>
 mean_resultant_length<Float>
-relative_phase_estimate<Float>::resultant_length() const
+circular_mean_result<Float>::resultant_length() const noexcept
 {
   return resultant_length_;
 }
 
 } // namespace hilbert::analysis
 
-#endif // HILBERT_ANALYSIS_PHASE_RELATIVE_PHASE_ESTIMATE_HPP
+#endif // HILBERT_ANALYSIS_PHASE_CIRCULAR_MEAN_RESULT_HPP

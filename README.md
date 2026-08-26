@@ -37,7 +37,7 @@ A summary of the procedure can be viewed [here](https://www.youtube.com/watch?v=
 ### Signal Processing
 
 - Fast Fourier Transform (FFT) based Hilbert transform implementation.
-- Phase shift analysis between force and platform displacement signals.
+- Magnitude and phase-response analysis between force and platform displacement signals.
 - Efficient signal filtering and processing.
 
 ### Data Analysis & Visualization

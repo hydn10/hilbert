@@ -11,7 +11,7 @@ egea_app = typer.Typer(
 )
 phase_scan_app = typer.Typer(
     no_args_is_help=True,
-    help="Plot and validate phase-scan output.",
+    help="Plot and validate phase-scan frequency-response output.",
 )
 
 
@@ -47,14 +47,16 @@ def phase_scan_plot(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
     save: Annotated[
         Path | None,
-        typer.Option("--save", help="Save the phase-versus-frequency figure to this path."),
+        typer.Option(
+            "--save", help="Save the magnitude-and-phase frequency-response figure to this path."
+        ),
     ] = None,
     show: Annotated[
         bool,
         typer.Option("--show/--no-show", help="Open the interactive plot window."),
     ] = True,
 ) -> None:
-    """Plot both phase estimates from a constant-frequency phase scan."""
+    """Plot magnitude and phase estimates from a constant-frequency phase scan."""
     cli_cmds.plot_phase_scan(file_path, save, show)
 
 
@@ -62,7 +64,7 @@ def phase_scan_plot(
 def phase_scan_validate(
     file_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
 ) -> None:
-    """Validate the phase-scan results contract without opening a plot."""
+    """Validate the phase-scan magnitude/phase results contract without opening a plot."""
     typer.echo(cli_cmds.validate_phase_scan(file_path))
 
 

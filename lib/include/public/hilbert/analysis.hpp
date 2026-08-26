@@ -10,9 +10,10 @@
 #include <hilbert/analysis/least_squares/observation_count.hpp> // IWYU pragma: export
 #include <hilbert/analysis/least_squares/products.hpp>          // IWYU pragma: export
 #include <hilbert/analysis/phase/circular_mean.hpp>             // IWYU pragma: export
+#include <hilbert/analysis/phase/circular_mean_result.hpp>     // IWYU pragma: export
 #include <hilbert/analysis/phase/mean_resultant_length.hpp>     // IWYU pragma: export
 #include <hilbert/analysis/phase/principal_phase.hpp>           // IWYU pragma: export
-#include <hilbert/analysis/phase/relative_phase_estimate.hpp>   // IWYU pragma: export
+#include <hilbert/analysis/response.hpp>                        // IWYU pragma: export
 #include <hilbert/analysis/sampling/sample_window.hpp>          // IWYU pragma: export
 #include <hilbert/analysis/signals/hilbert_transform.hpp>       // IWYU pragma: export
 #include <hilbert/analysis/signals/instantaneous_signal.hpp>    // IWYU pragma: export

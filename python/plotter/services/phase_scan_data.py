@@ -8,6 +8,8 @@ from .tables import StructuredArray, load_numeric_tables
 
 PHASE_SCAN_RESULT_COLUMNS = (
     "frequency_hz",
+    "magnitude_fit_n_per_m",
+    "magnitude_hilbert_n_per_m",
     "phase_fit_rad",
     "phase_hilbert_rad",
 )
@@ -22,7 +24,7 @@ class PhaseScanData:
 
 
 def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
-    """Load and validate the phase-scan results contract."""
+    """Load and validate the phase-scan magnitude/phase results contract."""
     path = Path(file_path)
 
     with path.open("r", encoding="utf-8", newline="") as source:
@@ -40,5 +42,9 @@ def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
         raise ValueError("table 'results' frequency_hz must be positive")
     if results.size > 1 and np.any(np.diff(frequencies) <= 0):
         raise ValueError("table 'results' frequency_hz must be strictly increasing")
+
+    for column in ("magnitude_fit_n_per_m", "magnitude_hilbert_n_per_m"):
+        if np.any(results[column] < 0):
+            raise ValueError(f"table 'results' {column} must be non-negative")
 
     return PhaseScanData(data=results)

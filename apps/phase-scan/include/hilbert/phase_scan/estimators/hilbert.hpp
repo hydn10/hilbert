@@ -3,7 +3,8 @@
 
 
 #include <hilbert/analysis/phase/circular_mean.hpp>
-#include <hilbert/analysis/phase/relative_phase_estimate.hpp>
+#include <hilbert/analysis/phase/mean_resultant_length.hpp>
+#include <hilbert/analysis/response.hpp>
 #include <hilbert/analysis/sampling/sample_window.hpp>
 #include <hilbert/analysis/signals/hilbert_transform.hpp>
 #include <hilbert/analysis/signals/remove_dc_component.hpp>
@@ -12,19 +13,67 @@
 #include <complex>
 #include <ranges>
 #include <span>
+#include <stdexcept>
 
 
 namespace hilbert::phase_scan
 {
 
 template<hilbert::supported_float Float>
-hilbert::analysis::relative_phase_estimate<Float>
+class phase_scan_hilbert_estimate
+{
+  hilbert::analysis::frequency_response<Float> response_;
+  hilbert::analysis::mean_resultant_length<Float> resultant_length_;
+
+public:
+  phase_scan_hilbert_estimate(
+      hilbert::analysis::frequency_response<Float> response,
+      hilbert::analysis::mean_resultant_length<Float> resultant_length);
+
+  [[nodiscard]]
+  hilbert::analysis::frequency_response<Float> const &
+  response() const noexcept;
+
+  [[nodiscard]]
+  hilbert::analysis::mean_resultant_length<Float>
+  resultant_length() const noexcept;
+};
+
+
+template<hilbert::supported_float Float>
+phase_scan_hilbert_estimate<Float>::phase_scan_hilbert_estimate(
+    hilbert::analysis::frequency_response<Float> response,
+    hilbert::analysis::mean_resultant_length<Float> resultant_length)
+    : response_{response}
+    , resultant_length_{resultant_length}
+{
+}
+
+
+template<hilbert::supported_float Float>
+hilbert::analysis::frequency_response<Float> const &
+phase_scan_hilbert_estimate<Float>::response() const noexcept
+{
+  return response_;
+}
+
+
+template<hilbert::supported_float Float>
+hilbert::analysis::mean_resultant_length<Float>
+phase_scan_hilbert_estimate<Float>::resultant_length() const noexcept
+{
+  return resultant_length_;
+}
+
+
+template<hilbert::supported_float Float>
+phase_scan_hilbert_estimate<Float>
 estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> ground, std::span<Float const> force, hilbert::analysis::sample_range const &measurement);
 
 
 template<hilbert::supported_float Float>
-hilbert::analysis::relative_phase_estimate<Float>
+phase_scan_hilbert_estimate<Float>
 estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> ground, std::span<Float const> force, hilbert::analysis::sample_range const &measurement)
 {
@@ -36,12 +85,35 @@ estimate_phase_scan_by_hilbert_transform(
   auto const ground_window = measurement.slice(std::span<std::complex<Float> const>{analytic_ground});
   auto const force_window = measurement.slice(std::span<std::complex<Float> const>{analytic_force});
 
+  Float ground_amplitude_sum{};
+  Float force_amplitude_sum{};
   hilbert::analysis::circular_mean<Float> mean;
+
   for (auto const &[ground_value, force_value] : std::views::zip(ground_window, force_window))
   {
-    mean.add_relative_vector(ground_value * std::conj(force_value));
+    auto const ground_amplitude = std::abs(ground_value);
+    auto const force_amplitude = std::abs(force_value);
+
+    auto const relative_vector = force_value * std::conj(ground_value);
+
+    ground_amplitude_sum += ground_amplitude;
+    force_amplitude_sum += force_amplitude;
+
+    mean.add_vector(relative_vector);
   }
-  return mean.finish();
+
+  if (ground_amplitude_sum == 0)
+  {
+    throw std::invalid_argument{"Hilbert magnitude ratio has zero ground amplitude"};
+  }
+
+  auto const magnitude_ratio = force_amplitude_sum / ground_amplitude_sum;
+  auto const circular_mean = mean.finish();
+  
+  auto const response = hilbert::analysis::frequency_response<Float>{
+      std::polar(magnitude_ratio, circular_mean.phase().radians())};
+
+  return {response, circular_mean.resultant_length()};
 }
 
 } // namespace hilbert::phase_scan

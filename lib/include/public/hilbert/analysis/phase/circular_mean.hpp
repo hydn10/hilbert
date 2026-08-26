@@ -2,7 +2,7 @@
 #define HILBERT_ANALYSIS_PHASE_CIRCULAR_MEAN_HPP
 
 
-#include <hilbert/analysis/phase/relative_phase_estimate.hpp>
+#include <hilbert/analysis/phase/circular_mean_result.hpp>
 #include <hilbert/core/supported_float.hpp>
 
 #include <algorithm>
@@ -23,17 +23,17 @@ class circular_mean
 
 public:
   void
-  add_relative_vector(std::complex<Float> value);
+  add_vector(std::complex<Float> value);
 
   [[nodiscard]]
-  relative_phase_estimate<Float>
+  circular_mean_result<Float>
   finish() const;
 };
 
 
 template<supported_float Float>
 void
-circular_mean<Float>::add_relative_vector(std::complex<Float> value)
+circular_mean<Float>::add_vector(std::complex<Float> value)
 {
   auto const magnitude = std::abs(value);
 
@@ -48,7 +48,7 @@ circular_mean<Float>::add_relative_vector(std::complex<Float> value)
 
 
 template<supported_float Float>
-relative_phase_estimate<Float>
+circular_mean_result<Float>
 circular_mean<Float>::finish() const
 {
   if (count_ == 0uz)

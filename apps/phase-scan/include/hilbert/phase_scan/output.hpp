@@ -27,6 +27,8 @@ write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float
 
   constexpr std::array result_columns{
       std::string_view{"frequency_hz"},
+      std::string_view{"magnitude_fit_n_per_m"},
+      std::string_view{"magnitude_hilbert_n_per_m"},
       std::string_view{"phase_fit_rad"},
       std::string_view{"phase_hilbert_rad"},
   };
@@ -38,7 +40,12 @@ write_phase_scan_results(std::ostream &output, std::span<phase_scan_result<Float
       {
         for (auto const &result : results)
         {
-          rows.write(result.frequency_hz, result.phase_fit_rad, result.phase_hilbert_rad);
+          rows.write(
+              result.frequency_hz,
+              result.magnitude_fit_n_per_m,
+              result.magnitude_hilbert_n_per_m,
+              result.phase_fit_rad,
+              result.phase_hilbert_rad);
         }
       });
 }

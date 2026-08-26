@@ -83,7 +83,7 @@ print_usage(std::ostream &output)
   print_usage_synopsis(output);
   std::print(
       output,
-      "\nRun independent {}-second constant-frequency suspension simulations and write phase results.\n"
+      "\nRun independent {}-second constant-frequency suspension simulations and write frequency-response results.\n"
       "Defaults: {} Hz through {} Hz in {} Hz steps. Output defaults to stdout.\n",
       simulation_duration_s,
       default_start_frequency_hz,
@@ -194,8 +194,10 @@ simulate_phase_scan_point(double frequency_hz)
 
   return {
       .frequency_hz = frequency_hz,
-      .phase_fit_rad = least_squares.phase().radians(),
-      .phase_hilbert_rad = hilbert_estimate.phase().radians(),
+      .magnitude_fit_n_per_m = least_squares.response().magnitude(),
+      .magnitude_hilbert_n_per_m = hilbert_estimate.response().magnitude(),
+      .phase_fit_rad = least_squares.response().phase().radians(),
+      .phase_hilbert_rad = hilbert_estimate.response().phase().radians(),
   };
 }
 

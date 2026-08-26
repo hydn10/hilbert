@@ -3,7 +3,6 @@
 
 
 #include <hilbert/analysis/least_squares/products.hpp>
-#include <hilbert/analysis/phase/principal_phase.hpp>
 #include <hilbert/analysis/sinusoidal/fit.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/math/linear_algebra/cholesky3.hpp>
@@ -20,14 +19,15 @@ class phase_scan_least_squares_estimate
 {
   hilbert::analysis::sinusoidal_fit<Float> ground_;
   hilbert::analysis::sinusoidal_fit<Float> tire_force_;
+  hilbert::analysis::frequency_response<Float> response_;
 
 public:
   phase_scan_least_squares_estimate(
       hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force);
 
   [[nodiscard]]
-  hilbert::analysis::principal_phase<Float>
-  phase() const;
+  hilbert::analysis::frequency_response<Float> const &
+  response() const noexcept;
 
   [[nodiscard]]
   hilbert::analysis::sinusoidal_fit<Float> const &
@@ -49,15 +49,16 @@ phase_scan_least_squares_estimate<Float>::phase_scan_least_squares_estimate(
     hilbert::analysis::sinusoidal_fit<Float> ground, hilbert::analysis::sinusoidal_fit<Float> tire_force)
     : ground_{std::move(ground)}
     , tire_force_{std::move(tire_force)}
+    , response_{hilbert::analysis::make_frequency_response(tire_force_, ground_)}
 {
 }
 
 
 template<hilbert::supported_float Float>
-hilbert::analysis::principal_phase<Float>
-phase_scan_least_squares_estimate<Float>::phase() const
+hilbert::analysis::frequency_response<Float> const &
+phase_scan_least_squares_estimate<Float>::response() const noexcept
 {
-  return hilbert::analysis::relative_phase(ground_, tire_force_);
+  return response_;
 }
 
 

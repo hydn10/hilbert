@@ -243,6 +243,34 @@ test_tagged_sinusoidal_coefficients_ignore_order()
 
 template<hilbert::supported_float Float>
 void
+test_frequency_response()
+{
+  using signature = hilbert::analysis::sinusoidal_signature;
+
+  auto const input_coefficients = hilbert::math::vector<Float, signature>{Float{1}, Float{0}, Float{0}};
+  auto const output_coefficients = hilbert::math::vector<Float, signature>{Float{0}, Float{-2}, Float{0}};
+  auto const input = hilbert::analysis::sinusoidal_fit<Float>::from_coefficients(input_coefficients);
+  auto const output = hilbert::analysis::sinusoidal_fit<Float>::from_coefficients(output_coefficients);
+  auto const response = hilbert::analysis::make_frequency_response(output, input);
+
+  require(std::abs(response.magnitude() - Float{2}) < tolerance<Float>, "frequency-response magnitude mismatch");
+  require(
+      std::abs(response.phase().radians() - std::numbers::pi_v<Float> / 2) < tolerance<Float>,
+      "frequency-response phase orientation mismatch");
+
+  auto const zero_input = hilbert::analysis::sinusoidal_fit<Float>::from_coefficients(
+      hilbert::math::vector<Float, signature>{Float{0}, Float{0}, Float{0}});
+  require_invalid_argument(
+      [&output, &zero_input]
+      {
+        static_cast<void>(hilbert::analysis::make_frequency_response(output, zero_input));
+      },
+      "zero frequency-response input accepted");
+}
+
+
+template<hilbert::supported_float Float>
+void
 test_precision()
 {
   test_cosine_analytic_signal<Float>();
@@ -250,6 +278,7 @@ test_precision()
   test_instantaneous_frequency_preserves_negative_phase_deltas<Float>();
   test_preconditions<Float>();
   test_tagged_sinusoidal_coefficients_ignore_order<Float>();
+  test_frequency_response<Float>();
 }
 
 
