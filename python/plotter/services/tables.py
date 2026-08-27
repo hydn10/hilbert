@@ -100,8 +100,10 @@ def load_numeric_rows(
     table_name: str,
     columns: tuple[str, ...],
     rows: Iterator[str],
+    *,
+    allow_positive_infinity: frozenset[str] = frozenset(),
 ) -> StructuredArray:
-    """Load finite float columns from one parsed table."""
+    """Load float columns, optionally allowing positive infinity in named columns."""
     dtype = np.dtype([(column, np.float64) for column in columns])
     try:
         data = np.loadtxt(rows, delimiter=",", dtype=dtype, ndmin=1)
@@ -111,7 +113,13 @@ def load_numeric_rows(
         raise ValueError(f"table {table_name!r} contains invalid numeric data: {error}") from error
 
     for column in columns:
-        if not np.all(np.isfinite(data[column])):
+        values = data[column]
+        valid = ~np.isnan(values)
+        if column in allow_positive_infinity:
+            valid &= ~np.isneginf(values)
+        else:
+            valid &= np.isfinite(values)
+        if not np.all(valid):
             raise ValueError(f"table {table_name!r} column {column!r} contains non-finite values")
 
     return data
@@ -122,9 +130,11 @@ def load_numeric_tables(
     schemas: Mapping[str, tuple[str, ...]],
     *,
     document_name: str,
+    allow_positive_infinity: Mapping[str, frozenset[str]] | None = None,
 ) -> dict[str, StructuredArray]:
-    """Load all finite numeric tables described by a document schema."""
+    """Load all numeric tables described by a document schema."""
     loaded_tables: dict[str, StructuredArray] = {}
+    infinity_columns = allow_positive_infinity or {}
 
     for table_name, header, rows in TableParser(source).tables():
         if table_name not in schemas:
@@ -139,7 +149,12 @@ def load_numeric_tables(
                 f"got {','.join(header)}"
             )
 
-        loaded_tables[table_name] = load_numeric_rows(table_name, expected_header, rows)
+        loaded_tables[table_name] = load_numeric_rows(
+            table_name,
+            expected_header,
+            rows,
+            allow_positive_infinity=infinity_columns.get(table_name, frozenset()),
+        )
 
     missing_tables = [name for name in schemas if name not in loaded_tables]
     if missing_tables:

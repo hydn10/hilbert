@@ -27,7 +27,7 @@ template<hilbert::supported_float Float>
 struct hilbert_diagnostics
 {
   hilbert::analysis::mean_resultant_length<Float> mean_resultant_length;
-  Float gain_coefficient_of_variation;
+  Float magnitude_normalized_residual;
 };
 
 
@@ -39,7 +39,6 @@ struct analytic_response_summary
 {
   hilbert::analysis::frequency_response<Float> response;
   hilbert::analysis::mean_resultant_length<Float> mean_resultant_length;
-  Float maximum_ground_amplitude;
 };
 
 
@@ -53,10 +52,10 @@ summarize_analytic_response(
 template<hilbert::supported_float Float>
 [[nodiscard]]
 Float
-instantaneous_gain_coefficient_of_variation(
+magnitude_normalized_residual(
     std::span<std::complex<Float> const> ground,
     std::span<std::complex<Float> const> tire_force,
-    Float maximum_ground_amplitude);
+    Float magnitude_ratio);
 
 } // namespace detail
 
@@ -96,7 +95,6 @@ detail::summarize_analytic_response(
 {
   Float ground_amplitude_sum{};
   Float tire_force_amplitude_sum{};
-  Float maximum_ground_amplitude{};
   hilbert::analysis::circular_mean<Float> relative_phase;
 
   for (auto const &[ground_value, tire_force_value] : std::views::zip(ground, tire_force))
@@ -106,7 +104,6 @@ detail::summarize_analytic_response(
 
     ground_amplitude_sum += ground_amplitude;
     tire_force_amplitude_sum += tire_force_amplitude;
-    maximum_ground_amplitude = std::max(maximum_ground_amplitude, ground_amplitude);
     relative_phase.add_vector(tire_force_value * std::conj(ground_value));
   }
 
@@ -120,51 +117,34 @@ detail::summarize_analytic_response(
   auto const response =
       hilbert::analysis::frequency_response<Float>{std::polar(magnitude_ratio, phase.phase().radians())};
 
-  return {response, phase.resultant_length(), maximum_ground_amplitude};
+  return {response, phase.resultant_length()};
 }
 
 
 template<hilbert::supported_float Float>
 Float
-detail::instantaneous_gain_coefficient_of_variation(
-    std::span<std::complex<Float> const> ground,
-    std::span<std::complex<Float> const> tire_force,
-    Float maximum_ground_amplitude)
+detail::magnitude_normalized_residual(
+    std::span<std::complex<Float> const> ground, std::span<std::complex<Float> const> tire_force, Float magnitude_ratio)
 {
-  constexpr auto relative_ground_amplitude_floor = static_cast<Float>(1e-12);
-  auto const ground_amplitude_floor = maximum_ground_amplitude * relative_ground_amplitude_floor;
-
-  Float gain_mean{};
-  Float gain_m2{};
-  std::size_t gain_count{};
+  long double residual_squared_norm{};
+  long double tire_force_squared_norm{};
 
   for (auto const &[ground_value, tire_force_value] : std::views::zip(ground, tire_force))
   {
-    auto const ground_amplitude = std::abs(ground_value);
-    if (ground_amplitude <= ground_amplitude_floor)
-    {
-      continue;
-    }
-
-    auto const gain = std::abs(tire_force_value) / ground_amplitude;
-    ++gain_count;
-    auto const delta = gain - gain_mean;
-    gain_mean += delta / static_cast<Float>(gain_count);
-    gain_m2 += delta * (gain - gain_mean);
+    auto const ground_amplitude = static_cast<long double>(std::abs(ground_value));
+    auto const tire_force_amplitude = static_cast<long double>(std::abs(tire_force_value));
+    auto const residual = std::fma(-static_cast<long double>(magnitude_ratio), ground_amplitude, tire_force_amplitude);
+    residual_squared_norm = std::fma(residual, residual, residual_squared_norm);
+    tire_force_squared_norm = std::fma(tire_force_amplitude, tire_force_amplitude, tire_force_squared_norm);
   }
 
-  if (gain_count == 0uz)
+  if (tire_force_squared_norm == 0)
   {
-    throw std::invalid_argument{"Hilbert gain variation has no valid ground amplitude samples"};
+    return residual_squared_norm == 0 ? static_cast<Float>(0) : static_cast<Float>(1);
   }
 
-  auto const gain_variance = gain_m2 / static_cast<Float>(gain_count);
-  if (gain_mean == 0)
-  {
-    return static_cast<Float>(0);
-  }
-
-  return std::sqrt(std::max(static_cast<Float>(0), gain_variance)) / gain_mean;
+  // The envelope residual avoids division by small instantaneous ground amplitudes.
+  return static_cast<Float>(std::sqrt(residual_squared_norm / tire_force_squared_norm));
 }
 
 
@@ -208,11 +188,11 @@ estimate_phase_scan_by_hilbert_transform(
   auto const ground_window = measurement.slice(std::span<std::complex<Float> const>{analytic_ground});
   auto const tire_force_window = measurement.slice(std::span<std::complex<Float> const>{analytic_tire_force});
   auto const summary = detail::summarize_analytic_response<Float>(ground_window, tire_force_window);
-  auto const gain_coefficient_of_variation = detail::instantaneous_gain_coefficient_of_variation<Float>(
-      ground_window, tire_force_window, summary.maximum_ground_amplitude);
+  auto const magnitude_normalized_residual =
+      detail::magnitude_normalized_residual<Float>(ground_window, tire_force_window, summary.response.magnitude());
   auto const diagnostics = hilbert_diagnostics<Float>{
       .mean_resultant_length = summary.mean_resultant_length,
-      .gain_coefficient_of_variation = gain_coefficient_of_variation,
+      .magnitude_normalized_residual = magnitude_normalized_residual,
   };
 
   return {summary.response, diagnostics};

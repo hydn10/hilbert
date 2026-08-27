@@ -194,7 +194,7 @@ simulate_phase_scan_point(double frequency_hz)
       samples.ground_displacement_span(), samples.tire_force_span(), measurement);
   auto const &[basis_condition_number, ground_normalized_residual, tire_force_normalized_residual] =
       least_squares.diagnostics();
-  auto const &[mean_resultant_length, gain_coefficient_of_variation] = hilbert_estimate.diagnostics();
+  auto const &[mean_resultant_length, magnitude_normalized_residual] = hilbert_estimate.diagnostics();
 
   return {
       .frequency_hz = frequency_hz,
@@ -206,7 +206,7 @@ simulate_phase_scan_point(double frequency_hz)
       .least_squares_ground_normalized_residual = ground_normalized_residual,
       .least_squares_tire_force_normalized_residual = tire_force_normalized_residual,
       .hilbert_mean_resultant_length = mean_resultant_length.value(),
-      .hilbert_gain_coefficient_of_variation = gain_coefficient_of_variation,
+      .hilbert_magnitude_normalized_residual = magnitude_normalized_residual,
   };
 }
 

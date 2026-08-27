@@ -1,5 +1,6 @@
 #include <hilbert/hilbert.hpp>
 
+#include <array>
 #include <cmath>
 #include <complex>
 #include <concepts>
@@ -11,6 +12,7 @@
 #include <ranges>
 #include <stdexcept>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 
@@ -269,6 +271,58 @@ test_frequency_response()
 }
 
 
+void
+test_least_squares_residual_statistics()
+{
+  hilbert::analysis::least_squares_residual_statistics_collector<double, 1uz> collector;
+  constexpr double offset = 1e12;
+  collector.observe(std::array{offset + 1});
+  collector.observe(std::array{offset + 2});
+  collector.observe(std::array{offset + 3});
+  auto const statistics = std::move(collector).finish(3uz);
+
+  require(statistics.response_means.at(0) == offset + 2, "online response mean mismatch");
+  require(statistics.response_centered_squared_norms.at(0) == 2, "online centered response energy mismatch");
+}
+
+
+void
+test_full_least_squares_residual_objective()
+{
+  using signature = hilbert::analysis::sinusoidal_signature;
+  using matrix_type = hilbert::math::symmetric_matrix<double, hilbert::math::dual_signature_t<signature>, signature>;
+
+  auto const gram = matrix_type::from_lower_triangle(1.0, 0.0, 1.0, 0.0, 0.0, 1.0);
+  auto const projection = hilbert::math::vector<double, hilbert::math::dual_signature_t<signature>>{1.0, 2.0, 3.0};
+  auto const coefficients = hilbert::math::vector<double, signature>{0.9, 2.2, 2.7};
+  auto const residual =
+      hilbert::analysis::normalized_least_squares_residual(gram, projection, coefficients, 14.0l, 2.0l);
+
+  require(std::abs(residual - std::sqrt(0.07)) < tolerance<double>, "full residual objective mismatch");
+}
+
+
+void
+test_basis_reciprocal_conditioning()
+{
+  using signature = hilbert::analysis::sinusoidal_signature;
+  using matrix_type = hilbert::math::symmetric_matrix<double, hilbert::math::dual_signature_t<signature>, signature>;
+
+  auto const identity = matrix_type::from_lower_triangle(1.0, 0.0, 1.0, 0.0, 0.0, 1.0);
+  require(
+      hilbert::analysis::column_normalized_basis_reciprocal_condition_number(identity) == 1,
+      "identity basis reciprocal condition mismatch");
+
+  auto const singular = matrix_type::from_lower_triangle(1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+  require(
+      hilbert::analysis::column_normalized_basis_reciprocal_condition_number(singular) == 0,
+      "singular basis reciprocal condition was nonzero");
+  require(
+      std::isinf(hilbert::analysis::column_normalized_basis_condition_number(singular)),
+      "singular basis condition number was finite");
+}
+
+
 template<hilbert::supported_float Float>
 void
 test_precision()
@@ -279,6 +333,9 @@ test_precision()
   test_preconditions<Float>();
   test_tagged_sinusoidal_coefficients_ignore_order<Float>();
   test_frequency_response<Float>();
+  test_least_squares_residual_statistics();
+  test_full_least_squares_residual_objective();
+  test_basis_reciprocal_conditioning();
 }
 
 

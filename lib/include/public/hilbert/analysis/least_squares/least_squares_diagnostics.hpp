@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <utility>
 
 
 namespace hilbert::analysis
@@ -25,6 +26,33 @@ template<supported_float Float, math::signature_for_size<3uz> Signature>
 auto
 column_normalized_gram_matrix(math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram);
 
+
+template<std::size_t Row, supported_float Float, math::signature_type Signature, std::size_t... Columns>
+[[nodiscard]]
+long double
+matrix_row_product(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
+    math::vector<Float, Signature> const &vector,
+    [[maybe_unused]] std::index_sequence<Columns...> columns);
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t... Rows>
+[[nodiscard]]
+long double
+quadratic_form(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
+    math::vector<Float, Signature> const &vector,
+    [[maybe_unused]] std::index_sequence<Rows...> rows);
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t... Indices>
+[[nodiscard]]
+long double
+dual_pairing(
+    math::vector<Float, math::dual_signature_t<Signature>> const &dual,
+    math::vector<Float, Signature> const &primal,
+    [[maybe_unused]] std::index_sequence<Indices...> indices);
+
 } // namespace detail
 
 
@@ -35,15 +63,22 @@ column_normalized_basis_condition_number(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram);
 
 
+template<supported_float Float, math::signature_for_size<3uz> Signature>
+[[nodiscard]]
+Float
+column_normalized_basis_reciprocal_condition_number(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram);
+
+
 template<supported_float Float, math::signature_type Signature>
 [[nodiscard]]
 Float
 normalized_least_squares_residual(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram,
     math::vector<Float, math::dual_signature_t<Signature>> const &projection,
     math::vector<Float, Signature> const &coefficients,
-    Float response_squared_norm,
-    Float response_sum,
-    std::size_t observation_count);
+    long double response_squared_norm,
+    long double response_centered_squared_norm);
 
 
 namespace detail
@@ -59,11 +94,65 @@ column_normalized_gram_matrix(math::symmetric_matrix<Float, math::dual_signature
 
   return math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature>::from_lower_triangle(
       static_cast<Float>(1),
-      math::get<1, 0>(gram) / std::sqrt(g11 * g00),
+      math::get<1, 0>(gram) / (std::sqrt(g11) * std::sqrt(g00)),
       static_cast<Float>(1),
-      math::get<2, 0>(gram) / std::sqrt(g22 * g00),
-      math::get<2, 1>(gram) / std::sqrt(g22 * g11),
+      math::get<2, 0>(gram) / (std::sqrt(g22) * std::sqrt(g00)),
+      math::get<2, 1>(gram) / (std::sqrt(g22) * std::sqrt(g11)),
       static_cast<Float>(1));
+}
+
+
+template<std::size_t Row, supported_float Float, math::signature_type Signature, std::size_t... Columns>
+[[nodiscard]]
+long double
+matrix_row_product(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
+    math::vector<Float, Signature> const &vector,
+    [[maybe_unused]] std::index_sequence<Columns...> columns)
+{
+  long double product{};
+  ((product = std::fma(
+        static_cast<long double>(math::get<Row, Columns>(matrix)),
+        static_cast<long double>(math::get<Columns>(vector)),
+        product)),
+   ...);
+  return product;
+}
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t... Rows>
+[[nodiscard]]
+long double
+quadratic_form(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
+    math::vector<Float, Signature> const &vector,
+    [[maybe_unused]] std::index_sequence<Rows...> rows)
+{
+  long double result{};
+  ((result = std::fma(
+        static_cast<long double>(math::get<Rows>(vector)),
+        matrix_row_product<Rows>(matrix, vector, std::make_index_sequence<Signature::size>{}),
+        result)),
+   ...);
+  return result;
+}
+
+
+template<supported_float Float, math::signature_type Signature, std::size_t... Indices>
+[[nodiscard]]
+long double
+dual_pairing(
+    math::vector<Float, math::dual_signature_t<Signature>> const &dual,
+    math::vector<Float, Signature> const &primal,
+    [[maybe_unused]] std::index_sequence<Indices...> indices)
+{
+  long double result{};
+  ((result = std::fma(
+        static_cast<long double>(math::get<Indices>(dual)),
+        static_cast<long double>(math::get<Indices>(primal)),
+        result)),
+   ...);
+  return result;
 }
 
 
@@ -72,42 +161,72 @@ column_normalized_gram_matrix(math::symmetric_matrix<Float, math::dual_signature
 
 template<supported_float Float, math::signature_for_size<3uz> Signature>
 Float
+column_normalized_basis_reciprocal_condition_number(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram)
+{
+  auto const g00 = math::get<0, 0>(gram);
+  auto const g11 = math::get<1, 1>(gram);
+  auto const g22 = math::get<2, 2>(gram);
+
+  // A zero-norm basis column makes the normalized design matrix singular.
+  if (!(g00 > 0) || !(g11 > 0) || !(g22 > 0))
+  {
+    return static_cast<Float>(0);
+  }
+
+  auto const normalized_gram = detail::column_normalized_gram_matrix(gram);
+  auto const eigenvalues = math::symmetric_eigenvalues(normalized_gram);
+
+  auto const maximum_eigenvalue = eigenvalues.back();
+  auto const minimum_eigenvalue = eigenvalues.front();
+
+  // Reciprocal conditioning represents numerically singular cases explicitly instead of capping them.
+  if (maximum_eigenvalue <= 0 || minimum_eigenvalue <= std::numeric_limits<Float>::epsilon() * maximum_eigenvalue)
+  {
+    return static_cast<Float>(0);
+  }
+
+  return std::sqrt(minimum_eigenvalue / maximum_eigenvalue);
+}
+
+
+template<supported_float Float, math::signature_for_size<3uz> Signature>
+Float
 column_normalized_basis_condition_number(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram)
 {
-  auto const normalized_gram = detail::column_normalized_gram_matrix(gram);
-  auto const eigenvalues = math::symmetric_eigenvalues(normalized_gram);
-  auto const maximum_eigenvalue = eigenvalues.back();
-  auto const minimum_eigenvalue =
-      std::max(eigenvalues.front(), std::numeric_limits<Float>::epsilon() * maximum_eigenvalue);
+  auto const reciprocal_condition_number = column_normalized_basis_reciprocal_condition_number(gram);
 
-  return std::sqrt(maximum_eigenvalue / minimum_eigenvalue);
+  return reciprocal_condition_number > 0 ? static_cast<Float>(1) / reciprocal_condition_number
+                                         : std::numeric_limits<Float>::infinity();
 }
 
 
 template<supported_float Float, math::signature_type Signature>
 Float
 normalized_least_squares_residual(
+    math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram,
     math::vector<Float, math::dual_signature_t<Signature>> const &projection,
     math::vector<Float, Signature> const &coefficients,
-    Float response_squared_norm,
-    Float response_sum,
-    std::size_t observation_count)
+    long double response_squared_norm,
+    long double response_centered_squared_norm)
 {
-  auto const explained_sum_of_squares = math::dual_pairing(projection, coefficients);
+  auto const projection_term =
+      detail::dual_pairing(projection, coefficients, std::make_index_sequence<Signature::size>{});
+  auto const coefficient_term = detail::quadratic_form(gram, coefficients, std::make_index_sequence<Signature::size>{});
 
-  auto const residual_sum_of_squares =
-      std::max(static_cast<Float>(0), response_squared_norm - explained_sum_of_squares);
-  auto const count = static_cast<Float>(observation_count);
-  auto const total_sum_of_squares =
-      std::max(static_cast<Float>(0), response_squared_norm - response_sum * response_sum / count);
+  // Evaluate the full objective for the coefficients actually produced by the numerical solve.
+  auto residual_sum_of_squares = std::fma(-2.0l, projection_term, response_squared_norm);
+  residual_sum_of_squares += coefficient_term;
+  residual_sum_of_squares = std::max(0.0l, residual_sum_of_squares);
+  auto const total_sum_of_squares = std::max(0.0l, response_centered_squared_norm);
 
   if (total_sum_of_squares == 0)
   {
     return residual_sum_of_squares == 0 ? static_cast<Float>(0) : static_cast<Float>(1);
   }
 
-  return std::sqrt(residual_sum_of_squares / total_sum_of_squares);
+  return static_cast<Float>(std::sqrt(residual_sum_of_squares / total_sum_of_squares));
 }
 
 } // namespace hilbert::analysis

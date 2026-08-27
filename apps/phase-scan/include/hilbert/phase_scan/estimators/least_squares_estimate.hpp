@@ -118,14 +118,12 @@ detail::normalized_residual(
 {
   auto const &projection = products.template projection<Index>();
   auto const &statistics = products.statistics();
-  auto const response_sum = hilbert::math::get<hilbert::analysis::constant_term>(projection);
-
   return hilbert::analysis::normalized_least_squares_residual(
+      products.gram(),
       projection,
       coefficients,
       std::get<Index>(statistics.response_squared_norms),
-      response_sum,
-      statistics.observation_count);
+      std::get<Index>(statistics.response_centered_squared_norms));
 }
 
 

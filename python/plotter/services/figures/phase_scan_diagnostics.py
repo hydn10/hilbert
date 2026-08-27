@@ -14,7 +14,7 @@ def create_phase_scan_diagnostics_figure(data: PhaseScanData) -> Figure:
     )
     figure.canvas.manager.set_window_title("Constant-frequency response diagnostics")
 
-    condition_axis, residual_axis, coherence_axis, gain_axis = axes
+    condition_axis, residual_axis, coherence_axis, magnitude_axis = axes
     frequency = data["frequency_hz"]
 
     condition_axis.plot(
@@ -55,15 +55,15 @@ def create_phase_scan_diagnostics_figure(data: PhaseScanData) -> Figure:
     coherence_axis.set_ylim(0, 1)
     coherence_axis.legend(loc="best")
 
-    gain_axis.plot(
+    magnitude_axis.plot(
         frequency,
-        data["hilbert_gain_coefficient_of_variation"],
-        label="Hilbert gain coefficient of variation",
+        data["hilbert_magnitude_normalized_residual"],
+        label="Hilbert magnitude normalized residual",
         marker="o",
     )
-    gain_axis.set_title("Hilbert instantaneous gain stability")
-    gain_axis.set_xlabel("Ground frequency (Hz)")
-    gain_axis.set_ylabel("Gain CV")
-    gain_axis.legend(loc="best")
+    magnitude_axis.set_title("Hilbert envelope proportionality")
+    magnitude_axis.set_xlabel("Ground frequency (Hz)")
+    magnitude_axis.set_ylabel("Envelope residual")
+    magnitude_axis.legend(loc="best")
 
     return figure

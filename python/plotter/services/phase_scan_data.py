@@ -16,7 +16,7 @@ PHASE_SCAN_RESULT_COLUMNS = (
     "least_squares_ground_normalized_residual",
     "least_squares_tire_force_normalized_residual",
     "hilbert_mean_resultant_length",
-    "hilbert_gain_coefficient_of_variation",
+    "hilbert_magnitude_normalized_residual",
 )
 
 
@@ -37,6 +37,9 @@ def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
             source,
             {"results": PHASE_SCAN_RESULT_COLUMNS},
             document_name="phase-scan data",
+            allow_positive_infinity={
+                "results": frozenset({"least_squares_basis_condition_number"})
+            },
         )["results"]
 
     if results.size == 0:
@@ -63,7 +66,7 @@ def load_phase_scan_data(file_path: str | Path) -> PhaseScanData:
     for column in (
         "least_squares_ground_normalized_residual",
         "least_squares_tire_force_normalized_residual",
-        "hilbert_gain_coefficient_of_variation",
+        "hilbert_magnitude_normalized_residual",
     ):
         if np.any(results[column] < 0):
             raise ValueError(f"table 'results' {column} must be non-negative")

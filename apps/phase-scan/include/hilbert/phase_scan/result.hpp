@@ -20,7 +20,7 @@ struct result
   Float least_squares_ground_normalized_residual;
   Float least_squares_tire_force_normalized_residual;
   Float hilbert_mean_resultant_length;
-  Float hilbert_gain_coefficient_of_variation;
+  Float hilbert_magnitude_normalized_residual;
 };
 
 } // namespace hilbert::phase_scan

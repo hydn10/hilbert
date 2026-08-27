@@ -35,7 +35,7 @@ write_results(std::ostream &output, std::span<result<Float> const> results)
       std::string_view{"least_squares_ground_normalized_residual"},
       std::string_view{"least_squares_tire_force_normalized_residual"},
       std::string_view{"hilbert_mean_resultant_length"},
-      std::string_view{"hilbert_gain_coefficient_of_variation"},
+      std::string_view{"hilbert_magnitude_normalized_residual"},
   };
 
   document.table(
@@ -55,7 +55,7 @@ write_results(std::ostream &output, std::span<result<Float> const> results)
               result.least_squares_ground_normalized_residual,
               result.least_squares_tire_force_normalized_residual,
               result.hilbert_mean_resultant_length,
-              result.hilbert_gain_coefficient_of_variation);
+              result.hilbert_magnitude_normalized_residual);
         }
       });
 }
