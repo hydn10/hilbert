@@ -29,7 +29,7 @@ column_normalized_gram_matrix(math::symmetric_matrix<Float, math::dual_signature
 
 template<std::size_t Row, supported_float Float, math::signature_type Signature, std::size_t... Columns>
 [[nodiscard]]
-long double
+Float
 matrix_row_product(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
     math::vector<Float, Signature> const &vector,
@@ -38,7 +38,7 @@ matrix_row_product(
 
 template<supported_float Float, math::signature_type Signature, std::size_t... Rows>
 [[nodiscard]]
-long double
+Float
 quadratic_form(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
     math::vector<Float, Signature> const &vector,
@@ -47,7 +47,7 @@ quadratic_form(
 
 template<supported_float Float, math::signature_type Signature, std::size_t... Indices>
 [[nodiscard]]
-long double
+Float
 dual_pairing(
     math::vector<Float, math::dual_signature_t<Signature>> const &dual,
     math::vector<Float, Signature> const &primal,
@@ -77,8 +77,8 @@ normalized_least_squares_residual(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram,
     math::vector<Float, math::dual_signature_t<Signature>> const &projection,
     math::vector<Float, Signature> const &coefficients,
-    long double response_squared_norm,
-    long double response_centered_squared_norm);
+    Float response_squared_norm,
+    Float response_centered_squared_norm);
 
 
 namespace detail
@@ -104,16 +104,16 @@ column_normalized_gram_matrix(math::symmetric_matrix<Float, math::dual_signature
 
 template<std::size_t Row, supported_float Float, math::signature_type Signature, std::size_t... Columns>
 [[nodiscard]]
-long double
+Float
 matrix_row_product(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
     math::vector<Float, Signature> const &vector,
     [[maybe_unused]] std::index_sequence<Columns...> columns)
 {
-  long double product{};
+  Float product{};
   ((product = std::fma(
-        static_cast<long double>(math::get<Row, Columns>(matrix)),
-        static_cast<long double>(math::get<Columns>(vector)),
+        math::get<Row, Columns>(matrix),
+        math::get<Columns>(vector),
         product)),
    ...);
   return product;
@@ -122,15 +122,15 @@ matrix_row_product(
 
 template<supported_float Float, math::signature_type Signature, std::size_t... Rows>
 [[nodiscard]]
-long double
+Float
 quadratic_form(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &matrix,
     math::vector<Float, Signature> const &vector,
     [[maybe_unused]] std::index_sequence<Rows...> rows)
 {
-  long double result{};
+  Float result{};
   ((result = std::fma(
-        static_cast<long double>(math::get<Rows>(vector)),
+        math::get<Rows>(vector),
         matrix_row_product<Rows>(matrix, vector, std::make_index_sequence<Signature::size>{}),
         result)),
    ...);
@@ -140,16 +140,16 @@ quadratic_form(
 
 template<supported_float Float, math::signature_type Signature, std::size_t... Indices>
 [[nodiscard]]
-long double
+Float
 dual_pairing(
     math::vector<Float, math::dual_signature_t<Signature>> const &dual,
     math::vector<Float, Signature> const &primal,
     [[maybe_unused]] std::index_sequence<Indices...> indices)
 {
-  long double result{};
+  Float result{};
   ((result = std::fma(
-        static_cast<long double>(math::get<Indices>(dual)),
-        static_cast<long double>(math::get<Indices>(primal)),
+        math::get<Indices>(dual),
+        math::get<Indices>(primal),
         result)),
    ...);
   return result;
@@ -208,18 +208,18 @@ normalized_least_squares_residual(
     math::symmetric_matrix<Float, math::dual_signature_t<Signature>, Signature> const &gram,
     math::vector<Float, math::dual_signature_t<Signature>> const &projection,
     math::vector<Float, Signature> const &coefficients,
-    long double response_squared_norm,
-    long double response_centered_squared_norm)
+    Float response_squared_norm,
+    Float response_centered_squared_norm)
 {
   auto const projection_term =
       detail::dual_pairing(projection, coefficients, std::make_index_sequence<Signature::size>{});
   auto const coefficient_term = detail::quadratic_form(gram, coefficients, std::make_index_sequence<Signature::size>{});
 
   // Evaluate the full objective for the coefficients actually produced by the numerical solve.
-  auto residual_sum_of_squares = std::fma(-2.0l, projection_term, response_squared_norm);
+  auto residual_sum_of_squares = std::fma(static_cast<Float>(-2), projection_term, response_squared_norm);
   residual_sum_of_squares += coefficient_term;
-  residual_sum_of_squares = std::max(0.0l, residual_sum_of_squares);
-  auto const total_sum_of_squares = std::max(0.0l, response_centered_squared_norm);
+  residual_sum_of_squares = std::max(static_cast<Float>(0), residual_sum_of_squares);
+  auto const total_sum_of_squares = std::max(static_cast<Float>(0), response_centered_squared_norm);
 
   if (total_sum_of_squares == 0)
   {

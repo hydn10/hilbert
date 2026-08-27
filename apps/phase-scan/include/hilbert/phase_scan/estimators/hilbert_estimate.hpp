@@ -126,14 +126,14 @@ Float
 detail::magnitude_normalized_residual(
     std::span<std::complex<Float> const> ground, std::span<std::complex<Float> const> tire_force, Float magnitude_ratio)
 {
-  long double residual_squared_norm{};
-  long double tire_force_squared_norm{};
+  Float residual_squared_norm{};
+  Float tire_force_squared_norm{};
 
   for (auto const &[ground_value, tire_force_value] : std::views::zip(ground, tire_force))
   {
-    auto const ground_amplitude = static_cast<long double>(std::abs(ground_value));
-    auto const tire_force_amplitude = static_cast<long double>(std::abs(tire_force_value));
-    auto const residual = std::fma(-static_cast<long double>(magnitude_ratio), ground_amplitude, tire_force_amplitude);
+    auto const ground_amplitude = std::abs(ground_value);
+    auto const tire_force_amplitude = std::abs(tire_force_value);
+    auto const residual = std::fma(-magnitude_ratio, ground_amplitude, tire_force_amplitude);
     residual_squared_norm = std::fma(residual, residual, residual_squared_norm);
     tire_force_squared_norm = std::fma(tire_force_amplitude, tire_force_amplitude, tire_force_squared_norm);
   }

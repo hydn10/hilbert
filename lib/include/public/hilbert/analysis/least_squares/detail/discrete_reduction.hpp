@@ -59,6 +59,7 @@ template<supported_float Float>
 class numeric_discrete_sum
 {
   Float value_{};
+  Float compensation_{};
 
 public:
   void
@@ -200,7 +201,11 @@ template<supported_float Float>
 void
 numeric_discrete_sum<Float>::add(Float value) noexcept
 {
-  value_ += value;
+  // Kahan compensation reduces accumulated rounding error while remaining in Float.
+  auto const corrected_value = value - compensation_;
+  auto const updated_value = value_ + corrected_value;
+  compensation_ = (updated_value - value_) - corrected_value;
+  value_ = updated_value;
 }
 
 

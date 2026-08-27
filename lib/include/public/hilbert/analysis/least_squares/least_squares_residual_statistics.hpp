@@ -17,7 +17,7 @@ namespace hilbert::analysis
 template<supported_float Float, std::size_t ResponseCount>
 struct least_squares_residual_statistics
 {
-  using accumulator_type = long double;
+  using accumulator_type = Float;
 
   std::array<accumulator_type, ResponseCount> response_squared_norms;
   std::array<accumulator_type, ResponseCount> response_means;
