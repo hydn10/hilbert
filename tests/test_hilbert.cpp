@@ -295,8 +295,7 @@ test_full_least_squares_residual_objective()
   auto const gram = matrix_type::from_lower_triangle(1.0, 0.0, 1.0, 0.0, 0.0, 1.0);
   auto const projection = hilbert::math::vector<double, hilbert::math::dual_signature_t<signature>>{1.0, 2.0, 3.0};
   auto const coefficients = hilbert::math::vector<double, signature>{0.9, 2.2, 2.7};
-  auto const residual =
-      hilbert::analysis::normalized_least_squares_residual(gram, projection, coefficients, 14.0, 2.0);
+  auto const residual = hilbert::analysis::normalized_least_squares_residual(gram, projection, coefficients, 14.0, 2.0);
 
   require(std::abs(residual - std::sqrt(0.07)) < tolerance<double>, "full residual objective mismatch");
 }

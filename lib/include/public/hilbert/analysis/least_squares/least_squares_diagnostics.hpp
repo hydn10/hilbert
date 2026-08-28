@@ -111,11 +111,7 @@ matrix_row_product(
     [[maybe_unused]] std::index_sequence<Columns...> columns)
 {
   Float product{};
-  ((product = std::fma(
-        math::get<Row, Columns>(matrix),
-        math::get<Columns>(vector),
-        product)),
-   ...);
+  ((product = std::fma(math::get<Row, Columns>(matrix), math::get<Columns>(vector), product)), ...);
   return product;
 }
 
@@ -147,11 +143,7 @@ dual_pairing(
     [[maybe_unused]] std::index_sequence<Indices...> indices)
 {
   Float result{};
-  ((result = std::fma(
-        math::get<Indices>(dual),
-        math::get<Indices>(primal),
-        result)),
-   ...);
+  ((result = std::fma(math::get<Indices>(dual), math::get<Indices>(primal), result)), ...);
   return result;
 }
 
