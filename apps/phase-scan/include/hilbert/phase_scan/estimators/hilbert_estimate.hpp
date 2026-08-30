@@ -18,6 +18,7 @@
 #include <span>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 
 namespace hilbert::phase_scan
@@ -180,13 +181,21 @@ estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> tire_force,
     hilbert::analysis::sample_range const &measurement)
 {
-  auto const centered_ground = hilbert::analysis::remove_dc_component(ground);
-  auto const centered_tire_force = hilbert::analysis::remove_dc_component(tire_force);
-  auto const analytic_ground = ::hilbert::hilbert_transform<Float>(std::span<Float const>{centered_ground});
-  auto const analytic_tire_force = ::hilbert::hilbert_transform<Float>(std::span<Float const>{centered_tire_force});
+  auto const ground_dc = hilbert::analysis::estimate_dc_component(measurement.slice(ground));
+  auto const tire_force_dc = hilbert::analysis::estimate_dc_component(measurement.slice(tire_force));
+
+  auto const centered_ground = ground | std::views::transform(hilbert::analysis::remove_dc_component(ground_dc)) |
+                               std::ranges::to<std::vector>();
+  auto const centered_tire_force = tire_force |
+                                   std::views::transform(hilbert::analysis::remove_dc_component(tire_force_dc)) |
+                                   std::ranges::to<std::vector>();
+
+  auto const analytic_ground = ::hilbert::hilbert_transform<Float>(centered_ground);
+  auto const analytic_tire_force = ::hilbert::hilbert_transform<Float>(centered_tire_force);
 
   auto const ground_window = measurement.slice(std::span<std::complex<Float> const>{analytic_ground});
   auto const tire_force_window = measurement.slice(std::span<std::complex<Float> const>{analytic_tire_force});
+
   auto const summary = detail::summarize_analytic_response<Float>(ground_window, tire_force_window);
   auto const magnitude_normalized_residual =
       detail::magnitude_normalized_residual<Float>(ground_window, tire_force_window, summary.response.magnitude());

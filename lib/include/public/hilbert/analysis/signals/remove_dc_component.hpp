@@ -4,42 +4,71 @@
 
 #include <hilbert/core/supported_float.hpp>
 
+#include <algorithm>
+#include <functional>
 #include <ranges>
 #include <span>
-#include <stdexcept>
-#include <vector>
 
 
 namespace hilbert::analysis
 {
 
 template<supported_float Float>
-std::vector<Float>
-remove_dc_component(std::span<Float const> signal);
+class dc_component
+{
+  Float value_;
+
+public:
+  explicit dc_component(Float value) noexcept;
+
+  [[nodiscard]]
+  Float
+  value() const noexcept;
+};
+
+
+// Precondition: signal is non-empty and contains finite values.
+template<supported_float Float>
+[[nodiscard]]
+dc_component<Float>
+estimate_dc_component(std::span<Float const> signal);
 
 
 template<supported_float Float>
-std::vector<Float>
-remove_dc_component(std::span<Float const> signal)
+[[nodiscard]]
+auto
+remove_dc_component(dc_component<Float> component);
+
+
+template<supported_float Float>
+dc_component<Float>::dc_component(Float value) noexcept
+    : value_{value}
 {
-  if (signal.empty())
-  {
-    throw std::invalid_argument{"cannot center an empty signal"};
-  }
+}
 
-  Float sum = 0;
-  for (auto const value : signal)
-  {
-    sum += value;
-  }
 
-  auto const mean = sum / static_cast<Float>(signal.size());
-  std::vector<Float> centered(signal.size());
-  for (auto [value, centered_value] : std::views::zip(signal, centered))
-  {
-    centered_value = value - mean;
-  }
-  return centered;
+template<supported_float Float>
+Float
+dc_component<Float>::value() const noexcept
+{
+  return value_;
+}
+
+
+template<supported_float Float>
+dc_component<Float>
+estimate_dc_component(std::span<Float const> signal)
+{
+  auto const sum = std::ranges::fold_left(signal, Float{}, std::plus<>{});
+  return dc_component<Float>{sum / static_cast<Float>(signal.size())};
+}
+
+
+template<supported_float Float>
+auto
+remove_dc_component(dc_component<Float> component)
+{
+  return std::bind_back(std::minus<>{}, component.value());
 }
 
 } // namespace hilbert::analysis

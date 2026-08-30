@@ -73,24 +73,44 @@ public:
   ~simulation_data() = default;
 
   [[nodiscard]]
-  std::span<Float const>
-  time_span() const;
+  std::span<Float>
+  time_span() noexcept;
 
   [[nodiscard]]
   std::span<Float const>
-  sprung_displacement_span() const;
+  time_span() const noexcept;
+
+  [[nodiscard]]
+  std::span<Float>
+  sprung_displacement_span() noexcept;
 
   [[nodiscard]]
   std::span<Float const>
-  unsprung_displacement_span() const;
+  sprung_displacement_span() const noexcept;
+
+  [[nodiscard]]
+  std::span<Float>
+  unsprung_displacement_span() noexcept;
 
   [[nodiscard]]
   std::span<Float const>
-  ground_displacement_span() const;
+  unsprung_displacement_span() const noexcept;
+
+  [[nodiscard]]
+  std::span<Float>
+  ground_displacement_span() noexcept;
 
   [[nodiscard]]
   std::span<Float const>
-  tire_force_span() const;
+  ground_displacement_span() const noexcept;
+
+  [[nodiscard]]
+  std::span<Float>
+  tire_force_span() noexcept;
+
+  [[nodiscard]]
+  std::span<Float const>
+  tire_force_span() const noexcept;
 };
 
 
@@ -120,8 +140,8 @@ soa_vector_sink<Float>::simulation_data::simulation_data(
 
 
 template<std::floating_point Float>
-std::span<Float const>
-soa_vector_sink<Float>::simulation_data::time_span() const
+std::span<Float>
+soa_vector_sink<Float>::simulation_data::time_span() noexcept
 {
   return time_data_;
 }
@@ -129,7 +149,15 @@ soa_vector_sink<Float>::simulation_data::time_span() const
 
 template<std::floating_point Float>
 std::span<Float const>
-soa_vector_sink<Float>::simulation_data::sprung_displacement_span() const
+soa_vector_sink<Float>::simulation_data::time_span() const noexcept
+{
+  return time_data_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float>
+soa_vector_sink<Float>::simulation_data::sprung_displacement_span() noexcept
 {
   return sprung_displacement_data_;
 }
@@ -137,7 +165,15 @@ soa_vector_sink<Float>::simulation_data::sprung_displacement_span() const
 
 template<std::floating_point Float>
 std::span<Float const>
-soa_vector_sink<Float>::simulation_data::unsprung_displacement_span() const
+soa_vector_sink<Float>::simulation_data::sprung_displacement_span() const noexcept
+{
+  return sprung_displacement_data_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float>
+soa_vector_sink<Float>::simulation_data::unsprung_displacement_span() noexcept
 {
   return unsprung_displacement_data_;
 }
@@ -145,7 +181,15 @@ soa_vector_sink<Float>::simulation_data::unsprung_displacement_span() const
 
 template<std::floating_point Float>
 std::span<Float const>
-soa_vector_sink<Float>::simulation_data::ground_displacement_span() const
+soa_vector_sink<Float>::simulation_data::unsprung_displacement_span() const noexcept
+{
+  return unsprung_displacement_data_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float>
+soa_vector_sink<Float>::simulation_data::ground_displacement_span() noexcept
 {
   return ground_displacement_data_;
 }
@@ -153,7 +197,23 @@ soa_vector_sink<Float>::simulation_data::ground_displacement_span() const
 
 template<std::floating_point Float>
 std::span<Float const>
-soa_vector_sink<Float>::simulation_data::tire_force_span() const
+soa_vector_sink<Float>::simulation_data::ground_displacement_span() const noexcept
+{
+  return ground_displacement_data_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float>
+soa_vector_sink<Float>::simulation_data::tire_force_span() noexcept
+{
+  return tire_force_data_;
+}
+
+
+template<std::floating_point Float>
+std::span<Float const>
+soa_vector_sink<Float>::simulation_data::tire_force_span() const noexcept
 {
   return tire_force_data_;
 }

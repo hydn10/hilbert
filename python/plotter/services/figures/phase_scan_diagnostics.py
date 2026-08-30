@@ -127,9 +127,7 @@ def create_phase_scan_diagnostics_figure(data: PhaseScanData) -> Figure:
     condition_axis.set_title("Least-squares sinusoidal basis conditioning")
     condition_axis.set_ylabel("Condition number (kappa)")
     condition_axis.set_yscale("log")
-    _set_padded_diagnostic_ylim(
-        condition_axis, 1.0, condition_upper_limit, padding_fraction=0.10
-    )
+    _set_padded_diagnostic_ylim(condition_axis, 1.0, condition_upper_limit, padding_fraction=0.10)
     _add_ideal_reference_line(condition_axis, 1.0)
     if np.any(singular_condition):
         condition_axis.plot(
