@@ -223,6 +223,12 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 
+      - name: Set up Nix binary cache
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+        with:
+          use-gha-cache: enabled
+          use-flakehub: disabled
+
       - name: Check flake outputs
         run: nix flake check -L
 
