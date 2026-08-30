@@ -19,7 +19,7 @@
 #include <hilbert/analysis/phase/principal_phase.hpp>                           // IWYU pragma: export
 #include <hilbert/analysis/sampling/sample_window.hpp>                          // IWYU pragma: export
 #include <hilbert/analysis/signals/hilbert_transform.hpp>                       // IWYU pragma: export
-#include <hilbert/analysis/signals/remove_dc_component.hpp>                     // IWYU pragma: export
+#include <hilbert/analysis/signals/mean.hpp>                                    // IWYU pragma: export
 #include <hilbert/analysis/signals/signal_data.hpp>                             // IWYU pragma: export
 #include <hilbert/analysis/sinusoidal/basis.hpp>                                // IWYU pragma: export
 #include <hilbert/analysis/sinusoidal/frequency_hz.hpp>                         // IWYU pragma: export

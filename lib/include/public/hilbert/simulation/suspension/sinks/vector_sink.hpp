@@ -1,5 +1,5 @@
-#ifndef HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_HPP
-#define HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_HPP
+#ifndef HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_SINK_HPP
+#define HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_SINK_HPP
 
 
 #include <hilbert/simulation/core/input_count.hpp>
@@ -59,9 +59,6 @@ public:
   operator=(simulation_data &&) noexcept = default;
   ~simulation_data() = default;
 
-  std::span<sample<Float>>
-  samples() noexcept;
-
   std::span<sample<Float> const>
   samples() const noexcept;
 };
@@ -80,14 +77,6 @@ template<std::floating_point Float>
 vector_sink<Float>::simulation_data::simulation_data(std::vector<sample<Float>> &&samples)
     : samples_{std::move(samples)}
 {
-}
-
-
-template<std::floating_point Float>
-std::span<sample<Float>>
-vector_sink<Float>::simulation_data::samples() noexcept
-{
-  return samples_;
 }
 
 
@@ -141,4 +130,4 @@ vector_sink_factory<Float>::operator()(Count count) const
 
 } // namespace hilbert::simulation::suspension::sinks
 
-#endif // HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_HPP
+#endif // HILBERT_SIMULATION_SUSPENSION_SINKS_VECTOR_SINK_HPP

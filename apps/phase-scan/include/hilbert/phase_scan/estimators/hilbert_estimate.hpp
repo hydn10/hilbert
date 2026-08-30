@@ -7,7 +7,7 @@
 #include <hilbert/analysis/phase/circular_mean_result.hpp>
 #include <hilbert/analysis/sampling/sample_window.hpp>
 #include <hilbert/analysis/signals/hilbert_transform.hpp>
-#include <hilbert/analysis/signals/remove_dc_component.hpp>
+#include <hilbert/analysis/signals/mean.hpp>
 #include <hilbert/core/supported_float.hpp>
 
 #include <algorithm>
@@ -181,13 +181,13 @@ estimate_phase_scan_by_hilbert_transform(
     std::span<Float const> tire_force,
     hilbert::analysis::sample_range const &measurement)
 {
-  auto const ground_dc = hilbert::analysis::estimate_dc_component(measurement.slice(ground));
-  auto const tire_force_dc = hilbert::analysis::estimate_dc_component(measurement.slice(tire_force));
+  auto const ground_mean = hilbert::analysis::mean(measurement.slice(ground));
+  auto const tire_force_mean = hilbert::analysis::mean(measurement.slice(tire_force));
 
-  auto const centered_ground = ground | std::views::transform(hilbert::analysis::remove_dc_component(ground_dc)) |
-                               std::ranges::to<std::vector>();
+  auto const centered_ground =
+      ground | std::views::transform(hilbert::analysis::subtract_offset(ground_mean)) | std::ranges::to<std::vector>();
   auto const centered_tire_force = tire_force |
-                                   std::views::transform(hilbert::analysis::remove_dc_component(tire_force_dc)) |
+                                   std::views::transform(hilbert::analysis::subtract_offset(tire_force_mean)) |
                                    std::ranges::to<std::vector>();
 
   auto const analytic_ground = ::hilbert::hilbert_transform<Float>(centered_ground);

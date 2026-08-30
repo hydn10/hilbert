@@ -10,8 +10,8 @@
 #include <hilbert/simulation/suspension/model.hpp>                        // IWYU pragma: export
 #include <hilbert/simulation/suspension/parameters.hpp>                   // IWYU pragma: export
 #include <hilbert/simulation/suspension/sample.hpp>                       // IWYU pragma: export
-#include <hilbert/simulation/suspension/sinks/soa_vector.hpp>             // IWYU pragma: export
-#include <hilbert/simulation/suspension/sinks/vector.hpp>                 // IWYU pragma: export
+#include <hilbert/simulation/suspension/sinks/soa_vector_sink.hpp>        // IWYU pragma: export
+#include <hilbert/simulation/suspension/sinks/vector_sink.hpp>            // IWYU pragma: export
 #include <hilbert/simulation/suspension/state.hpp>                        // IWYU pragma: export
 // IWYU pragma: end_exports
 

@@ -1,5 +1,5 @@
-#ifndef HILBERT_SIMULATION_SINKS_NORMAL_EQUATIONS_HPP
-#define HILBERT_SIMULATION_SINKS_NORMAL_EQUATIONS_HPP
+#ifndef HILBERT_SIMULATION_SINKS_NORMAL_EQUATIONS_SINK_HPP
+#define HILBERT_SIMULATION_SINKS_NORMAL_EQUATIONS_SINK_HPP
 
 
 #include <hilbert/analysis/least_squares/normal_equations3.hpp>
@@ -215,4 +215,4 @@ make_normal_equations_sink_factory(
 
 } // namespace hilbert::simulation::sinks
 
-#endif // HILBERT_SIMULATION_SINKS_NORMAL_EQUATIONS_HPP
+#endif // HILBERT_SIMULATION_SINKS_NORMAL_EQUATIONS_SINK_HPP

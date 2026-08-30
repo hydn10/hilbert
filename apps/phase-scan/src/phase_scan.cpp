@@ -17,7 +17,7 @@
 #include <hilbert/phase_scan/result.hpp>
 #include <hilbert/simulation.hpp>
 #include <hilbert/simulation/sinks/adapters.hpp>
-#include <hilbert/simulation/sinks/normal_equations.hpp>
+#include <hilbert/simulation/sinks/normal_equations_sink.hpp>
 
 #include <algorithm>
 #include <cmath>

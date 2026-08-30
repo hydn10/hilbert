@@ -1,5 +1,5 @@
-#ifndef HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_HPP
-#define HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_HPP
+#ifndef HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_SINK_HPP
+#define HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_SINK_HPP
 
 
 #include <hilbert/simulation/core/input_count.hpp>
@@ -73,10 +73,6 @@ public:
   ~simulation_data() = default;
 
   [[nodiscard]]
-  std::span<Float>
-  time_span() noexcept;
-
-  [[nodiscard]]
   std::span<Float const>
   time_span() const noexcept;
 
@@ -136,14 +132,6 @@ soa_vector_sink<Float>::simulation_data::simulation_data(
     , ground_displacement_data_{std::move(ground_displacement_data)}
     , tire_force_data_{std::move(tire_force_data)}
 {
-}
-
-
-template<std::floating_point Float>
-std::span<Float>
-soa_vector_sink<Float>::simulation_data::time_span() noexcept
-{
-  return time_data_;
 }
 
 
@@ -275,4 +263,4 @@ soa_vector_sink_factory<Float>::operator()(Count count) const
 
 } // namespace hilbert::simulation::suspension::sinks
 
-#endif // HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_HPP
+#endif // HILBERT_SIMULATION_SUSPENSION_SINKS_SOA_VECTOR_SINK_HPP

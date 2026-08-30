@@ -31,7 +31,7 @@ target_sources(
                 include/public/hilbert/analysis/sampling/sample_window.hpp
                 include/public/hilbert/analysis/signals/hilbert_transform.hpp
                 include/public/hilbert/analysis/signals/signal_data.hpp
-                include/public/hilbert/analysis/signals/remove_dc_component.hpp
+                include/public/hilbert/analysis/signals/mean.hpp
                 include/public/hilbert/analysis/sinusoidal/basis.hpp
                 include/public/hilbert/analysis/sinusoidal/sinusoidal_fit.hpp
                 include/public/hilbert/analysis/sinusoidal/frequency_hz.hpp
@@ -56,7 +56,7 @@ target_sources(
                 include/public/hilbert/simulation/integrators/rk4.hpp
                 include/public/hilbert/simulation/sinks/adapters.hpp
                 include/public/hilbert/simulation/sinks/concepts.hpp
-                include/public/hilbert/simulation/sinks/normal_equations.hpp
+                include/public/hilbert/simulation/sinks/normal_equations_sink.hpp
                 include/public/hilbert/simulation/suspension.hpp
                 include/public/hilbert/simulation/suspension/factory.hpp
                 include/public/hilbert/simulation/suspension/frequency.hpp
@@ -65,8 +65,8 @@ target_sources(
                 include/public/hilbert/simulation/suspension/model.hpp
                 include/public/hilbert/simulation/suspension/parameters.hpp
                 include/public/hilbert/simulation/suspension/sample.hpp
-                include/public/hilbert/simulation/suspension/sinks/soa_vector.hpp
-                include/public/hilbert/simulation/suspension/sinks/vector.hpp
+                include/public/hilbert/simulation/suspension/sinks/soa_vector_sink.hpp
+                include/public/hilbert/simulation/suspension/sinks/vector_sink.hpp
                 include/public/hilbert/simulation/suspension/state.hpp
     PRIVATE
         FILE_SET private_headers

@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 
@@ -43,8 +44,10 @@ private:
   Statistics statistics_;
 
 public:
-  least_squares_products(
-      gram_type gram, std::array<projection_type, ResponseCount> projections, Statistics statistics = {}) noexcept;
+  least_squares_products(gram_type gram, std::array<projection_type, ResponseCount> projections, Statistics statistics = {}) noexcept(
+      std::is_nothrow_copy_constructible_v<gram_type> &&
+      std::is_nothrow_copy_constructible_v<std::array<projection_type, ResponseCount>> &&
+      std::is_nothrow_move_constructible_v<Statistics>);
 
   [[nodiscard]]
   gram_type const &
@@ -67,8 +70,11 @@ public:
 
 
 template<supported_float Float, math::signature_type Signature, std::size_t ResponseCount, typename Statistics>
-least_squares_products<Float, Signature, ResponseCount, Statistics>::least_squares_products(
-    gram_type gram, std::array<projection_type, ResponseCount> projections, Statistics statistics) noexcept
+least_squares_products<Float, Signature, ResponseCount, Statistics>::
+    least_squares_products(gram_type gram, std::array<projection_type, ResponseCount> projections, Statistics statistics) noexcept(
+        std::is_nothrow_copy_constructible_v<gram_type> &&
+        std::is_nothrow_copy_constructible_v<std::array<projection_type, ResponseCount>> &&
+        std::is_nothrow_move_constructible_v<Statistics>)
     : gram_{gram}
     , projections_{projections}
     , statistics_{std::move(statistics)}
