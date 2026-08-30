@@ -38,8 +38,7 @@ template<
     std::size_t Index,
     hilbert::supported_float Float,
     hilbert::math::signature_type Signature,
-    typename Statistics>
-requires hilbert::analysis::least_squares_residual_statistics_for<Statistics, Float, 2uz>
+    hilbert::analysis::least_squares_residual_statistics_for<Float, 2uz> Statistics>
 [[nodiscard]]
 Float
 normalized_residual(
@@ -47,8 +46,10 @@ normalized_residual(
     hilbert::math::vector<Float, Signature> const &coefficients);
 
 
-template<hilbert::supported_float Float, hilbert::math::signature_type Signature, typename Statistics>
-requires hilbert::analysis::least_squares_residual_statistics_for<Statistics, Float, 2uz>
+template<
+    hilbert::supported_float Float,
+    hilbert::math::signature_type Signature,
+    hilbert::analysis::least_squares_residual_statistics_for<Float, 2uz> Statistics>
 [[nodiscard]]
 least_squares_diagnostics<Float>
 make_least_squares_diagnostics(
@@ -109,8 +110,7 @@ template<
     std::size_t Index,
     hilbert::supported_float Float,
     hilbert::math::signature_type Signature,
-    typename Statistics>
-requires hilbert::analysis::least_squares_residual_statistics_for<Statistics, Float, 2uz>
+    hilbert::analysis::least_squares_residual_statistics_for<Float, 2uz> Statistics>
 Float
 detail::normalized_residual(
     hilbert::analysis::least_squares_products<Float, Signature, 2uz, Statistics> const &products,
@@ -127,8 +127,10 @@ detail::normalized_residual(
 }
 
 
-template<hilbert::supported_float Float, hilbert::math::signature_type Signature, typename Statistics>
-requires hilbert::analysis::least_squares_residual_statistics_for<Statistics, Float, 2uz>
+template<
+    hilbert::supported_float Float,
+    hilbert::math::signature_type Signature,
+    hilbert::analysis::least_squares_residual_statistics_for<Float, 2uz> Statistics>
 least_squares_diagnostics<Float>
 detail::make_least_squares_diagnostics(
     hilbert::analysis::least_squares_products<Float, Signature, 2uz, Statistics> const &products,

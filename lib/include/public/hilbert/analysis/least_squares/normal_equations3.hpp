@@ -7,6 +7,7 @@
 #include <hilbert/analysis/least_squares/least_squares_products.hpp>
 #include <hilbert/analysis/least_squares/observation.hpp>
 #include <hilbert/analysis/least_squares/observation_count.hpp>
+#include <hilbert/analysis/least_squares/reduction_domain.hpp>
 #include <hilbert/core/supported_float.hpp>
 #include <hilbert/detail/attributes.hpp>
 #include <hilbert/math/linear_algebra/symmetric_matrix.hpp>
@@ -39,9 +40,6 @@ concept least_squares_statistics_collector_for =
     };
 
 
-namespace detail
-{
-
 template<supported_float Float, std::size_t ResponseCount>
 class no_least_squares_statistics_collector
 {
@@ -56,16 +54,14 @@ public:
   finish([[maybe_unused]] std::size_t observation_count) && noexcept;
 };
 
-} // namespace detail
-
 
 template<
     supported_float Float,
     basis_for_size<3uz, Float> Basis,
     std::size_t ResponseCount,
-    detail::reduction_domain Domain,
-    typename StatisticsCollector = detail::no_least_squares_statistics_collector<Float, ResponseCount>>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_reduction_domain Domain,
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector =
+        no_least_squares_statistics_collector<Float, ResponseCount>>
 class normal_equations_reducer3
 {
   static_assert(ResponseCount > 0uz);
@@ -96,6 +92,9 @@ class normal_equations_reducer3
 
 public:
   using float_type = Float;
+  using basis_type = Basis;
+  using domain_type = Domain;
+  using statistics_collector_type = StatisticsCollector;
   static constexpr std::size_t response_count = ResponseCount;
   using statistics_type = StatisticsCollector::statistics_type;
 
@@ -112,15 +111,15 @@ public:
 
 template<supported_float Float, std::size_t ResponseCount>
 void
-detail::no_least_squares_statistics_collector<Float, ResponseCount>::observe(
+no_least_squares_statistics_collector<Float, ResponseCount>::observe(
     [[maybe_unused]] std::array<Float, ResponseCount> const &responses) noexcept
 {
 }
 
 
 template<supported_float Float, std::size_t ResponseCount>
-detail::no_least_squares_statistics_collector<Float, ResponseCount>::statistics_type
-detail::no_least_squares_statistics_collector<Float, ResponseCount>::finish(
+no_least_squares_statistics_collector<Float, ResponseCount>::statistics_type
+no_least_squares_statistics_collector<Float, ResponseCount>::finish(
     [[maybe_unused]] std::size_t observation_count) && noexcept
 {
   return {};
@@ -131,9 +130,8 @@ template<
     supported_float Float,
     basis_for_size<3uz, Float> Basis,
     std::size_t ResponseCount,
-    detail::reduction_domain Domain,
-    typename StatisticsCollector>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_reduction_domain Domain,
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 normal_equations_reducer3<Float, Basis, ResponseCount, Domain, StatisticsCollector>::normal_equations_reducer3(
     Basis basis, Domain domain, StatisticsCollector statistics_collector)
     : basis_{std::move(basis)}
@@ -147,9 +145,8 @@ template<
     supported_float Float,
     basis_for_size<3uz, Float> Basis,
     std::size_t ResponseCount,
-    detail::reduction_domain Domain,
-    typename StatisticsCollector>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_reduction_domain Domain,
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 void
 normal_equations_reducer3<Float, Basis, ResponseCount, Domain, StatisticsCollector>::accumulate(
     least_squares_observation<Float, ResponseCount> const &observation)
@@ -181,9 +178,8 @@ template<
     supported_float Float,
     basis_for_size<3uz, Float> Basis,
     std::size_t ResponseCount,
-    detail::reduction_domain Domain,
-    typename StatisticsCollector>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_reduction_domain Domain,
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 least_squares_products<
     Float,
     typename Basis::signature_type,
@@ -227,8 +223,8 @@ template<
     supported_float Float,
     typename Basis,
     std::size_t ResponseCount,
-    typename Domain,
-    typename StatisticsCollector = detail::no_least_squares_statistics_collector<Float, ResponseCount>>
+    least_squares_reduction_domain Domain,
+    typename StatisticsCollector = no_least_squares_statistics_collector<Float, ResponseCount>>
 using normal_equations_reducer = normal_equations_reducer3<Float, Basis, ResponseCount, Domain, StatisticsCollector>;
 
 
@@ -236,8 +232,8 @@ template<
     supported_float Float,
     std::size_t ResponseCount,
     basis_for_size<3uz, Float> Basis,
-    typename StatisticsCollector = detail::no_least_squares_statistics_collector<Float, ResponseCount>>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector =
+        no_least_squares_statistics_collector<Float, ResponseCount>>
 [[nodiscard]]
 auto
 make_normal_equations_reducer(
@@ -248,8 +244,8 @@ template<
     supported_float Float,
     std::size_t ResponseCount,
     basis_for_size<3uz, Float> Basis,
-    typename StatisticsCollector = detail::no_least_squares_statistics_collector<Float, ResponseCount>>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector =
+        no_least_squares_statistics_collector<Float, ResponseCount>>
 [[nodiscard]]
 auto
 make_normal_equations_reducer(
@@ -266,14 +262,13 @@ template<
     supported_float Float,
     basis_for_size<3uz, Float> Basis,
     least_squares_observation_range<Float> Observations,
-    typename StatisticsCollector = detail::no_least_squares_statistics_collector<
+    least_squares_statistics_collector_for<
         Float,
-        least_squares_observation_traits<
-            std::remove_cvref_t<std::ranges::range_value_t<Observations>>>::response_count>>
-requires least_squares_statistics_collector_for<
-    StatisticsCollector,
-    Float,
-    least_squares_observation_traits<std::remove_cvref_t<std::ranges::range_value_t<Observations>>>::response_count>
+        least_squares_observation_traits<std::remove_cvref_t<std::ranges::range_value_t<Observations>>>::response_count>
+        StatisticsCollector = no_least_squares_statistics_collector<
+            Float,
+            least_squares_observation_traits<
+                std::remove_cvref_t<std::ranges::range_value_t<Observations>>>::response_count>>
 [[nodiscard]]
 auto
 form_normal_equations(Basis basis, Observations &&observations, StatisticsCollector statistics_collector = {});
@@ -283,13 +278,12 @@ template<
     supported_float Float,
     std::size_t ResponseCount,
     basis_for_size<3uz, Float> Basis,
-    typename StatisticsCollector>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 auto
 make_normal_equations_reducer(Basis basis, exact_observation_count count, StatisticsCollector statistics_collector)
 {
-  return normal_equations_reducer3<Float, Basis, ResponseCount, detail::known_sample_domain, StatisticsCollector>{
-      std::move(basis), detail::known_sample_domain{count.value()}, std::move(statistics_collector)};
+  return normal_equations_reducer3<Float, Basis, ResponseCount, fixed_observation_domain, StatisticsCollector>{
+      std::move(basis), fixed_observation_domain{count.value()}, std::move(statistics_collector)};
 }
 
 
@@ -297,14 +291,13 @@ template<
     supported_float Float,
     std::size_t ResponseCount,
     basis_for_size<3uz, Float> Basis,
-    typename StatisticsCollector>
-requires least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 auto
 make_normal_equations_reducer(
     Basis basis, [[maybe_unused]] count_observations_t count, StatisticsCollector statistics_collector)
 {
-  return normal_equations_reducer3<Float, Basis, ResponseCount, detail::counted_sample_domain, StatisticsCollector>{
-      std::move(basis), detail::counted_sample_domain{}, std::move(statistics_collector)};
+  return normal_equations_reducer3<Float, Basis, ResponseCount, counted_observation_domain, StatisticsCollector>{
+      std::move(basis), counted_observation_domain{}, std::move(statistics_collector)};
 }
 
 
@@ -312,11 +305,10 @@ template<
     supported_float Float,
     basis_for_size<3uz, Float> Basis,
     least_squares_observation_range<Float> Observations,
-    typename StatisticsCollector>
-requires least_squares_statistics_collector_for<
-    StatisticsCollector,
-    Float,
-    least_squares_observation_traits<std::remove_cvref_t<std::ranges::range_value_t<Observations>>>::response_count>
+    least_squares_statistics_collector_for<
+        Float,
+        least_squares_observation_traits<std::remove_cvref_t<std::ranges::range_value_t<Observations>>>::response_count>
+        StatisticsCollector>
 auto
 form_normal_equations(Basis basis, Observations &&observations, StatisticsCollector statistics_collector)
 {

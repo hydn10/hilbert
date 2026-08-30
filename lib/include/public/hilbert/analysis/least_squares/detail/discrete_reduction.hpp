@@ -3,6 +3,7 @@
 
 
 #include <hilbert/analysis/least_squares/basis_value.hpp>
+#include <hilbert/analysis/least_squares/reduction_domain.hpp>
 #include <hilbert/core/supported_float.hpp>
 
 #include <concepts>
@@ -14,39 +15,6 @@ namespace hilbert::analysis::detail
 
 class discrete_domain_measure
 {
-};
-
-
-class known_sample_domain
-{
-  std::size_t size_;
-
-public:
-  explicit constexpr known_sample_domain(std::size_t size) noexcept;
-
-  [[nodiscard]]
-  constexpr std::size_t
-  size() const noexcept;
-};
-
-
-class counted_sample_domain
-{
-  std::size_t count_{};
-
-public:
-  void
-  observe() noexcept;
-
-  [[nodiscard]]
-  std::size_t
-  size() const noexcept;
-};
-
-
-template<typename Domain>
-concept reduction_domain = requires(Domain const &domain) {
-  { domain.size() } -> std::same_as<std::size_t>;
 };
 
 
@@ -157,33 +125,6 @@ template<supported_float Float, typename Domain>
 [[nodiscard]]
 Float
 resolve_reduction([[maybe_unused]] discrete_domain_measure measure, Domain const &domain) noexcept;
-
-
-constexpr known_sample_domain::known_sample_domain(std::size_t size) noexcept
-    : size_{size}
-{
-}
-
-
-constexpr std::size_t
-known_sample_domain::size() const noexcept
-{
-  return size_;
-}
-
-
-inline void
-counted_sample_domain::observe() noexcept
-{
-  ++count_;
-}
-
-
-inline std::size_t
-counted_sample_domain::size() const noexcept
-{
-  return count_;
-}
 
 
 template<typename Domain>

@@ -50,9 +50,8 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector =
-        hilbert::analysis::detail::no_least_squares_statistics_collector<Float, ResponseCount>>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector =
+        hilbert::analysis::no_least_squares_statistics_collector<Float, ResponseCount>>
 class normal_equations_sink_factory
 {
   HILBERT_NO_UNIQUE_ADDRESS Basis basis_;
@@ -87,9 +86,8 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector =
-        hilbert::analysis::detail::no_least_squares_statistics_collector<Float, ResponseCount>>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector =
+        hilbert::analysis::no_least_squares_statistics_collector<Float, ResponseCount>>
 [[nodiscard]]
 auto
 make_normal_equations_sink_factory(
@@ -127,8 +125,7 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 auto
 normal_equations_sink_factory<Float, ResponseCount, Basis, ObservationFactory, StatisticsCollector>::make_reducer(
     exact_input_count count) const
@@ -143,8 +140,7 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 auto
 normal_equations_sink_factory<Float, ResponseCount, Basis, ObservationFactory, StatisticsCollector>::make_reducer(
     [[maybe_unused]] input_count_upper_bound count) const
@@ -159,8 +155,7 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 auto
 normal_equations_sink_factory<Float, ResponseCount, Basis, ObservationFactory, StatisticsCollector>::make_reducer(
     [[maybe_unused]] unknown_input_count count) const
@@ -175,8 +170,7 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 normal_equations_sink_factory<Float, ResponseCount, Basis, ObservationFactory, StatisticsCollector>::
     normal_equations_sink_factory(
         Basis basis, ObservationFactory observation_factory, StatisticsCollector statistics_collector)
@@ -192,8 +186,7 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 template<input_count_descriptor Count>
 auto
 normal_equations_sink_factory<Float, ResponseCount, Basis, ObservationFactory, StatisticsCollector>::operator()(
@@ -208,8 +201,7 @@ template<
     std::size_t ResponseCount,
     hilbert::analysis::basis_for_size<3uz, Float> Basis,
     typename ObservationFactory,
-    typename StatisticsCollector>
-requires hilbert::analysis::least_squares_statistics_collector_for<StatisticsCollector, Float, ResponseCount>
+    hilbert::analysis::least_squares_statistics_collector_for<Float, ResponseCount> StatisticsCollector>
 auto
 make_normal_equations_sink_factory(
     Basis basis, ObservationFactory observation_factory, StatisticsCollector statistics_collector)

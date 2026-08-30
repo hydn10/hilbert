@@ -4,6 +4,7 @@
 #include <cmath>
 #include <complex>
 #include <concepts>
+#include <cstddef>
 #include <exception>
 #include <iostream>
 #include <limits>
@@ -24,6 +25,24 @@ using reordered_sinusoidal_signature = hilbert::math::
 using sinusoidal_basis = decltype(hilbert::analysis::make_sinusoidal_basis(hilbert::analysis::frequency_hz<double>{1}));
 using dual_sinusoidal_signature = hilbert::math::dual<hilbert::analysis::sinusoidal_signature>;
 
+class custom_observation_domain
+{
+  std::size_t count_;
+
+public:
+  explicit custom_observation_domain(std::size_t count) noexcept
+      : count_{count}
+  {
+  }
+
+  [[nodiscard]]
+  std::size_t
+  size() const noexcept
+  {
+    return count_;
+  }
+};
+
 static_assert(hilbert::math::signature_for_size<hilbert::analysis::sinusoidal_signature, 3uz>);
 static_assert(!hilbert::math::signature_for_size<dual_sinusoidal_signature, 3uz>);
 static_assert(hilbert::math::coordinate_signature_for_size<dual_sinusoidal_signature, 3uz>);
@@ -35,6 +54,13 @@ static_assert(
     hilbert::analysis::least_squares_observation_for<hilbert::analysis::least_squares_observation<double, 2>, double>);
 static_assert(
     !hilbert::analysis::least_squares_observation_for<hilbert::analysis::least_squares_observation<double, 0>, double>);
+static_assert(hilbert::analysis::least_squares_reduction_domain<hilbert::analysis::fixed_observation_domain>);
+static_assert(hilbert::analysis::least_squares_reduction_domain<hilbert::analysis::counted_observation_domain>);
+static_assert(hilbert::analysis::least_squares_reduction_domain<custom_observation_domain>);
+static_assert(hilbert::analysis::least_squares_statistics_collector_for<
+              hilbert::analysis::no_least_squares_statistics_collector<double, 1uz>,
+              double,
+              1uz>);
 
 template<std::floating_point Float>
 Float constexpr tolerance = std::same_as<Float, float> ? Float{1e-3} : Float{1e-10};
@@ -287,6 +313,64 @@ test_least_squares_residual_statistics()
 
 
 void
+test_public_normal_equations_reducer()
+{
+  using basis_type = sinusoidal_basis;
+  using fixed_reducer = hilbert::analysis::
+      normal_equations_reducer3<double, basis_type, 1uz, hilbert::analysis::fixed_observation_domain>;
+  using counted_reducer = hilbert::analysis::normal_equations_reducer3<
+      double,
+      basis_type,
+      1uz,
+      hilbert::analysis::counted_observation_domain,
+      hilbert::analysis::least_squares_residual_statistics_collector<double, 1uz>>;
+  using custom_reducer =
+      hilbert::analysis::normal_equations_reducer3<double, basis_type, 1uz, custom_observation_domain>;
+
+  auto const observations = std::array{
+      hilbert::analysis::make_observation(0.0, 1.0),
+      hilbert::analysis::make_observation(0.25, 2.0),
+      hilbert::analysis::make_observation(0.5, 3.0),
+  };
+
+  auto basis = hilbert::analysis::make_sinusoidal_basis(hilbert::analysis::frequency_hz<double>{1});
+  fixed_reducer fixed{basis, hilbert::analysis::fixed_observation_domain{observations.size()}};
+  for (auto const &observation : observations)
+  {
+    fixed.accumulate(observation);
+  }
+  auto const fixed_products = std::move(fixed).finish();
+
+  counted_reducer counted{
+      basis,
+      hilbert::analysis::counted_observation_domain{},
+      hilbert::analysis::least_squares_residual_statistics_collector<double, 1uz>{}};
+  for (auto const &observation : observations)
+  {
+    counted.accumulate(observation);
+  }
+  auto const counted_products = std::move(counted).finish();
+
+  custom_reducer custom{basis, custom_observation_domain{observations.size()}};
+  for (auto const &observation : observations)
+  {
+    custom.accumulate(observation);
+  }
+  auto const custom_products = std::move(custom).finish();
+
+  require(
+      hilbert::math::get<0, 0>(fixed_products.gram()) == hilbert::math::get<0, 0>(counted_products.gram()),
+      "fixed and counted reducer gram mismatch");
+  require(
+      hilbert::math::get<0, 0>(fixed_products.gram()) == hilbert::math::get<0, 0>(custom_products.gram()),
+      "custom reducer gram mismatch");
+  require(
+      counted_products.statistics().observation_count == observations.size(),
+      "counted reducer statistics observation count mismatch");
+}
+
+
+void
 test_full_least_squares_residual_objective()
 {
   using signature = hilbert::analysis::sinusoidal_signature;
@@ -333,6 +417,7 @@ test_precision()
   test_tagged_sinusoidal_coefficients_ignore_order<Float>();
   test_frequency_response<Float>();
   test_least_squares_residual_statistics();
+  test_public_normal_equations_reducer();
   test_full_least_squares_residual_objective();
   test_basis_reciprocal_conditioning();
 }

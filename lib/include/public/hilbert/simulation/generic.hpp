@@ -12,6 +12,7 @@
 #include <hilbert/simulation/integrators/rk4.hpp>         // IWYU pragma: export
 #include <hilbert/simulation/sinks/adapters.hpp>          // IWYU pragma: export
 #include <hilbert/simulation/sinks/concepts.hpp>          // IWYU pragma: export
+#include <hilbert/simulation/sinks/normal_equations.hpp>  // IWYU pragma: export
 // IWYU pragma: end_exports
 
 

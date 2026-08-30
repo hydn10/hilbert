@@ -20,6 +20,7 @@ target_sources(
                 include/public/hilbert/analysis/least_squares/normal_equations3.hpp
                 include/public/hilbert/analysis/least_squares/observation.hpp
                 include/public/hilbert/analysis/least_squares/observation_count.hpp
+                include/public/hilbert/analysis/least_squares/reduction_domain.hpp
                 include/public/hilbert/analysis/least_squares/least_squares_products.hpp
                 include/public/hilbert/analysis/least_squares/least_squares_residual_statistics.hpp
                 include/public/hilbert/analysis/phase/circular_mean.hpp

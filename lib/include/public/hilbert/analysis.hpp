@@ -12,6 +12,7 @@
 #include <hilbert/analysis/least_squares/normal_equations3.hpp>                 // IWYU pragma: export
 #include <hilbert/analysis/least_squares/observation.hpp>                       // IWYU pragma: export
 #include <hilbert/analysis/least_squares/observation_count.hpp>                 // IWYU pragma: export
+#include <hilbert/analysis/least_squares/reduction_domain.hpp>                  // IWYU pragma: export
 #include <hilbert/analysis/phase/circular_mean.hpp>                             // IWYU pragma: export
 #include <hilbert/analysis/phase/circular_mean_result.hpp>                      // IWYU pragma: export
 #include <hilbert/analysis/phase/mean_resultant_length.hpp>                     // IWYU pragma: export
